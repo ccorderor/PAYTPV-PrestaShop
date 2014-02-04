@@ -60,6 +60,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$context = Context::getContext();
 		$context->cart = $cart;
 		$context->customer = $customer;
+		$id_order = Order::getOrderByCartId(intval($id_cart));
+		if(!$id_order)
+			return;
 
 
 		$paytpv = $this->module;
@@ -67,12 +70,16 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$transaction = array(
 				//'transaction_id' => ''
 				'result' => $result
-			);                
-			if($paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key)){
+			);
+
+			$order = new Order(intval($id_order));
+			if($order->getCurrentState() == Configuration::get('PS_OS_PAYMENT')
+			  OR $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key)
+			  ){
 				$values = array(
 					'id_cart' => $id_cart,
 					'id_module' => (int)$this->module->id,
-					'id_order' => Order::getOrderByCartId(intval($id_cart)),
+					'id_order' => $id_order,
 					'key' => $_REQUEST['key']
 				);				
 				if ($reg_estado == 1)

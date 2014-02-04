@@ -42,6 +42,7 @@
 			<ul>
 				<li>URLOK: {$OK}</li>
 				<li>URLKO: {$KO}</li>
+				<li>URL Notificación: {$OK}</li>				
 			</ul>
 		</p>
 	</div>
