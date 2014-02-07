@@ -42,48 +42,62 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign(array(
             'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
         ));
-		// Recoger datos de respuesta
-		if(isset($_REQUEST['i']))
+        $esURLOK = false;
+        $pagoRegistrado = false;
+        $result = 666;
+		// Recoger datos de respuesta de la notificación
+		if(isset($_REQUEST['Amount'])
+			AND isset($_REQUEST['Order'])
+			AND isset($_REQUEST['Response'])
+			AND isset($_REQUEST['Signature']))
+		{
+			$importe  = number_format($_REQUEST['Amount'] / 100, 2);
+			$ref = $_REQUEST['Order'];
+			$result = $_REQUEST['Response']=='OK'?0:-1;
+			$sign = $_REQUEST['Signature'];
+			$esURLOK = false;
+		}
+        // Recoger datos de respuesta de la urlok
+		if(isset($_REQUEST['i'])
+			AND isset($_REQUEST['r'])
+			AND isset($_REQUEST['ret'])
+			AND isset($_REQUEST['h']))
+		{
 			$importe  = number_format($_REQUEST['i'] / 100, 2);
-		if(isset($_REQUEST['r']))
 			$ref = $_REQUEST['r'];
-// 		if(isset($_REQUEST['id_cart']))
-// 			$id_cart = intval($_REQUEST['id_cart']);
-		$result = 666;
-		if(isset($_REQUEST['ret']))
 			$result = intval($_REQUEST['ret']);
-		if(isset($_REQUEST['h']))
 			$sign = $_REQUEST['h'];
+			$esURLOK = true;
+		}
         $id_cart = (int)substr($ref,0,8);
         $cart = new Cart($id_cart);
 		$customer = new Customer((int) $cart->id_customer);
 		$context = Context::getContext();
 		$context->cart = $cart;
 		$context->customer = $customer;
-		$id_order = Order::getOrderByCartId(intval($id_cart));
-		if(!$id_order)
-			return;
-
 
 		$paytpv = $this->module;
         if($sign == md5($paytpv->usercode.$ref.$paytpv->pass.$result) && $result == 0){       
 			$transaction = array(
-				//'transaction_id' => ''
+				'transaction_id' => $_REQUEST['AuthCode'],
 				'result' => $result
 			);
-
-			$order = new Order(intval($id_order));
-			if($order->getCurrentState() == Configuration::get('PS_OS_PAYMENT')
-			  OR $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key)
-			  ){
+			$id_order = Order::getOrderByCartId(intval($id_cart));
+			if($id_order){
+				$order = new Order(intval($id_order));
+				$pagoRegistrado = $order->getCurrentState() == Configuration::get('PS_OS_PAYMENT');
+			}else{
+				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
+				if ($pagoRegistrado AND $reg_estado == 1)
+					class_registro::removeByCartID($id_cart);
+			}
+			if($esURLOK && $pagoRegistrado){
 				$values = array(
 					'id_cart' => $id_cart,
 					'id_module' => (int)$this->module->id,
 					'id_order' => $id_order,
 					'key' => $_REQUEST['key']
 				);				
-				if ($reg_estado == 1)
-					class_registro::removeByCartID($id_cart);                
 				Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
 				return;
 			}
