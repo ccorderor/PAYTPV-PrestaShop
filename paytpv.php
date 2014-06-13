@@ -22,7 +22,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '3.4.0';
+		$this->version = '3.4.1';
 
 		// Array config con los datos de configuración
 		$config = Configuration::getMultiple(array('PAYTPV_USERCODE', 'PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE','PAYTPV_IFRAME','PAYTPV_REG_ESTADO'));

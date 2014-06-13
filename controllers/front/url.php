@@ -45,20 +45,22 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
         $esURLOK = false;
         $pagoRegistrado = false;
         $result = 666;
+        $paytpv = $this->module;
 		// Recoger datos de respuesta de la notificación
 		if(isset($_REQUEST['Amount'])
 			AND isset($_REQUEST['Order'])
 			AND isset($_REQUEST['Response'])
-			AND isset($_REQUEST['Signature']))
+			AND isset($_REQUEST['ExtendedSignature']))
 		{
 			$importe  = number_format($_REQUEST['Amount'] / 100, 2);
 			$ref = $_REQUEST['Order'];
 			$result = $_REQUEST['Response']=='OK'?0:-1;
-			$sign = $_REQUEST['Signature'];
+			$sign = $_REQUEST['ExtendedSignature'];
 			$esURLOK = false;
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.$_REQUEST['TransactionType'].$ref.$_REQUEST['Amount'].$_REQUEST['Currency'].md5($paytpv->pass).$_REQUEST['BankDateTime'].$_REQUEST['Response']);
 		}
         // Recoger datos de respuesta de la urlok
-		if(isset($_REQUEST['i'])
+		else if(isset($_REQUEST['i'])
 			AND isset($_REQUEST['r'])
 			AND isset($_REQUEST['ret'])
 			AND isset($_REQUEST['h']))
@@ -68,6 +70,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = intval($_REQUEST['ret']);
 			$sign = $_REQUEST['h'];
 			$esURLOK = true;
+			$local_sign = md5($paytpv->usercode.$ref.$paytpv->pass.$result);
 		}
         $id_cart = (int)substr($ref,0,8);
         $cart = new Cart($id_cart);
@@ -76,8 +79,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$context->cart = $cart;
 		$context->customer = $customer;
 
-		$paytpv = $this->module;
-        if($sign == md5($paytpv->usercode.$ref.$paytpv->pass.$result) && $result == 0){       
+        if($sign == $local_sign && $result == 0){
 			$transaction = array(
 				'transaction_id' => $_REQUEST['AuthCode'],
 				'result' => $result
@@ -101,10 +103,17 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
 				return;
 			}
+			else if($pagoRegistrado){
+				die('Pago registrado');
+			}
 		}else{
 			if ($reg_estado == 1)
 			//se anota el pedido como no pagado
 				class_registro::add($cart->id_customer, $id_cart, $importe, $result);
+			if ($sign != $local_sign){
+				header("HTTP/1.0 466 Invalid Signature");
+				die('HAcking Attenpt!!');
+			}
 		}
 
         $this->setTemplate('payment_fail.tpl');
