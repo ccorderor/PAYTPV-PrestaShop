@@ -5,8 +5,17 @@
 	<fieldset>
 		<legend>{l s='Configuración del producto paytpv.com'}</legend>
 		<p>{l s='Por favor complete la información requerida. Puede obtener los datos a través de la plataforma de cliente de PayTPV.'}</p>
-		<label>{l s='Nombre de usuario'}</label>
-		<div class="margin-form"><input type="text" size="60" name="usercode" value="{$usercode}" /></div>
+        <label for="operativa" id="lbloperativa">{l s='Tipo de operativa'}</label>
+        <div class="margin-form">
+            <select name="operativa" onchange="checkoperativa();" id="operativa">
+                <option value="1" {if $operativa==1}selected="1"{/if}>TPV WEB</option>
+                <option value="0" {if $operativa==0}selected="1"{/if}>BANKSTORE</option>
+            </select>
+        </div>
+        <div id="usercode_container">
+            <label for="usercode">{l s='Nombre de usuario'}</label>
+            <div class="margin-form"><input type="text" size="60" name="usercode" id="usercode" value="{$usercode}" /></div>
+        </div>
 		<label>{l s='Contraseña'}</label>
 		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
 		<label>{l s='Número de terminal'}</label>
@@ -80,4 +89,13 @@
             </fieldset>    
     {/if}	
 </form>
-
+<script>
+    function checkoperativa(){
+        if(jQuery("#operativa").val() == 0){
+            jQuery("#usercode_container").hide();
+        }else{
+            jQuery("#usercode_container").show();
+        }
+    }
+    checkoperativa();
+</script>

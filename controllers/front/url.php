@@ -47,28 +47,28 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
         $result = 666;
         $paytpv = $this->module;
 		// Recoger datos de respuesta de la notificación
-		if(isset($_REQUEST['Amount'])
-			AND isset($_REQUEST['Order'])
-			AND isset($_REQUEST['Response'])
-			AND isset($_REQUEST['ExtendedSignature']))
+		if(Tools::getValue('Amount')
+			AND Tools::getValue('Order')
+			AND Tools::getValue('Response')
+			AND Tools::getValue('ExtendedSignature'))
 		{
-			$importe  = number_format($_REQUEST['Amount'] / 100, 2);
-			$ref = $_REQUEST['Order'];
-			$result = $_REQUEST['Response']=='OK'?0:-1;
-			$sign = $_REQUEST['ExtendedSignature'];
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$ref = Tools::getValue('Order');
+			$result = Tools::getValue('Response')=='OK'?0:-1;
+			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.$_REQUEST['TransactionType'].$ref.$_REQUEST['Amount'].$_REQUEST['Currency'].md5($paytpv->pass).$_REQUEST['BankDateTime'].$_REQUEST['Response']);
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 		}
         // Recoger datos de respuesta de la urlok
-		else if(isset($_REQUEST['i'])
-			AND isset($_REQUEST['r'])
-			AND isset($_REQUEST['ret'])
-			AND isset($_REQUEST['h']))
+		else if(Tools::getValue('i')
+			AND Tools::getValue('r')
+			AND Tools::getValue('ret')
+			AND Tools::getValue('h'))
 		{
-			$importe  = number_format($_REQUEST['i'] / 100, 2);
-			$ref = $_REQUEST['r'];
-			$result = intval($_REQUEST['ret']);
-			$sign = $_REQUEST['h'];
+			$importe  = number_format(Tools::getValue('i')/ 100, 2);
+			$ref = Tools::getValue('r');
+			$result = intval(Tools::getValue('ret'));
+			$sign = Tools::getValue('h');
 			$esURLOK = true;
 			$local_sign = md5($paytpv->usercode.$ref.$paytpv->pass.$result);
 		}
@@ -80,14 +80,45 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$context->customer = $customer;
 
         if($sign == $local_sign && $result == 0){
+			$id_order = Order::getOrderByCartId(intval($id_cart));
+			if(Tools::getValue('IdUser')){
+				include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+				$client = new WS_Client(
+					array(
+						'clientcode' => $paytpv->clientcode,
+						'term' => $paytpv->term,
+						'pass' => $paytpv->pass,
+					)
+				);
+				$result = $client->info_user( $_REQUEST[ 'IdUser' ], $_REQUEST[ 'TokenUser' ], $_SERVER['REMOTE_ADDR'], true );
+				$sql = 'UPDATE '._DB_PREFIX_.'customer set
+				paytpv_iduser = "'.Tools::getValue('IdUser').'",
+				paytpv_tokenuser = "'.Tools::getValue('TokenUser').'",
+				paytpv_cc = "'.Tools::getValue($result['DS_MERCHANT_PAN']).'"
+				WHERE id_customer = '.(int)$this->context->customer->id;
+				Db::getInstance()->executeS($sql);
+				$sql = 'UPDATE '._DB_PREFIX_.'orders set
+				paytpv_iduser = "'.Tools::getValue('IdUser').'",
+				paytpv_tokenuser = "'.Tools::getValue('TokenUser').'",
+				paytpv_cc = "'.Tools::getValue($result['DS_MERCHANT_PAN']).'"
+				WHERE id_order = '.(int)$id_order;
+				Db::getInstance()->executeS($sql);
+			}
+
 			$transaction = array(
-				'transaction_id' => $_REQUEST['AuthCode'],
+				'transaction_id' => Tools::getValue('AuthCode'),
 				'result' => $result
 			);
-			$id_order = Order::getOrderByCartId(intval($id_cart));
+
 			if($id_order){
 				$order = new Order(intval($id_order));
-				$pagoRegistrado = $order->getCurrentState() == Configuration::get('PS_OS_PAYMENT');
+				$sql = 'SELECT COUNT(oh.`id_order_history`) AS nb
+						FROM `'._DB_PREFIX_.'order_history` oh
+						WHERE oh.`id_order` = '.(int)$id_order.'
+				AND oh.id_order_state = '.Configuration::get('PS_OS_PAYMENT');
+
+				$n = Db::getInstance()->getValue($sql);
+				$pagoRegistrado = $n>0;
 			}else{
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
 				if ($pagoRegistrado AND $reg_estado == 1)
@@ -98,7 +129,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					'id_cart' => $id_cart,
 					'id_module' => (int)$this->module->id,
 					'id_order' => $id_order,
-					'key' => $_REQUEST['key']
+					'key' => Tools::getValue('key')
 				);				
 				Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
 				return;
