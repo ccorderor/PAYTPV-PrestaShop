@@ -240,6 +240,7 @@ class Paytpv extends PaymentModule {
 				'3DSECURE' => '1'
 			);
 			$tmpl_vars = $this->getToken($fields);
+			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
 		}else{
 			$signature = md5($this->clientcode.$this->usercode.$this->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($this->pass));
 			$fields = array(
@@ -281,7 +282,6 @@ class Paytpv extends PaymentModule {
 			$res['IDUSER']= $row['paytpv_iduser'];
 			$res['TOKENUSER']= $row['paytpv_tokenuser'];
 			$res['CC'] = $row['paytpv_cc'];
-			$res['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
 		}
 		return  $res;
 	}

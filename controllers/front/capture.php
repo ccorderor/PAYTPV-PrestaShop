@@ -30,7 +30,7 @@
  */
 include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
-class PaytpvUrlModuleFrontController extends ModuleFrontController
+class PaytpvCaptureModuleFrontController extends ModuleFrontController
 {
     public $display_column_left = false;
     public $ssl = true;
@@ -56,30 +56,20 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
 
-		$importe = number_format(Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency), 0, '.', '');
+		$importe = number_format(Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency), 2, '.', '');
 
-		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency,$importe,$this->context->cart->id );
+		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKENUSER'],$this->context->currency->iso_code,$importe,$this->context->cart->id );
 
 
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
-			$transaction = array(
-				'transaction_id' => $charge[ 'DS_MERCHANT_ORDER' ] ,
-				'result' => $charge[ 'DS_RESPONSE' ]
-			);
+			//Esperamos a que la notificación genere el pedido
+			sleep ( 3 );
 			$id_order = Order::getOrderByCartId(intval($this->context->cart->id));
-			if($id_order){
-				$order = new Order(intval($id_order));
-				$pagoRegistrado = $order->getCurrentState() == Configuration::get('PS_OS_PAYMENT');
-			}else{
-				$pagoRegistrado = $paytpv->validateOrder($this->context->cart->id, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $this->context->customer->secure_key);
-				if ($pagoRegistrado AND $reg_estado == 1)
-					class_registro::removeByCartID($this->context->cart->id);
-			}
 			$values = array(
 				'id_cart' => $this->context->cart->id,
 				'id_module' => (int)$this->module->id,
 				'id_order' => $id_order,
-				'key' => $_REQUEST['key']
+				'key' => $this->context->customer->secure_key
 			);
 			Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
 			return;

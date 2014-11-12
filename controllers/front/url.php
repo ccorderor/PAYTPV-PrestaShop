@@ -94,15 +94,15 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				$sql = 'UPDATE '._DB_PREFIX_.'customer set
 				paytpv_iduser = "'.Tools::getValue('IdUser').'",
 				paytpv_tokenuser = "'.Tools::getValue('TokenUser').'",
-				paytpv_cc = "'.Tools::getValue($result['DS_MERCHANT_PAN']).'"
+				paytpv_cc = "'.$result['DS_MERCHANT_PAN'].'"
 				WHERE id_customer = '.(int)$this->context->customer->id;
-				Db::getInstance()->executeS($sql);
+				Db::getInstance()->execute($sql);
 				$sql = 'UPDATE '._DB_PREFIX_.'orders set
 				paytpv_iduser = "'.Tools::getValue('IdUser').'",
 				paytpv_tokenuser = "'.Tools::getValue('TokenUser').'",
-				paytpv_cc = "'.Tools::getValue($result['DS_MERCHANT_PAN']).'"
+				paytpv_cc = "'.$result['DS_MERCHANT_PAN'].'"
 				WHERE id_order = '.(int)$id_order;
-				Db::getInstance()->executeS($sql);
+				Db::getInstance()->execute($sql);
 			}
 
 			$transaction = array(
@@ -111,7 +111,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			);
 
 			if($id_order){
-				$order = new Order(intval($id_order));
 				$sql = 'SELECT COUNT(oh.`id_order_history`) AS nb
 						FROM `'._DB_PREFIX_.'order_history` oh
 						WHERE oh.`id_order` = '.(int)$id_order.'
