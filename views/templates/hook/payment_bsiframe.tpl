@@ -50,7 +50,7 @@
     }
 
     .button_right {
-        float: right;
+        float: left;
         
     }
 
@@ -112,11 +112,11 @@
 
 
     <div style="display: none;">
-        <div id="directpay" style="width:450px;height:200px;overflow:auto;">
+        <div id="directpay" style="overflow:auto;">
             <form name="pago_directo" id="pago_directo" action="" method="post">
                 <h1 class="estilo-tit1">{l s='Usar Tarjeta' mod='paytpv'}</h1>
                 <p>
-                {l s='Pago con tarjeta' mod='paytpv'}:&nbsp
+                {l s='Tarjeta' mod='paytpv'}:&nbsp
                 <strong><span id="datos_tarjeta"></span></strong>
                 </p>
                 <p>
@@ -136,7 +136,7 @@
 
 
     <div style="display: none;">
-        <div id="conditions" style="width:600px;height:400px;overflow:auto;">
+        <div id="conditions" style="overflow:auto;">
             <h1 class="estilo-tit1">Tarjetas vinculadas</h1>
             <p>
             <abbr title="">Este comercio</abbr> no almacena ni transmite los datos tarjetas
@@ -150,7 +150,7 @@
             <p>
             Toda la información de transacciones que se transmite entre este sitio y los sistemas de PAYTPV se
             cifra mediante certificados SSL de 256 bits. Toda la información del titular se transmite cifrada y todos
-            los mensajes enviados a sus servidores desde PAYTPV se firman mediante hashing SHA para evitar su manipulaci´n.
+            los mensajes enviados a sus servidores desde PAYTPV se firman mediante hashing SHA para evitar su manipulación.
             La información que se transmite a los servidores de PAYTPV no se puede examinar, escanear, utilizar o
             modificar por cualquier externo que obtenga acceso a información confidencial.
             </p>
@@ -211,7 +211,11 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $("#open_conditions").fancybox();
+        $("#open_conditions").fancybox({
+                autoSize:false,
+                'width':parseInt($(window).width() * 0.7)
+            });
+
         $("#open_directpay").fancybox({
                 'beforeShow': onOpenDirectPay
             });
