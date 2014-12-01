@@ -1,3 +1,72 @@
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#open_conditions").fancybox({
+                autoSize:false,
+                'width':parseInt($(window).width() * 0.7)
+            });
+
+        $("#open_directpay").fancybox({
+                'beforeShow': onOpenDirectPay
+            });
+
+        $(".remove_card").on("click", function(e){   
+            e.preventDefault();
+            cc = $("#card :selected").text();
+            confirm("{l s='Eliminar tarjeta' mod='paytpv'}" + ": " + cc, true, function(resp) {
+                if (resp)   removeCard();
+            });
+        });
+    });
+
+    function confirm(msg, modal, callback) {
+        $.fancybox("#confirm",{
+            modal: modal,
+            beforeShow: function() {
+                $(".title").html(msg);
+            },
+            afterShow: function() {
+                $(".confirm").on("click", function(event){
+                    if($(event.target).is(".yes")){
+                        ret = true;
+                    } else if ($(event.target).is(".no")){
+                        ret = false;
+                    }
+                    $.fancybox.close();
+                });
+            },
+            afterClose: function() {
+                callback.call(this, ret);
+            }
+        });
+    }
+
+
+    function onOpenDirectPay(){
+        $("#datos_tarjeta").html($("#card :selected").text());
+        $("#pago_directo").attr("action",$("#card").val());
+    }
+
+    function useCard(){
+        if (confirm("{l s='Pulse Aceptar para pagar y finalizar el pedido.' mod='paytpv'}"))
+            window.location.href = $("#card").val();
+    }
+    function removeCard(){
+        cc = $("#card :selected").text();
+        
+        cc = cc.split("(")[0];
+        $("#paytpv_cc").val(cc);
+        $("#action_paytpv").val("remove");
+        $("#form_paytpv").submit();
+
+    }
+    function addCard(){
+        $("#paytpv_agree").val($("#savecard").attr("checked") ? 1 : 0);
+        $("#action_paytpv").val("add");
+        $("#form_paytpv").submit();
+    }
+
+</script>
+
 <style>
 
     .paytpv
@@ -79,19 +148,28 @@
                 <!--<a href="javascript:void(0);" onclick="jQuery('p.paytpv_iframe').show();" title="{l s='Usar los datos de otra tarjeta de crédito' mod='paytpv'}" class="button button-small btn btn-default">
                     {l s='Nueva tarjeta' mod='paytpv'}
                 </a>-->
-                <a href="javascript:void(0);" onclick="removeCard();" class="button button-small btn btn-default">
+                <a href="#" class="remove_card button button-small btn btn-default">
                  {l s='Eliminar tarjeta' mod='paytpv'}
                 </a>
               
                 <p class="paytpv_tarjetas">{l s='Usar tarjeta: Seleccione la tarjeta almacenada que desea usar para realizar el pago.' mod='paytpv'}<br>{l s='Eliminar tarjeta: Seleccione la tarjeta almacenada que desea eliminar.' mod='paytpv'}</p>
+
+
+                <div id="confirm" style="display:none">
+                    <p class="title"></p>
+                    <input type="button" class="confirm yes button" value="Aceptar" />
+                    <input type="button" class="confirm no button" value="Cancelar" />
+                    
+                </div>
+
             {/if}
 
             {if (!$showcard)}
                 <div id="storingStep" class="alert alert-info" style="display: block;">
-                    <h4>¡Agilice sus futuras compras!</h4>
-                    Vincula la tarjeta a tu cuenta para poder hacer todos los trámites de forma ágil y rápida.
+                    <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
+                    {l s='Vincule la tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.' mod='paytpv'}
                     <br>
-                    <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> Si, recordar mi tarjeta aceptando los <a id="open_conditions" href="#conditions">términos y condiciones del servicio</a>.</label>
+                    <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> Si, recordar mi tarjeta aceptando los <a id="open_conditions" href="#conditions">{l s='términos y condiciones del servicio' mod='paytpv'}</a>.</label>
 
 
                     <a href="javascript:void(0);" onclick="addCard();" title="{l s='Nueva Tarjeta de crédito' mod='paytpv'}" class="button button-small btn btn-default">
@@ -127,13 +205,11 @@
                 </p>
                 <p class="button_right">
                     <input type="submit" title="{l s='Pagar' mod='paytpv'}" class="button button-small btn btn-default" value="{l s='Pagar' mod='paytpv'}">
-                        
                     </a>
                 </p>
             </form>
         </div>
     </div>
-
 
     <div style="display: none;">
         <div id="conditions" style="overflow:auto;">
@@ -144,7 +220,7 @@
             plataforma <abbr title="PayTPV On Line S.L.">PAYTPV</abbr>.
             </p>
             <p>
-            En cualquier momento, el usuario puede añadir, eliminar los datos de sus tarjetas vinculadas. Haciendo un nuevo pedido se mostrarán las tarjetas almacenadas y tendrá un botón para poder eliminarlas.
+            En cualquier momento, el usuario puede añadir ó eliminar los datos de sus tarjetas vinculadas. En el apartado Mi cuenta, verá un apartado "Mis tarjetas vinculadas" donde se mostrarán las tarjetas almacenadas y podrán ser eliminadas.
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">Política de seguridad</h2>
             <p>
@@ -209,44 +285,7 @@
     </form>
 </div>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#open_conditions").fancybox({
-                autoSize:false,
-                'width':parseInt($(window).width() * 0.7)
-            });
 
-        $("#open_directpay").fancybox({
-                'beforeShow': onOpenDirectPay
-            });
-    });
-
-    function onOpenDirectPay(){
-        $("#datos_tarjeta").html($("#card :selected").text());
-        $("#pago_directo").attr("action",$("#card").val());
-    }
-
-    function useCard(){
-        if (confirm("{l s='Pulse Aceptar para pagar y finalizar el pedido.' mod='paytpv'}"))
-            window.location.href = $("#card").val();
-    }
-    function removeCard(){
-        cc = $("#card :selected").text();
-        if (confirm("{l s='Esta seguro que desea eliminar la tarjeta ' mod='paytpv'}" + cc)){
-            cc = cc.split("(")[0];
-            $("#paytpv_cc").val(cc);
-            $("#action_paytpv").val("remove");
-            $("#form_paytpv").submit();
-        }
-
-    }
-    function addCard(){
-        $("#paytpv_agree").val($("#savecard").attr("checked") ? 1 : 0);
-        $("#action_paytpv").val("add");
-        $("#form_paytpv").submit();
-    }
-
-</script>
 
 
 

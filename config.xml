@@ -2,7 +2,7 @@
         <module>
             <name>paytpv</name>
             <displayName><![CDATA[paytpv.com]]></displayName>
-            <version><![CDATA[4.0.0]]></version>
+            <version><![CDATA[5.0.0]]></version>
             <description><![CDATA[Aceptar pagos con tarjeta de cr&eacute;dito v&iacute;a paytpv.com]]></description>
             <author><![CDATA[PayTPV]]></author>
             <tab><![CDATA[payment_security]]></tab>

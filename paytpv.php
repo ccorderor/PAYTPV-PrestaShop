@@ -27,7 +27,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '5.0.0';
+		$this->version = '5.1.0';
 		// Array config con los datos de configuración
 
 		$config = $this->getConfigValues();
@@ -78,7 +78,11 @@ class Paytpv extends PaymentModule {
 
 		$paypal_install->updateConfiguration();
 		// Valores por defecto al instalar el módulo
-		if (!parent::install() OR !$this->registerHook('payment') OR !$this->registerHook('paymentReturn'))
+		if (!parent::install() ||
+			!$this->registerHook('payment') ||
+			!$this->registerHook('paymentReturn') ||
+			!$this->registerHook('displayMyAccountBlock') || 
+			!$this->registerHook('displayCustomerAccount'))
 			return false;
 		return true;
 
@@ -309,6 +313,7 @@ class Paytpv extends PaymentModule {
 		$assoc = Db::getInstance()->executeS($sql);
 
 		foreach ($assoc as $key=>$row) {
+
 			$res[$key]['IDUSER']= $row['paytpv_iduser'];
 			$res[$key]['TOKENUSER']= $row['paytpv_tokenuser'];
 			$res[$key]['CC'] = $row['paytpv_cc'];
@@ -354,29 +359,46 @@ class Paytpv extends PaymentModule {
 
 		// Datos usuario
 		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = ' . $idcustomer .' AND paytpv_cc="'.$paytpv_cc.'"';	
-
 		$result = Db::getInstance()->getRow($sql);
 
 		// Si no existe el token lo insertamos
 		if (empty($result) === true){
 			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`) VALUES('.$paytpv_iduser.',"'.$paytpv_tokenuser.'","'.$paytpv_cc.'","'.$paytpv_brand.'",'.$idcustomer.')';
 			Db::getInstance()->Execute($sql);
-
-		// Si existe actualizamos la fecha de uso para mostrarla luego la primera
-
 		}else{
+			// Si existe actualizamos la fecha de uso para mostrarla luego la primera
 			$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set date = \''.pSQL(date('Y-m-d H:i:s')).'\' where id_customer = '.intval($idcustomer).' and paytpv_cc="'.$paytpv_cc.'"';
 			Db::getInstance()->Execute($sql);
-		}
-		// Datos order
 
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order='.$idorder. ' and paytpv_iduser='.$paytpv_iduser;
-		$result = Db::getInstance()->getRow($sql);
-		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`id_order`, `paytpv_iduser`) VALUES('.$idorder.','.$paytpv_iduser.')';
-			Db::getInstance()->Execute($sql);
+			// Eliminamos el usuario creado en paytpv. (NO DEJAMOS CREAR DOS TARJETAS IGUALES AL MIMSO USUARIO)
+			$result = $this->remove_user($paytpv_iduser,$paytpv_tokenuser);
+		}
+
+		// Datos order
+		if ($idorder>0){
+			$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order='.$idorder. ' and paytpv_iduser='.$paytpv_iduser;
+			$result = Db::getInstance()->getRow($sql);
+			if (empty($result) === true){
+				$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`id_order`, `paytpv_iduser`) VALUES('.$idorder.','.$paytpv_iduser.')';
+				Db::getInstance()->Execute($sql);
+			}
 		}
 	}
+
+	public function remove_user($paytpv_iduser,$paytpv_tokenuser){
+		$client = new WS_Client(
+			array(
+				'clientcode' => $this->clientcode,
+				'term' => $this->term,
+				'pass' => $this->pass,
+			)
+		);
+
+		$result = $client->remove_user( $paytpv_iduser, $paytpv_tokenuser, $_SERVER['REMOTE_ADDR']);
+		return $result;
+	}
+
+
 	public function removeCard($paytpv_cc){
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
@@ -389,19 +411,16 @@ class Paytpv extends PaymentModule {
 		);
 		// Datos usuario
 
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where paytpv_cc="'.$paytpv_cc .'"';
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and paytpv_cc="'.$paytpv_cc .'"';
 		$result = Db::getInstance()->getRow($sql);
 		$paytpv_iduser = $result["paytpv_iduser"];
 		$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
 		$result = $client->remove_user( $paytpv_iduser, $paytpv_tokenuser, $_SERVER['REMOTE_ADDR']);
-		if ($result["DS_RESPONSE"]==1){
-			$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_cc`="'.$paytpv_cc.'"';
-			Db::getInstance()->Execute($sql);
-			return true;
-		}
-
-		return false;
+		
+		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_cc`="'.$paytpv_cc.'"';
+		Db::getInstance()->Execute($sql);
+		return true;
 
 	}
 
@@ -434,7 +453,18 @@ class Paytpv extends PaymentModule {
 		$result = Db::getInstance()->getRow($sql);
 		return (empty($result) === true)?false:true;
 	}
+
+
+	/*
+
+	Datos cuenta
+	*/
+
+	public function hookDisplayCustomerAccount($params)
+	{
+		$this->smarty->assign('in_footer', false);
+		return $this->display(__FILE__, 'my-account.tpl');
+	}
 }
 
 ?>
-

@@ -52,8 +52,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$result = 666;
 		$paytpv = $this->module;
 		
-
 		// Recoger datos de respuesta de la notificación
+		// (execute_purchase)
 		if(Tools::getValue('Amount')
 			AND Tools::getValue('Order')
 			AND Tools::getValue('Response')
@@ -65,6 +65,21 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
 			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
+		// (add_user)
+		}else if (Tools::getValue('TransactionType')==107){
+			// Miramos si el cliente 
+			include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+			$client = new WS_Client(
+				array(
+					'clientcode' => $paytpv->clientcode,
+					'term' => $paytpv->term,
+					'pass' => $paytpv->pass,
+				)
+			);
+			$id_customer = Tools::getValue('Order');
+			$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser'), $_SERVER['REMOTE_ADDR'], true );
+			$paytpv->saveCard(0,$id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+			die('Usuario registrado');
 		}
 		// Recoger datos de respuesta de la urlok TPV WEB
 		else if(Tools::getValue('i')
@@ -73,7 +88,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			AND Tools::getValue('h'))
 		{
 			$importe  = number_format(Tools::getValue('i')/ 100, 2);
-			$ref = Tools::getValue('r');
+			$ref = Tools::getValue('r');	
 			$result = intval(Tools::getValue('ret'));
 			$sign = Tools::getValue('h');
 			$esURLOK = true;
@@ -86,6 +101,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$context = Context::getContext();
 		$context->cart = $cart;
 		$context->customer = $customer;
+
 		if($result == 0){
 			$id_order = Order::getOrderByCartId(intval($id_cart));
 			// BANKSTORE: Si hay notificacion
@@ -101,7 +117,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 							'pass' => $paytpv->pass,
 						)
 					);
-					$result = $client->info_user( $_REQUEST[ 'IdUser' ], $_REQUEST[ 'TokenUser' ], $_SERVER['REMOTE_ADDR'], true );
+					$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser'), $_SERVER['REMOTE_ADDR'], true );
 					$paytpv->saveCard($id_order,$cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
 				}
 			}
@@ -140,10 +156,10 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			if ($reg_estado == 1)
 				class_registro::add($cart->id_customer, $id_cart, $importe, $result);
 
-			if ($sign != $local_sign){
+			/*if ($sign != $local_sign){
 				header("HTTP/1.0 466 Invalid Signature");
 				die('HAcking Attenpt!!');
-			}
+			}*/
 
 		}
 		$this->setTemplate('payment_fail.tpl');
