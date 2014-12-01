@@ -21,13 +21,26 @@
 		<label>{l s='Número de terminal'}</label>
 		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
 		<label>{l s='Código de cliente'}</label>
-		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>		
-		<label>{l s='Tipo de integración'}</label>
-        <div class="margin-form">
-            <select name="iframe">
+		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
+        <div id="integracion_container">
+            <label>{l s='Tipo de integración'}</label>
+            <div class="margin-form">
+                <select name="iframe">
                     <option value="0" {if $iframe==0}selected="1"{/if}>Full screen</option>
                     <option value="1" {if $iframe==1}selected="1"{/if}>Iframe</option>
+                </select>
+            </div>
+        </div>
+        <label for="3dfirst" id="lbl3dfirst">{l s='¿Activar 3D secure en el primer pago?'}</label>
+        <div class="margin-form">
+            <select name="3dfirst" id="3dfirst">
+                <option value="1" {if $tdfirst==1}selected="1"{/if}>Sí</option>
+                <option value="0" {if $tdfirst==0}selected="1"{/if}>No</option>
             </select>
+        </div>
+        <div id="3dmin_container">
+            <label for="3dmin">{l s='Activar 3D secure para pagos superiores a'}</label>
+            <div class="margin-form"><input type="number" step="0.01" size="60" name="3dmin" id="3dmin" value="{$tdmin}" style="width:120px;text-align:right"/>&euro;</div>
         </div>
 	</fieldset>	
     <br/>
@@ -93,8 +106,10 @@
     function checkoperativa(){
         if(jQuery("#operativa").val() == 0){
             jQuery("#usercode_container").hide();
+            jQuery("#integracion_container").hide();
         }else{
             jQuery("#usercode_container").show();
+            jQuery("#integracion_container").show();
         }
     }
     checkoperativa();
