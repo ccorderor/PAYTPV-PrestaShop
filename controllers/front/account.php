@@ -46,14 +46,18 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 		$this->context->controller->addJqueryPlugin('fancybox');
 		global $cookie;
 
+
+
 		if (!Context::getContext()->customer->isLogged())
 			Tools::redirect('index.php?controller=authentication&redirect=module&module=paytpv&action=account');
 
 		if (Context::getContext()->customer->id)
 		{
+
 			$paytpv = $this->module;
 			$saved_card = $paytpv->getToken();
-			
+			$suscriptions = $paytpv->getSuscriptions();
+
 			if (Context::getContext()->customer->id){
 				$ps_language = new Language(intval($cookie->id_lang));
 				$order = Context::getContext()->customer->id;
@@ -77,6 +81,8 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				
 				$this->context->smarty->assign('query',http_build_query($fields));
 				$this->context->smarty->assign('saved_card',$saved_card);
+				$this->context->smarty->assign('suscriptions',$suscriptions);
+				$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 				$this->setTemplate('paytpv-account.tpl');
 			}
 		}

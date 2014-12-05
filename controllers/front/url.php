@@ -51,10 +51,16 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$pagoRegistrado = false;
 		$result = 666;
 		$paytpv = $this->module;
+
+		$suscripcion = 0;
+
+		//Logger::addLog(print_r($_POST,true), 1);
+
 		
 		// Recoger datos de respuesta de la notificación
+		
 		// (execute_purchase)
-		if(Tools::getValue('Amount')
+		if (Tools::getValue('TransactionType')==1
 			AND Tools::getValue('Order')
 			AND Tools::getValue('Response')
 			AND Tools::getValue('ExtendedSignature'))
@@ -64,7 +70,10 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+			
+			if ($sign!=$local_sign)	die('Error 1');
+			
 		// (add_user)
 		}else if (Tools::getValue('TransactionType')==107){
 			// Miramos si el cliente 
@@ -76,23 +85,59 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					'pass' => $paytpv->pass,
 				)
 			);
+			$ref = Tools::getValue('Order');
+			$sign = Tools::getValue('Signature');
+			$esURLOK = false;
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($paytpv->pass));
+
+			Logger::addLog(print_r($sign."--".$local_sign,true), 1);
+			if ($sign!=$local_sign)	die('Error 2');
+
 			$id_customer = Tools::getValue('Order');
-			$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser'), $_SERVER['REMOTE_ADDR'], true );
-			$paytpv->saveCard(0,$id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
-			die('Usuario registrado');
+			$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser'));
+			$paytpv->saveCard($id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+			
+			die('Usuario Registrado');
+		
+		// (create_subscription)
+		}else if (Tools::getValue('TransactionType')==9){
+
+			$suscripcion = 1;  // Inicio Suscripcion
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$ref = Tools::getValue('Order');
+
+			// Miramos a ver si es la orden inicial o un pago de la suscripcion (orden[Iduser]Fecha)
+			$datos = explode("[",$ref);
+			$ref = $datos[0];
+
+			if (sizeof($datos)>1)
+				$suscripcion = 2;	// Pago cuota suscripcion	
+
+
+			// Por si es un pago de suscripcion.
+			$result = Tools::getValue('Response')=='OK'?0:-1;
+			$sign = Tools::getValue('ExtendedSignature');
+			$esURLOK = false;
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+			
+			if ($sign!=$local_sign)	die('Error 3');
 		}
+
 		// Recoger datos de respuesta de la urlok TPV WEB
 		else if(Tools::getValue('i')
 			AND Tools::getValue('r')
 			AND Tools::getValue('ret')!=""
 			AND Tools::getValue('h'))
 		{
+			
 			$importe  = number_format(Tools::getValue('i')/ 100, 2);
 			$ref = Tools::getValue('r');	
-			$result = intval(Tools::getValue('ret'));
+			$result = intval(Tools::getValue('ret'));	
 			$sign = Tools::getValue('h');
 			$esURLOK = true;
 			$local_sign = md5($paytpv->usercode.$ref.$paytpv->pass.$result);
+
+			//if ($sign!=$local_sign)	die('Error 4');
 		}
 
 		$id_cart = (int)substr($ref,0,8);
@@ -104,27 +149,13 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 		if($result == 0){
 			$id_order = Order::getOrderByCartId(intval($id_cart));
-			// BANKSTORE: Si hay notificacion
-			if(Tools::getValue('IdUser')){
-				// Si ha pulsado en el acuerdo guardamos el token
-				if ($paytpv->paytpvagree_save($cart->id_customer)){
-					// Miramos si el cliente 
-					include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
-					$client = new WS_Client(
-						array(
-							'clientcode' => $paytpv->clientcode,
-							'term' => $paytpv->term,
-							'pass' => $paytpv->pass,
-						)
-					);
-					$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser'), $_SERVER['REMOTE_ADDR'], true );
-					$paytpv->saveCard($id_order,$cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
-				}
-			}
+			
 			$transaction = array(
 				'transaction_id' => Tools::getValue('AuthCode'),
 				'result' => $result
 			);
+
+			// EXISTE EL PEDIDO
 			if($id_order){
 				$sql = 'SELECT COUNT(oh.`id_order_history`) AS nb
 						FROM `'._DB_PREFIX_.'order_history` oh
@@ -132,10 +163,66 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				AND oh.id_order_state = '.Configuration::get('PS_OS_PAYMENT');
 				$n = Db::getInstance()->getValue($sql);
 				$pagoRegistrado = $n>0;
+
+				// Si ya existe el pedido y es una suscripcion creamos un nuevo carrito
+				// SUSCRIPCION
+				if (Tools::getValue('TransactionType')==9 && $suscripcion==2){
+					$new_cart = $cart->duplicate();
+					$new_cart = $new_cart['cart'];
+					$new_cart_id = $new_cart->id;
+					
+					$pagoRegistrado = $paytpv->validateOrder($new_cart_id, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
+					
+					$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
+					$id_suscription = $data_suscription["id_suscription"];
+					$paytpv_iduser = $data_suscription["paytpv_iduser"];
+					$paytpv_tokenuser = $data_suscription["paytpv_tokenuser"];
+					
+					$id_order = Order::getOrderByCartId(intval($new_cart_id));
+					
+					$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$new_cart->id_customer,$id_order,$importe);
+				}
+			// NO EXISTE EL PEDIDO
 			}else{
+				// 
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
-				if ($pagoRegistrado AND $reg_estado == 1)
-					class_registro::removeByCartID($id_cart);
+				
+				// BANKSTORE: Si hay notificacion
+				if(Tools::getValue('IdUser')){
+					$id_order = Order::getOrderByCartId(intval($id_cart));
+					$paytpv->savePayTpvOrder(Tools::getValue('IdUser'),Tools::getValue('TokenUser'),0,$cart->id_customer,$id_order,$importe);
+					if ($pagoRegistrado AND $reg_estado == 1)
+						class_registro::removeByCartID($id_cart);
+
+					$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
+					// Si ha pulsado en el acuerdo guardamos el token
+					if ($datos_order["paytpvagree"]){
+						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+						$client = new WS_Client(
+							array(
+								'clientcode' => $paytpv->clientcode,
+								'term' => $paytpv->term,
+								'pass' => $paytpv->pass,
+							)
+						);
+						$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser') );
+						$id_order = Order::getOrderByCartId(intval($id_cart));
+						$paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+					}
+					// SUSCRIPCION
+					if ($suscripcion==1){
+						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+						$client = new WS_Client(
+							array(
+								'clientcode' => $paytpv->clientcode,
+								'term' => $paytpv->term,
+								'pass' => $paytpv->pass,
+							)
+						);
+						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
+					}
+				}
+				
 			}
 			// Si venimos de URLOK y se ha registrado el pago mandamos a la pagina de confirmacion de orden
 			if($esURLOK && $pagoRegistrado){
@@ -153,7 +240,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			}
 		}else{
 			//se anota el pedido como no pagado
-			if ($reg_estado == 1)
+			if (isset($reg_estado) && $reg_estado == 1)
 				class_registro::add($cart->id_customer, $id_cart, $importe, $result);
 
 			/*if ($sign != $local_sign){

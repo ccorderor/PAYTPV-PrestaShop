@@ -39,6 +39,14 @@
             });
         });
 
+        $(".cancel_suscription").on("click", function(e){   
+            e.preventDefault();
+            $("#id_suscription").val($(this).attr("id"));
+            confirm("{l s='Eliminar suscripción' mod='paytpv'}", true, function(resp) {
+                if (resp)   cancelSuscription();
+            });
+        });
+
     });
 
     function confirm(msg, modal, callback) {
@@ -99,7 +107,7 @@
 	{
 		paytpv_cc = $("#paytpv_cc").val();
 		$.ajax({
-			url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'remove'], true)|addslashes}",
+			url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true)|addslashes}",
 			type: "POST",
 			data: {
 				'paytpv_cc': paytpv_cc,
@@ -109,12 +117,35 @@
 			{
 				if (result == '0')
 				{
-					$("#card_"+paytpv_cc).fadeOut(1000);
+                   $("#card_"+paytpv_cc).fadeOut(1000);
 				}
  		 	}
 		});
 		
 	};
+
+
+    function cancelSuscription()
+    {
+        id_suscription = $("#id_suscription").val();
+        $.ajax({
+            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'cancelSuscription'], true)|addslashes}",
+            type: "POST",
+            data: {
+                'id_suscription': id_suscription,
+                'ajax': true
+            },
+            success: function(result)
+            {
+                if (result == '0')
+                {
+                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">{l s='CANCELADA' mod='paytpv'}</span>");
+                    //$("#suscription_"+id_suscription).fadeOut(1000);
+                }
+            }
+        });
+        
+    };
 
 </script>
 
@@ -152,9 +183,36 @@
 		color: #a6a6a6;
 		}
 
-	.remove_card{
+    .suscriptionCard {
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        padding: 20px;
+
+        color: #a6a6a6;
+        }
+
+    #div_suscripciones_pay {
+        margin-top: 5px;
+      
+        }
+
+    .suscription_pay {
+        border-radius: 4px;
+        padding-left: 50px;
+        color: #a6a6a6;
+        }
+
+
+	.remove_card,.cancel_suscription{
 		color: #ff6000!important;
 	}
+
+    #div_suscripciones li{
+        list-style:none;
+    } 
+
+
 </style>
 
 {capture name=path}
@@ -165,7 +223,7 @@
 {include file="$tpl_dir./breadcrumb.tpl"}
 
 <div id="paytpv_block_account">
-	<h2>{l s='Mis tarjetas vinculadas.' mod='paytpv'}</h2>
+	<h2>{l s='Mis tarjetas vinculadas' mod='paytpv'}</h2>
 	{if isset($saved_card[0])}
 		<div class="span6" id="div_tarjetas">
             {l s='Tarjetas disponibles' mod='paytpv'}:
@@ -180,24 +238,12 @@
             	</div>
             {/section}
     	</div>
-
-        <div id="confirm" style="display:none">
-            <p class="title"></p>
-            <input type="button" class="confirm yes button" value="{l s='Aceptar' mod='paytpv'}" />
-            <input type="button" class="confirm no button" value="{l s='Cancelar' mod='paytpv'}" />
-            <input type="hidden" name="patypv_cc" id="paytpv_cc">
-        </div>
-    </div>
+   
 	{else}
 		<p class="warning">{l s='No tiene asociado todavía ninguna tarjeta. ' mod='paytpv'}</p>
 	{/if}
 
-
-    <div id="alert">
-            <p class="title"></p>
-    </div>
-
-	<div id="storingStep" class="alert alert-info" style="display: block;">
+    <div id="storingStep" class="alert alert-info" style="display: block;">
         <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
         {l s='Vincule una tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.' mod='paytpv'}
         <br>
@@ -214,6 +260,68 @@
         <p class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
             <iframe src="https://secure.paytpv.com/gateway/bnkgateway.php?{$query}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
         </p>
+    </div>
+    <br/>
+    <hr>
+    <br/>
+    <h2>{l s='Mis suscripciones' mod='paytpv'}</h2>
+    {if isset($suscriptions[0])}
+        <div class="span6" id="div_suscripciones">
+            {l s='Suscripciones' mod='paytpv'}:
+            <ul>
+                {section name=suscription loop=$suscriptions} 
+                    <li class="suscriptionCard" id="suscription_{$suscriptions[suscription].ID_SUSCRIPTION}">  
+                        <a href="{$base_dir}index.php?controller=order-detail&id_order={$suscriptions[suscription].ID_ORDER}">{l s='Pedido' mod='paytpv'}: {$suscriptions[suscription].ORDER_REFERENCE}</a>
+                        <br>
+                        {l s='Cada' mod='paytpv'} {$suscriptions[suscription].PERIODICITY} {l s='días' mod='paytpv'} - repetir {$suscriptions[suscription].CYCLES} veces - Precio: {$suscriptions[suscription].PRICE} - Inicio: {$suscriptions[suscription].DATE_YYYYMMDD}
+                        <label class="button_del">
+                            {if $suscriptions[suscription].STATUS==0}
+                                <a href="#" id="{$suscriptions[suscription].ID_SUSCRIPTION}" class="cancel_suscription">
+                                 {l s='Cancelar Suscripcion' mod='paytpv'}
+                                </a>
+                            {else if $suscriptions[suscription].STATUS==1}
+                                <span class="canceled_suscription">
+                                    {l s='CANCELADA' mod='paytpv'}
+                                </span>
+                            {else if $suscriptions[suscription].STATUS==2}
+                                <span class="finised_suscription">
+                                    {l s='FINALIZADA' mod='paytpv'}
+                                </span>
+                            {/if}
+                        </label>
+                        <div class="span6" id="div_suscripciones_pay">
+                            {$suscription_pay = $suscriptions[suscription].SUSCRIPTION_PAY}
+                            <ul >
+                                {section name=suscription_pay loop=$suscription_pay}
+                                <li class="suscription_pay" id="suscription_pay{$suscription_pay[suscription_pay].ID_SUSCRIPTION}">
+                                   
+                                     <a href="{$base_dir}index.php?controller=order-detail&id_order={$suscription_pay[suscription_pay].ID_ORDER}">{l s='Pedido' mod='paytpv'}: {$suscription_pay[suscription_pay].ORDER_REFERENCE}</a>
+                                     Precio: {$suscription_pay[suscription_pay].PRICE} - Fecha: {$suscription_pay[suscription_pay].DATE_YYYYMMDD}
+
+                                </li>
+                                {/section}
+                            </ul>
+
+                        </div>
+                    </li>
+                {/section}
+            </ul>
+        </div>
+   
+    {else}
+        <p class="warning">{l s='No tiene ninguna suscripción. ' mod='paytpv'}</p>
+    {/if}
+
+    <div id="alert" style="display:none">
+        <p class="title"></p>
+    </div>
+
+    <div id="confirm" style="display:none">
+        <p class="title"></p>
+        <input type="button" class="confirm yes button" value="{l s='Aceptar' mod='paytpv'}" />
+        <input type="button" class="confirm no button" value="{l s='Cancelar' mod='paytpv'}" />
+        <input type="hidden" name="paytpv_cc" id="paytpv_cc">
+        <input type="hidden" name="id_suscription" id="id_suscription">
     </div>
 
     <div style="display: none;">

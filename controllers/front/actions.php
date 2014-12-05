@@ -32,18 +32,21 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	/**
 	 * @var int
 	 */
-	public $paytpv_cc;
-
+	
 	public function init()
 	{
 
-		$this->paytpv_cc = Tools::getValue('paytpv_cc');
+		
 	}
 
 	public function postProcess()
 	{
-		if (Tools::getValue('process') == 'remove')
-			$this->processRemove();
+		
+		if (Tools::getValue('process') == 'removeCard')
+			$this->processRemoveCard();
+
+		if (Tools::getValue('process') == 'cancelSuscription')
+			$this->processCancelSuscription();
 		
 		exit;
 	}
@@ -51,11 +54,23 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	/**
 	 * Remove card
 	 */
-	public function processRemove()
+	public function processRemoveCard()
 	{
 		$paytpv = $this->module;
-		if ($paytpv->removeCard($this->paytpv_cc))
+
+		if ($paytpv->removeCard(Tools::getValue('paytpv_cc')))
 			die('0');
-		die(1);
+		die('1');
+	}
+
+	/**
+	 * Remove suscription
+	 */
+	public function processCancelSuscription()
+	{
+		$paytpv = $this->module;
+		if ($paytpv->cancelSuscription(Tools::getValue('id_suscription')))
+			die('0');
+		die('1');
 	}
 }

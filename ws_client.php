@@ -44,7 +44,7 @@ class WS_Client {
 
 		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
 
-		$DS_MERCHANT_AMOUNT = $amount * 100;
+		$DS_MERCHANT_AMOUNT = $amount;
 
 		if($ref=='')
 
@@ -57,6 +57,9 @@ class WS_Client {
 		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $DS_MERCHANT_AMOUNT . $DS_MERCHANT_ORDER . $this->config[ 'pass' ] );
 
 		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
+
+		
 
 		$p = array(
 
@@ -93,7 +96,7 @@ class WS_Client {
 		return $res;
 
 	}
-	function info_user( $idUser, $tokeUser, $ip ) {
+	function info_user( $idUser, $tokeUser) {
 
 		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
 
@@ -105,7 +108,8 @@ class WS_Client {
 
 		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $this->config[ 'pass' ] );
 
-		$DS_ORIGINAL_IP = $ip;
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
 
 		$p = array(
 
@@ -127,12 +131,12 @@ class WS_Client {
 
 		$res = $this->client->call( 'info_user', $p, '', '', false, true );
 
-		$this->write_log("Respuesta info_user:\n".print_r($p,true));
+		$this->write_log("Respuesta info_user:\n".print_r($res,true));
 
 		return $res;
 
 	}
-	function remove_user( $idUser, $tokeUser, $ip ) {
+	function remove_user( $idUser, $tokeUser) {
 
 		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
 
@@ -144,7 +148,8 @@ class WS_Client {
 
 		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $this->config[ 'pass' ] );
 
-		$DS_ORIGINAL_IP = $ip;
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
 
 		$p = array(
 
@@ -165,56 +170,146 @@ class WS_Client {
 
 		$res = $this->client->call( 'remove_user', $p, '', '', false, true );
 
-		$this->write_log("Respuesta remove_user:\n".print_r($p,true));
+		$this->write_log("Respuesta remove_user:\n".print_r($res,true));
+
+		return $res;
+
+	}
+
+	function create_subscription_token( $idUser, $tokeUser, $DS_SUSCRIPTION_CURRENCY='EUR',$amount,$ref='',$stardate,$enddate,$peridicity) {
+
+		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
+
+		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
+
+		$DS_IDUSER = $idUser;
+
+		$DS_TOKEN_USER = $tokeUser;
+
+		$DS_SUBSCRIPTION_STARTDATE = $stardate;
+		$DS_SUBSCRIPTION_ENDDATE = $enddate;
+
+		if($ref=='')
+			$DS_SUBSCRIPTION_ORDER = time();
+		else
+			$DS_SUBSCRIPTION_ORDER = str_pad( $ref, 8, "0", STR_PAD_LEFT ) . round(rand(0,99));
+
+		$DS_SUBSCRIPTION_PERIODICITY = $peridicity;
+
+		$DS_SUSCRIPTION_AMOUNT = $amount;
+		
+		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $DS_SUSCRIPTION_AMOUNT .  $DS_SUSCRIPTION_CURRENCY . $this->config[ 'pass' ] );
+
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
+
+		$p = array(
+
+			'DS_MERCHANT_MERCHANTCODE' => $DS_MERCHANT_MERCHANTCODE,
+
+			'DS_MERCHANT_TERMINAL' => $DS_MERCHANT_TERMINAL,
+
+			'DS_IDUSER' => $DS_IDUSER,
+
+			'DS_TOKEN_USER' => $DS_TOKEN_USER,
+
+			'DS_SUBSCRIPTION_STARTDATE' => $DS_SUBSCRIPTION_STARTDATE,
+			'DS_SUBSCRIPTION_ENDDATE' => $DS_SUBSCRIPTION_ENDDATE,
+
+			'DS_SUBSCRIPTION_ORDER' => ( string ) $DS_SUBSCRIPTION_ORDER,
+			'DS_SUBSCRIPTION_PERIODICITY' => $DS_SUBSCRIPTION_PERIODICITY,
+
+			'DS_SUBSCRIPTION_AMOUNT' => ( string ) $DS_SUSCRIPTION_AMOUNT,
+
+			'DS_SUBSCRIPTION_CURRENCY' => $DS_SUSCRIPTION_CURRENCY,
+			
+
+			'DS_MERCHANT_MERCHANTSIGNATURE' => $DS_MERCHANT_MERCHANTSIGNATURE,
+
+			'DS_ORIGINAL_IP' => $DS_ORIGINAL_IP
+
+		);
+		$this->write_log("Petición create_subscription_token:\n".print_r($p,true));
+
+		$res = $this->client->call( 'create_subscription_token', $p, '', '', false, true );
+
+		$this->write_log("Respuesta create_subscription_token:\n".print_r($res,true));
+
+		return $res;
+
+	}
+
+	
+
+	function remove_subscription( $idUser, $tokeUser) {
+
+		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
+
+		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
+
+		$DS_IDUSER = $idUser;
+
+		$DS_TOKEN_USER = $tokeUser;
+
+		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $this->config[ 'pass' ] );
+
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
+
+		$p = array(
+
+			'DS_MERCHANT_MERCHANTCODE' => $DS_MERCHANT_MERCHANTCODE,
+
+			'DS_MERCHANT_TERMINAL' => $DS_MERCHANT_TERMINAL,
+
+			'DS_IDUSER' => $DS_IDUSER,
+
+			'DS_TOKEN_USER' => $DS_TOKEN_USER,
+
+			'DS_MERCHANT_MERCHANTSIGNATURE' => $DS_MERCHANT_MERCHANTSIGNATURE,
+
+			'DS_ORIGINAL_IP' => $DS_ORIGINAL_IP
+
+		);
+		$this->write_log("Petición remove_user:\n".print_r($p,true));
+
+		$res = $this->client->call( 'remove_subscription', $p, '', '', false, true );
+
+		$this->write_log("Respuesta remove_user:\n".print_r($res,true));
 
 		return $res;
 
 	}
 }
-/**
 
- * @author mikel
-
- *
-
- */
 
 class CreditCard {
 	/**
-
 	 * @var string
-
 	 */
 
 	protected $type;
 	/**
-
 	 * @var long
-
 	 */
 
 	protected $pan;
 	/**
-
 	 * @var unknown_type
-
 	 */
 
 	protected $exp;
 	/**
-
 	 * @var string
-
 	 */
 
 	protected $name;
 	/**
-
 	 * @var int
-
 	 */
 
 	protected $cvv;
+
 	public function getType() {
 
 		return $this->type;

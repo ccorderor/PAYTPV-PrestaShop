@@ -37,7 +37,7 @@ class PayTpvInstall
 	public function createTables()
 	{
 		if (!Db::getInstance()->Execute('
-			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'registro` (
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpvregistro` (
 			  `id_registro` int(10) unsigned NOT NULL AUTO_INCREMENT,
 			  `id_customer` int(10) unsigned NOT NULL,
 			  `id_cart` int(10) unsigned NOT NULL,
@@ -46,15 +46,20 @@ class PayTpvInstall
 			  `error_code` varchar(64) character set utf8 NOT NULL,
 			  PRIMARY KEY  (`id_registro`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1'))
-			return false;
+		return false;
 
 		if (!Db::getInstance()->Execute('
-			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_order` (
-				`id_order` int(10) unsigned NOT NULL,
-				`paytpv_iduser` int NOT NULL,
-				PRIMARY KEY (`id_order`)
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_order_info` (
+				`id_customer` int(10) unsigned NOT NULL,
+				`id_cart` int(10) unsigned NOT NULL,
+				`paytpvagree` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+				`suscription` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+				`periodicity` INT(3) NOT NULL,
+				`cycles` INT(2) NOT NULL,
+				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				PRIMARY KEY (`id_customer`, `id_cart`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
-			return false;
+		return false;
 
 		if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_customer` (
@@ -69,13 +74,34 @@ class PayTpvInstall
 		return false;
 
 		if (!Db::getInstance()->Execute('
-			CREATE TABLE IF NOT EXISTS `ps_paytpv_agree` (
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_suscription` (
+				`id_suscription` int(10) unsigned NOT NULL AUTO_INCREMENT,
 				`id_customer` int(10) unsigned NOT NULL,
-				`paytpvagree` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+				`id_order` INT(10) UNSIGNED NOT NULL,
+				`paytpv_iduser` INT(11) NOT NULL,
+				`paytpv_tokenuser` VARCHAR(64) NOT NULL,
+				`periodicity` INT(3) NOT NULL,
+				`cycles` INT(2) NOT NULL,
+				`price` DECIMAL(20,6) NOT NULL DEFAULT 0,
 				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				PRIMARY KEY (`id_customer`)
+				`status` SMALLINT(1) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id_suscription`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
-			return false;
+		return false;
+
+		if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_order` (
+				`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+				`paytpv_iduser` INT(11) NOT NULL,
+				`paytpv_tokenuser` VARCHAR(64) NOT NULL,
+				`id_suscription` INT(10) UNSIGNED NOT NULL,
+				`id_customer` INT(10) UNSIGNED NOT NULL,
+				`id_order` INT(10) UNSIGNED NOT NULL,
+				`price` DECIMAL(20,6) NOT NULL DEFAULT 0,
+				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				PRIMARY KEY (`id`)
+			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
+		return false;
 
 		return true;
 	}
@@ -99,9 +125,12 @@ class PayTpvInstall
 		Configuration::deleteByName('PAYTPV_CLIENTCODE');
 		Configuration::deleteByName('PAYTPV_OPERATIVA');
 		Configuration::deleteByName('PAYTPV_3DFIRST');
+		Configuration::deleteByName('PAYTPV_TERMINALES');
 		Configuration::deleteByName('PAYTPV_IFRAME');
 		Configuration::deleteByName('PAYTPV_TERM');
 		Configuration::deleteByName('PAYTPV_REG_ESTADO');
 		Configuration::deleteByName('PAYTPV_PASS');
+		Configuration::deleteByName('PAYTPV_SUSCRIPTIONS');
+		
 	}
 }

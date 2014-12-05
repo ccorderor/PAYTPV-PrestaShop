@@ -26,6 +26,6 @@
 <li class="lnk_paytpv">
 	<a href="{$link->getModuleLink('paytpv', 'account')|escape:'htmlall':'UTF-8'}" title="{l s='Mis tarejtas' mod='paytpv'}">
 		<i class="icon-paytpv"><img src="{$module_template_dir}views/img/tarjetas.gif" class="ui-li-icon ui-li-thumb" class="icon" alt="{l s='Mis tarjetas' mod='patypv'}"/></i>
-		<span>{l s='Mis tarjetas vinculadas' mod='patypv'}</span>
+		<span>{l s='Mis tarjetas y Suscripciones' mod='patypv'}</span>
 	</a>
 </li>
