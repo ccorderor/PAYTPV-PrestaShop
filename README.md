@@ -13,23 +13,23 @@ Pulsamos en Añadir nuevo modulo y seleccionamos el zip descargado.
 
 Rellenaremos los datos según la configuracion disponible en Paytpv. https://paytpv.com/ → Mis productos → configurar productos y seleccionamos el producto que vayamos a configurar en nuestra tienda Prestashop.
 
-Campos:
+### Tipo de Operativa: 
 
-Tipo de Operativa: 
-	Bankstore: La mejor opción para integrar el módulo y poder almacenar datos de tarjetas para futuras compras, además de ofrecer la posibilidad de suscribirse a productos.
-		- Terminales disponibles: Seleccione el tipo de terminal contratado.
-		- 3D Secure en la primera compra: Si la primera compra se realiza por terminal seguro. La opción NO sólo está disponible cuando el cliente tiene contratado un terminal no seguro. En el resto de casos la primera compra siempres se hará por 3D Secure.
-		- Contraseña: La contraseña asignada al producto en Paytpv.
-		- Numero de terminal: El terminal asignado al producto en Paytpv.
-		- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
-		- Activar suscripciones: Si se desea que se muestre o no la opción de suscribirse en los carros de compra.
+#### Bankstore: La mejor opción para integrar el módulo y poder almacenar datos de tarjetas para futuras compras, además de ofrecer la posibilidad de suscribirse a productos.
 
-	Tpv Web: si solo se quiere dar las posibilidad de realizar el pago de los productos.
-		- Tipo de integración: Tipo de integración deseada. (En Bankstores siempre es iframe)
-		- Nombre de usuario: Nombre de usuario asignado al producto en Paytpv.
-		- Contraseña: La contraseña asignada al producto en Paytpv.
-		- Numero de terminal: El terminal asignado al producto en Paytpv.
-		- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
+- Terminales disponibles: Seleccione el tipo de terminal contratado.
+- 3D Secure en la primera compra: Si la primera compra se realiza por terminal seguro. La opción NO sólo está disponible cuando el cliente tiene contratado un terminal no seguro. En el resto de casos la primera compra siempres se hará por 3D Secure.
+- Contraseña: La contraseña asignada al producto en Paytpv.
+- Numero de terminal: El terminal asignado al producto en Paytpv.
+- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
+- Activar suscripciones: Si se desea que se muestre o no la opción de suscribirse en los carros de compra.
+
+#### Tpv Web: si solo se quiere dar las posibilidad de realizar el pago de los productos.
+- Tipo de integración: Tipo de integración deseada. (En Bankstores siempre es iframe)
+- Nombre de usuario: Nombre de usuario asignado al producto en Paytpv.
+- Contraseña: La contraseña asignada al producto en Paytpv.
+- Numero de terminal: El terminal asignado al producto en Paytpv.
+- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
 
 
 IMPORTANTE: En la configuración del modulo se indica las URL OK, URL OK y URL de NOTIFICACION que deberán definirse en la configuración de Paytpv.
@@ -55,7 +55,8 @@ SUSCRIPCIONES: Si se ha activado esta opcion en la configuración, a la hora de 
 En cualquier momento el usuario podrá Cancelar sus suscripciones desde el Area de Usuario->Mis tarjetas y Suscripciones. En dicho apartado se mostrarán todas las suscripciones activas, donde además podrá ver todos los pedidos realizados durante dicha suscripción. Tendrá una opción "Cancelar suscripcion" para darse de baja en cualquier momento.
 
 Todas las suscripciones mostrarán el estado actual:
-    Eliminar Suscripción: Indica que es una suscripción activa y que se puede cancelar en cualquier momento.
-	CANCELADA: Cuando ha sido cancelada por el usuario
-	FINALIZADA: Cuando se ha cumplido todo el perido de la suscripcion
+
+- Eliminar Suscripción: Indica que es una suscripción activa y que se puede cancelar en cualquier momento.
+- CANCELADA: Cuando ha sido cancelada por el usuario
+- FINALIZADA: Cuando se ha cumplido todo el periodo de la suscripción
 
