@@ -118,7 +118,7 @@
     }
 
     .alert {
-        padding: 8px 35px 8px 14px;
+        padding: 0px 35px 8px 14px;
         margin: 10px 20px 0px 0px;
         /* text-shadow: 0 1px 0 rgba(255,255,255,0.5); */
         background-color: #fcf8e3;
@@ -183,6 +183,11 @@
         color: rgb(3, 173, 212);
     }
 
+    #tipo-pago p{
+        padding-bottom: 0px;
+        
+    }
+
 </style>
 <div class="row">
     <div class="col-xs-12 col-md-6">
@@ -199,7 +204,7 @@
                 <p class="checkbox">
                    
                     <span class="checked"><input type="checkbox" name="suscripcion" id="suscripcion" value="1"></span>
-                    <laber for="suscripcion">{l s='¿Desea suscribirse a este producto?' mod='paytpv'}</label>
+                    <label for="suscripcion">{l s='¿Desea suscribirse a este producto?' mod='paytpv'}</label>
                     
                 </p>
                 
@@ -240,7 +245,7 @@
                     </span>             
                 </div>
             </div>
-            <br/>
+            
             {/if}
             
             {if !$showcard && isset($saved_card[0])}

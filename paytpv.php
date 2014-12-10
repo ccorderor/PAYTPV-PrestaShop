@@ -422,19 +422,19 @@ class Paytpv extends PaymentModule {
 		return Configuration::getMultiple(array('PAYTPV_USERCODE', 'PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE', 'PAYTPV_OPERATIVA', 'PAYTPV_3DFIRST', 'PAYTPV_TERMINALES', 'PAYTPV_IFRAME','PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
-	public function saveCard($idcustomer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
+	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
 
 		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = ' . $idcustomer .' AND paytpv_cc="'.$paytpv_cc.'"';	
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = ' . $id_customer .' AND paytpv_cc="'.$paytpv_cc.'"';	
 		$result = Db::getInstance()->getRow($sql);
 
 		// Si no existe el token lo insertamos
 		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`) VALUES('.$paytpv_iduser.',"'.$paytpv_tokenuser.'","'.$paytpv_cc.'","'.$paytpv_brand.'",'.$idcustomer.')';
+			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`) VALUES('.$paytpv_iduser.',"'.$paytpv_tokenuser.'","'.$paytpv_cc.'","'.$paytpv_brand.'",'.$id_customer.')';
 			Db::getInstance()->Execute($sql);
 		}else{
 			// Si existe actualizamos la fecha de uso para mostrarla luego la primera
-			$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set date = \''.pSQL(date('Y-m-d H:i:s')).'\' where id_customer = '.intval($idcustomer).' and paytpv_cc="'.$paytpv_cc.'"';
+			$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set date = \''.pSQL(date('Y-m-d H:i:s')).'\' where id_customer = '.intval($id_customer).' and paytpv_cc="'.$paytpv_cc.'"';
 			Db::getInstance()->Execute($sql);
 
 			// Eliminamos el usuario creado en paytpv. (NO DEJAMOS CREAR DOS TARJETAS IGUALES AL MIMSO USUARIO)
@@ -454,21 +454,21 @@ class Paytpv extends PaymentModule {
 	}
 
 
-	public function saveSuscription($idcustomer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$periodicity,$cycles,$importe){
+	public function saveSuscription($id_customer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$periodicity,$cycles,$importe){
 		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . $idcustomer .' AND id_order="'.$id_order.'"';	
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . $id_customer .' AND id_order="'.$id_order.'"';	
 		$result = Db::getInstance()->getRow($sql);
 
 		// Si no existe la suscripcion la creamos
 		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_suscription(`id_customer`, `id_order`, `paytpv_iduser`,`paytpv_tokenuser`,`periodicity`,`cycles`,`price`) VALUES('.$idcustomer.','.$id_order.','.$paytpv_iduser.',"'.$paytpv_tokenuser.'",'.$periodicity.','.$cycles.','.$importe.')';
+			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_suscription(`id_customer`, `id_order`, `paytpv_iduser`,`paytpv_tokenuser`,`periodicity`,`cycles`,`price`) VALUES('.$id_customer.','.$id_order.','.$paytpv_iduser.',"'.$paytpv_tokenuser.'",'.$periodicity.','.$cycles.','.$importe.')';
 			Db::getInstance()->Execute($sql);
 		}
 	}
 
 	public function subcriptionFromOrder($id_customer,$id_order){
 		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . $idcustomer .' AND id_order="'.$id_order.'"';	
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . $id_customer .' AND id_order="'.$id_order.'"';	
 		$result = Db::getInstance()->getRow($sql);
 		return $result;
 	}
@@ -640,13 +640,13 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 
-	public function save_paytpv_order_info($idcustomer,$id_cart,$paytpvagree,$suscription,$peridicity,$cycles){
+	public function save_paytpv_order_info($id_customer,$id_cart,$paytpvagree,$suscription,$peridicity,$cycles){
 		// Eliminamos la orden si existe.
-		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_order_info where id_customer = '.$idcustomer .' and id_cart= "'. $id_cart .'"';
+		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_order_info where id_customer = '.$id_customer .' and id_cart= "'. $id_cart .'"';
 		Db::getInstance()->Execute($sql);
 
 		// Insertamos los datos de la orden
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order_info (`id_customer`,`id_cart`,`paytpvagree`,`suscription`,`periodicity`,`cycles`) VALUES('.$idcustomer.',"'.$id_cart.'",'.$paytpvagree.','.$suscription.','.$peridicity.','.$cycles.')';
+		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order_info (`id_customer`,`id_cart`,`paytpvagree`,`suscription`,`periodicity`,`cycles`) VALUES('.$id_customer.',"'.$id_cart.'",'.$paytpvagree.','.$suscription.','.$peridicity.','.$cycles.')';
 		Db::getInstance()->Execute($sql);
 		
 		return true;
@@ -654,15 +654,15 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 
-	public function get_paytpv_order_info($idcustomer,$id_cart){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order_info where id_customer = '.$idcustomer . ' and id_cart="'.$id_cart.'"';
+	public function get_paytpv_order_info($id_customer,$id_cart){
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order_info where id_customer = '.$id_customer . ' and id_cart="'.$id_cart.'"';
 		$result = Db::getInstance()->getRow($sql);
 		return $result;
 	}
 
 
-	public function validPassword($idcustomer,$passwd){
-		$sql = 'select * from ' . _DB_PREFIX_ .'customer where id_customer = '.$idcustomer . ' and passwd="'. md5(pSQL(_COOKIE_KEY_.$passwd)) . '"';
+	public function validPassword($id_customer,$passwd){
+		$sql = 'select * from ' . _DB_PREFIX_ .'customer where id_customer = '.$id_customer . ' and passwd="'. md5(pSQL(_COOKIE_KEY_.$passwd)) . '"';
 		$result = Db::getInstance()->getRow($sql);
 		return (empty($result) === true)?false:true;
 	}

@@ -42,7 +42,7 @@
         $(".cancel_suscription").on("click", function(e){   
             e.preventDefault();
             $("#id_suscription").val($(this).attr("id"));
-            confirm("{l s='Eliminar suscripción' mod='paytpv'}", true, function(resp) {
+            confirm("{l s='Cancelar suscripción' mod='paytpv'}", true, function(resp) {
                 if (resp)   cancelSuscription();
             });
         });
@@ -271,7 +271,7 @@
             <ul>
                 {section name=suscription loop=$suscriptions} 
                     <li class="suscriptionCard" id="suscription_{$suscriptions[suscription].ID_SUSCRIPTION}">  
-                        <a href="{$base_dir}index.php?controller=order-detail&id_order={$suscriptions[suscription].ID_ORDER}">{l s='Pedido' mod='paytpv'}: {$suscriptions[suscription].ORDER_REFERENCE}</a>
+                        <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscriptions[suscription].ID_ORDER}")|escape:'html'}">{l s='Pedido' mod='paytpv'}: {$suscriptions[suscription].ORDER_REFERENCE}</a>
                         <br>
                         {l s='Cada' mod='paytpv'} {$suscriptions[suscription].PERIODICITY} {l s='días' mod='paytpv'} - repetir {$suscriptions[suscription].CYCLES} veces - Precio: {$suscriptions[suscription].PRICE} - Inicio: {$suscriptions[suscription].DATE_YYYYMMDD}
                         <label class="button_del">
@@ -294,8 +294,7 @@
                             <ul >
                                 {section name=suscription_pay loop=$suscription_pay}
                                 <li class="suscription_pay" id="suscription_pay{$suscription_pay[suscription_pay].ID_SUSCRIPTION}">
-                                   
-                                     <a href="{$base_dir}index.php?controller=order-detail&id_order={$suscription_pay[suscription_pay].ID_ORDER}">{l s='Pedido' mod='paytpv'}: {$suscription_pay[suscription_pay].ORDER_REFERENCE}</a>
+                                     <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscription_pay[suscription_pay].ID_ORDER}")|escape:'html'}">{l s='Pedido' mod='paytpv'}: {$suscription_pay[suscription_pay].ORDER_REFERENCE}</a>
                                      Precio: {$suscription_pay[suscription_pay].PRICE} - Fecha: {$suscription_pay[suscription_pay].DATE_YYYYMMDD}
 
                                 </li>
