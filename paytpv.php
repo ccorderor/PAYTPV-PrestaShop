@@ -317,15 +317,21 @@ class Paytpv extends PaymentModule {
 			//$tmpl_vars = $this->getToken($fields);
 
 			$saved_card = $this->getToken();
-			
+			$index = 0;
 			foreach ($saved_card as $key=>$val){
 				$values_aux = array_merge($values,array("TOKEN_USER"=>$val["TOKEN_USER"]));
 				$saved_card[$key]['url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values_aux,$ssl);	
+				$index++;
 			}
+			$saved_card[$index]['url'] = 0;
+
+
 
 			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
 			$smarty->assign('active_suscriptions',$active_suscriptions);
 			$smarty->assign('saved_card',$saved_card);
+			$smarty->assign('id_cart',$params['cart']->id);
+			
 			$smarty->assign('base_dir', __PS_BASE_URI__);
 
 		}else{  // TPV WEB

@@ -9,16 +9,6 @@
                 'beforeShow': onOpenDirectPay
             });
 
-        $(".remove_card").on("click", function(e){   
-            e.preventDefault();
-            cc = $("#card :selected").text();
-            confirm("{l s='Eliminar tarjeta' mod='paytpv'}" + ": " + cc, true, function(resp) {
-                if (resp)   removeCard();
-            });
-        });
-
-
-
         $("#suscripcion").click(function() {
            checkSuscription();
         });
@@ -32,11 +22,13 @@
             $("#div_periodicity").show();
             $("#saved_cards").hide();
             $("#storingStep").hide();
+            $(".paytpv_iframe").hide();
         }else{
             $("#div_periodicity").hide();
             $("#saved_cards").show();
-            $("#storingStep").show();
+            checkCard();
         }
+       
     }
 
     function confirm(msg, modal, callback) {
@@ -61,6 +53,18 @@
         });
     }
 
+    function checkCard(){
+        if ($("#card").val()=="0"){
+            $("#storingStep").removeClass("hidden").show();
+            $("#open_directpay").hide();
+        }else{
+            $("#storingStep").hide();
+            $("#open_directpay").show();
+        }
+        $(".paytpv_iframe").hide();
+
+    }
+
 
     function onOpenDirectPay(){
         $("#datos_tarjeta").html($("#card :selected").text());
@@ -74,20 +78,41 @@
            window.location.href = $("#card").val()+suscripcion;
         }
     }
-    function removeCard(){
-        cc = $("#card :selected").text();
-        
-        cc = cc.split("(")[0];
-        $("#paytpv_cc").val(cc);
-        $("#action_paytpv").val("remove");
-        $("#form_paytpv").submit();
 
-    }
+    
     function addCard(){
         $("#paytpv_agree").val($("#savecard").is(':checked')?1:0);
         $("#action_paytpv").val("add");
 
         $("#form_paytpv").submit();
+    }
+
+
+    function addCardJQ(){
+        $("#paytpv_iframe").attr("src","");
+        paytpv_agree = $("#savecard").is(':checked')?1:0;
+        $.ajax({
+            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'addCard'], true)|addslashes}",
+            type: "POST",
+            data: {
+                'paytpv_agree': paytpv_agree,
+                'id_cart' : {$id_cart},
+                'ajax': true
+            },
+            success: function(result)
+            {
+               
+                
+                if (result.error=='0')
+                {
+                    
+                    $("#storingStep").hide();
+                    $("#paytpv_iframe").attr("src",result.url);
+                    $(".paytpv_iframe").slideDown(1000);
+                }
+            },
+            dataType:"json"
+        });
     }
 
     function suscribe(){
@@ -99,6 +124,34 @@
         $("#paytpv_cycles").val($("#susc_cycles").val());
 
         $("#form_paytpv").submit();
+    }
+
+    function suscribeJQ(){
+        $("#paytpv_iframe").attr("src","");
+        $.ajax({
+            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'suscribe'], true)|addslashes}",
+            type: "POST",
+            data: {
+                'paytpv_agree': 0,
+                'paytpv_suscripcion': 1,
+                'paytpv_periodicity': $("#susc_periodicity").val(),
+                'paytpv_cycles': $("#susc_cycles").val(),
+                'id_cart' : {$id_cart},
+                'ajax': true
+            },
+            success: function(result)
+            {
+                           
+                if (result.error=='0')
+                {
+                    $("#div_periodicity").hide();
+                    $("#storingStep").hide();
+                    $("#paytpv_iframe").attr("src",result.url);
+                    $(".paytpv_iframe").slideDown(1000);
+                }
+            },
+            dataType:"json"
+        });
     }
 
 </script>
@@ -184,8 +237,11 @@
     }
 
     #tipo-pago p{
-        padding-bottom: 0px;
-        
+        padding-bottom: 10px;
+    }
+
+    .hidden{
+        display:none;
     }
 
 </style>
@@ -239,7 +295,7 @@
                     </select>
                     &nbsp;&nbsp;
                     <span class="">
-                    <a href="javascript:void(0);" onclick="suscribe();" title="{l s='Suscribirse' mod='paytpv'}" class="button button-small btn btn-default">
+                    <a href="javascript:void(0);" onclick="suscribeJQ();" title="{l s='Suscribirse' mod='paytpv'}" class="button button-small btn btn-default">
                         {l s='Suscribirse' mod='paytpv'}
                     </a>
                     </span>             
@@ -248,52 +304,51 @@
             
             {/if}
             
-            {if !$showcard && isset($saved_card[0])}
-                <div id="saved_cards">
-                    {l s='Tarjetas disponibles' mod='paytpv'}:
-                    <select name="card" id="card">
-                    {section name=card loop=$saved_card}       
-                        <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND})</option>
+           
+            <div id="saved_cards">
+                {l s='Tarjeta' mod='paytpv'}:
+                <select name="card" id="card" onChange="checkCard()">
+                    {section name=card loop=$saved_card}
+                        {if ($saved_card[card].url=="0")}
+                            <option value='0'>{l s='NUEVA TARJETA' mod='paytpv'}</option>
+                        {else}
+                            <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND})</option>
+                        {/if}
                     {/section}
-                    </select>
-                    &nbsp;&nbsp;
-                    <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">           
-                        {l s='Pagar' mod='paytpv'}
-                    </a>
-                    <a href="#" class="remove_card button button-small btn btn-default">
-                     {l s='Eliminar' mod='paytpv'}
-                    </a>
-
-                    <div id="confirm" style="display:none">
-                        <p class="title"></p>
-                        <input type="button" class="confirm yes button" value="Aceptar" />
-                        <input type="button" class="confirm no button" value="Cancelar" />
-                    </div>
-                </div>
-
-            {/if}
-
-            {if (!$showcard)}
-                <div id="storingStep" class="alert alert-info" style="display: block;">
-                    <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
-                    {l s='Vincule la tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.' mod='paytpv'}
-                    <br>
-                    <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> Si, recordar mi tarjeta aceptando los <a id="open_conditions" href="#conditions">{l s='términos y condiciones del servicio' mod='paytpv'}</a>.</label>
-
-
-                    <a href="javascript:void(0);" onclick="addCard();" title="{l s='Nueva Tarjeta de crédito' mod='paytpv'}" class="button button-small btn btn-default">
-                        {l s='Nueva tarjeta' mod='paytpv'}
-                    </a>
-                </div>
+                </select>
+                &nbsp;&nbsp;
+                <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">           
+                    {l s='Pagar' mod='paytpv'}
+                </a>
                 
-            {/if}
-            <br class="clear"/>
+                <div id="confirm" style="display:none">
+                    <p class="title"></p>
+                    <input type="button" class="confirm yes button" value="Aceptar" />
+                    <input type="button" class="confirm no button" value="Cancelar" />
+                </div>
+            </div>
 
-            {if ($showcard)}
-                <p class="payment_module paytpv_iframe">
-                    <iframe src="https://secure.paytpv.com/gateway/bnkgateway.php?{$query}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
-                </p>
-            {/if}
+
+            <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>=1}hidden{/if}">
+               
+                <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
+                {l s='Vincule la tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.' mod='paytpv'}
+                <br>
+                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" checked> Si, recordar mi tarjeta aceptando los <a id="open_conditions" href="#conditions">{l s='términos y condiciones del servicio' mod='paytpv'}</a>.</label>
+
+
+                <a href="javascript:void(0);" onclick="addCardJQ();" title="{l s='Nueva Tarjeta de crédito' mod='paytpv'}" class="button button-small btn btn-default">
+                    {l s='Siguiente' mod='paytpv'}
+                </a>
+            </div>
+                
+            
+            <br class="clear"/>
+            
+            <p class="payment_module paytpv_iframe" style="display:none">
+                <iframe id="paytpv_iframe" src="" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
+            </p>
+           
         </div>
     </div>
 
@@ -405,7 +460,6 @@
         <input type="hidden" name="paytpv_suscripcion" id="paytpv_suscripcion"  value="0">
         <input type="hidden" name="paytpv_periodicity" id="paytpv_periodicity"  value="0">
         <input type="hidden" name="paytpv_cycles" id="paytpv_cycles"  value="0">
-
 
     </form>
 </div>
