@@ -1,11 +1,12 @@
+
     {$errorMessage}
 
     <img src="{$base_dir}modules/paytpv/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='Este módulo te permite aceptar pagos con tarjeta.' mod='paytpv'}</b><br /><br />
             {l s='Si el cliente elije este modo de pago, podrá pagar de forma automática.' mod='paytpv'}<br /><br /><br />
     <form action="{$serverRequestUri|strip_tags}" method="post">
-    	<fieldset>
-    		<legend>{l s='Configuración del producto paytpv.com' mod='paytpv'}</legend>
-    		<p>{l s='Por favor complete la información requerida. Puede obtener los datos a través de la plataforma de cliente de PayTPV.' mod='paytpv'}</p>
+        <fieldset>
+            <legend>{l s='Configuración del producto paytpv.com' mod='paytpv'}</legend>
+            <p>{l s='Por favor complete la información requerida. Puede obtener los datos a través de la plataforma de cliente de PayTPV.' mod='paytpv'}</p>
             <label for="operativa" id="lbloperativa">{l s='Tipo de operativa' mod='paytpv'}</label>
             <div class="margin-form">
                 <select name="operativa" onchange="checkoperativa();" id="operativa">
@@ -50,14 +51,14 @@
                 <div class="margin-form"><input type="text" size="60" name="usercode" id="usercode" value="{$usercode}" /></div>
             </div>
 
-    		<label>{l s='Contraseña' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
+            <label>{l s='Contraseña' mod='paytpv'}</label>
+            <div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
 
-    		<label>{l s='Número de terminal' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
+            <label>{l s='Número de terminal' mod='paytpv'}</label>
+            <div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
 
-    		<label>{l s='Código de cliente' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
+            <label>{l s='Código de cliente' mod='paytpv'}</label>
+            <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
 
             <div id="suscriptions_container" style="display:none">
                 <label>{l s='Activar Suscripciones' mod='paytpv'}</label>
@@ -66,9 +67,9 @@
                         <option value="0" {if $suscriptions==0}selected="1"{/if}>No</option>
                         <option value="1" {if $suscriptions==1}selected="1"{/if}>Si</option>
                     </select>
-                </div>	
+                </div>  
             </div>
-    	</fieldset>	
+        </fieldset> 
 
         <br/>
 
@@ -88,17 +89,17 @@
 
         <br/>
 
-    	<center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
+        <center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
 
-    	<div>
-    		<p>Por último tendrá que configurar en su cuenta de <a href="https://www.paytpv.com">PayTPV</a> la siguientes URLs:
-    			<ul>
-    				<li>URLOK: {$OK}</li>
-    				<li>URLKO: {$KO}</li>
-    				<li>URL Notificación: {$OK}</li>				
-    			</ul>
-    		</p>
-    	</div>
+        <div>
+            <p>Por último tendrá que configurar en su cuenta de <a href="https://www.paytpv.com">PayTPV</a> la siguientes URLs:
+                <ul>
+                    <li>URLOK: {$OK}</li>
+                    <li>URLKO: {$KO}</li>
+                    <li>URL Notificación: {$OK}</li>                
+                </ul>
+            </p>
+        </div>
 
     </form>
 
@@ -136,7 +137,7 @@
                 </tbody>
                 </table>
                 </fieldset>    
-        {/if}	
+        {/if}   
 
     </form>
 
