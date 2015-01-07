@@ -50,7 +50,7 @@ class Paytpv extends PaymentModule {
 		if (isset($config['PAYTPV_IFRAME']))
 			$this->iframe = $config['PAYTPV_IFRAME'];
 		if (isset($config['PAYTPV_SUSCRIPTIONS']))
-			$this->iframe = $config['PAYTPV_SUSCRIPTIONS'];		
+			$this->suscriptions = $config['PAYTPV_SUSCRIPTIONS'];		
 		if (isset($config['PAYTPV_REG_ESTADO']))
 			$this->reg_estado = $config['PAYTPV_REG_ESTADO'];
 
@@ -335,7 +335,7 @@ class Paytpv extends PaymentModule {
 			$smarty->assign('base_dir', __PS_BASE_URI__);
 
 		}else{  // TPV WEB
-
+			$OPERATION = 1;
 			$signature = md5($this->clientcode.$this->usercode.$this->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($this->pass));
 			$fields = array(
 				"ACCOUNT" => $this->clientcode,
