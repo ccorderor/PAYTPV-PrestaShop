@@ -110,9 +110,17 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$datos = explode("[",$ref);
 			$ref = $datos[0];
 
-			if (sizeof($datos)>1)
-				$suscripcion = 2;	// Pago cuota suscripcion	
+			// Si viene order[iduser]fecha
+			if (sizeof($datos)>1){
+				$datos2 = explode("]",$ref);
+				$fecha = $datos2[1];
 
+				$fecha_act = date("Ymd");
+				// Si la fecha no es la de hoy es un pago de cuota suscripcion
+				if ($fecha!=$fecha_act)
+					$suscripcion = 2;	// Pago cuota suscripcion
+
+			}
 
 			// Por si es un pago de suscripcion.
 			$result = Tools::getValue('Response')=='OK'?0:-1;
