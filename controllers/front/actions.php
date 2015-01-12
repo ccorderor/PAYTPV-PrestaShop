@@ -101,7 +101,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
 		$currency = new Currency(intval($id_currency));		
-		$importe = "100";//number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
+		$importe = number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
 
 		$ps_language = new Language(intval($cookie->id_lang));
 
