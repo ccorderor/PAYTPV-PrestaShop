@@ -43,11 +43,29 @@ class PaytpvUrlokModuleFrontController extends ModuleFrontController
 	{
 
 		parent::initContent();
-		$this->context->smarty->assign(array(
-			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
-		));
+		// Esperamos a que la notificacion genere el pedido
+		sleep(2);
 
-		$this->setTemplate('payment_ok.tpl');
+		$id_cart = $this->context->cookie->id_cart;
+		$id_order = Order::getOrderByCartId(intval($id_cart));
+
+
+		if ($id_order>0){
+			$values = array(
+				'id_cart' => $id_cart,
+				'id_module' => (int)$this->module->id,
+				'id_order' => $id_order,
+				'key' => Tools::getValue('key')
+			);              
+			Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
+			return;
+		}else{
+
+			$this->context->smarty->assign(array(
+				'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
+			));
+			$this->setTemplate('payment_ok.tpl');
+		}
 
 	}
 

@@ -257,6 +257,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			}*/
 
 		}
+		die('Error');
 		
 
 	}
