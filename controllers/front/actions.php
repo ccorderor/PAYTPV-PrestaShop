@@ -100,6 +100,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		// Valor de compra				
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
+		if( !is_object(Context::getContext()->currency) )
+   			Context::getContext()->currency = new Currency($id_currency);
+
 		$currency = new Currency(intval($id_currency));		
 		$importe = number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
 
