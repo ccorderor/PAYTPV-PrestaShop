@@ -233,7 +233,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				
 			}
 			// Si venimos de URLOK y se ha registrado el pago mandamos a la pagina de confirmacion de orden
-			if($esURLOK && $pagoRegistrado){
+			if($pagoRegistrado){
 				$values = array(
 					'id_cart' => $id_cart,
 					'id_module' => (int)$this->module->id,
@@ -257,7 +257,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			}*/
 
 		}
-		$this->setTemplate('payment_fail.tpl');
+		
 
 	}
 
