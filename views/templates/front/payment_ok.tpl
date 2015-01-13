@@ -1,9 +1,9 @@
-{capture name=path}{l s='Pago no completado' mod='paytpv'}{/capture}
+{capture name=path}{l s='Pago completado' mod='paytpv'}{/capture}
 
 {include file="$tpl_dir./breadcrumb.tpl"}
 
 <h2>{l s='Pago completado' mod='paytpv'}</h2>
-	<img src="{$base_dir}img/admin/icon-cancel.png"/>&nbsp;&nbsp;   
+	<img src="{$base_dir}img/admin/icon-valid.png"/>&nbsp;&nbsp;   
 	{l s='Gracias por confiar en nosotros. Su compra se ha formalizado correctamente y en breve procesaremos su pedido.'  mod='paytpv'}
 	
 
