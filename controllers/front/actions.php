@@ -112,7 +112,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 
-		$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'url',$values,$ssl);
+		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
+		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
 
@@ -180,7 +181,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 
-		$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'url',$values,$ssl);
+		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
+		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
 

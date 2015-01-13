@@ -82,7 +82,9 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				'key' => Context::getContext()->customer->secure_key
 			);
 			$ssl = Configuration::get('PS_SSL_ENABLED');
-			$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'url',$values,$ssl);
+			$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
+
+			$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
 		
 			$OPERATION = "109"; //exec_purchase_token
