@@ -16,7 +16,7 @@
 <ul class="footer_links">    
 	<li>    	
 		<a href="{$link->getPageLink('my-account')}" title="{l s='Mi cuenta'  mod='paytpv'}">    		
-			<img src="{$base_dir}img/admin/nav-user.gif" alt="{l s='Mi cuenta' mod='paytpv'}" class="icon" />&nbsp;{l s='Volver a su cuenta'  mod='redsys'}    	
+			<img src="{$base_dir}img/admin/nav-user.gif" alt="{l s='Mi cuenta' mod='paytpv'}" class="icon" />&nbsp;{l s='Volver a su cuenta'  mod='paytpv'}    	
 		</a>
 	</li>
 	<li>&nbsp;&nbsp;</li>    
@@ -28,7 +28,7 @@
 	<li>&nbsp;&nbsp;</li>    
 	<li>    	
 		<a href="{$base_dir}">    		
-			<img src="{$base_dir}img/admin/home.gif" alt="{l s='Inicio' mod='paytpv'}" class="icon" />&nbsp;{l s='Inicio'  mod='redsys'}    	
+			<img src="{$base_dir}img/admin/home.gif" alt="{l s='Inicio' mod='paytpv'}" class="icon" />&nbsp;{l s='Inicio'  mod='paytpv'}    	
 		</a>    
 	</li>
 </ul>

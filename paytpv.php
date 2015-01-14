@@ -27,7 +27,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '5.2.0';
+		$this->version = '6.0.0';
 		// Array config con los datos de configuración
 
 		$config = $this->getConfigValues();
@@ -45,6 +45,10 @@ class Paytpv extends PaymentModule {
 			$this->operativa = $config['PAYTPV_OPERATIVA'];
 		if (isset($config['PAYTPV_3DFIRST']))
 			$this->tdfirst = $config['PAYTPV_3DFIRST'];
+		if (isset($config['PAYTPV_3DMIN']))
+			$this->tdmin = $config['PAYTPV_3DMIN'];
+		if (isset($config['PAYTPV_COMMERCEPASSWORD']))
+			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
 		if (isset($config['PAYTPV_TERMINALES']))
 			$this->terminales = $config['PAYTPV_TERMINALES'];
 		if (isset($config['PAYTPV_IFRAME']))
@@ -124,7 +128,9 @@ class Paytpv extends PaymentModule {
 			Configuration::updateValue('PAYTPV_USERCODE', $_POST['usercode']);
 			Configuration::updateValue('PAYTPV_CLIENTCODE', $_POST['clientcode']);
 			Configuration::updateValue('PAYTPV_OPERATIVA', $_POST['operativa']);
-			Configuration::updateValue('PAYTPV_3DFIRST', $_POST['3dfirst']);
+			Configuration::updateValue('PAYTPV_3DFIRST', $_POST['tdfirst']);
+			Configuration::updateValue('PAYTPV_3DMIN', $_POST['tdmin']);
+			Configuration::updateValue('PAYTPV_COMMERCEPASSWORD', $_POST['commerce_password']);
 			Configuration::updateValue('PAYTPV_IFRAME', $_POST['iframe']); 
 			Configuration::updateValue('PAYTPV_TERMINALES', $_POST['terminales']); 
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
@@ -174,11 +180,14 @@ class Paytpv extends PaymentModule {
 		$this->context->smarty->assign('pass', $conf_values['PAYTPV_PASS']);
 		$this->context->smarty->assign('iframe', $conf_values['PAYTPV_IFRAME']);
 		$this->context->smarty->assign('operativa', $conf_values['PAYTPV_OPERATIVA']);
-		$this->context->smarty->assign('3dfirst', $conf_values['PAYTPV_3DFIRST']);
+		$this->context->smarty->assign('tdfirst', $conf_values['PAYTPV_3DFIRST']);
+		$this->context->smarty->assign('tdmin', $conf_values['PAYTPV_3DMIN']);
+		$this->context->smarty->assign('commerce_password', $conf_values['PAYTPV_COMMERCEPASSWORD']);
 		$this->context->smarty->assign('terminales', $conf_values['PAYTPV_TERMINALES']);
 		$this->context->smarty->assign('suscriptions', $conf_values['PAYTPV_SUSCRIPTIONS']);
-		$this->context->smarty->assign('OK',Context::getContext()->link->getModuleLink($this->name, 'url',array(),$ssl));
-		$this->context->smarty->assign('KO',Context::getContext()->link->getModuleLink($this->name, 'url',array(),$ssl));
+		$this->context->smarty->assign('OK',Context::getContext()->link->getModuleLink($this->name, 'urlok',array(),$ssl));
+		$this->context->smarty->assign('KO',Context::getContext()->link->getModuleLink($this->name, 'urlko',array(),$ssl));
+		$this->context->smarty->assign('NOTIFICACION',Context::getContext()->link->getModuleLink($this->name, 'url',array(),$ssl));
 		$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 		return $this->display(__FILE__, 'views/admin.tpl');
 
@@ -251,70 +260,7 @@ class Paytpv extends PaymentModule {
 
 		$active_suscriptions = intval(Configuration::get('PAYTPV_SUSCRIPTIONS'));
 
-		if($this->operativa==0){ // BANKSTORE
-			switch ($suscripcion){
-				// Sin suscripcion
-				case 0:
-					$OPERATION = "1";
-					// Cálculo Firma
-					$signature = md5($this->clientcode.$this->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($this->pass));
-					$fields = array
-					(
-						'MERCHANT_MERCHANTCODE' => $this->clientcode,
-						'MERCHANT_TERMINAL' => $this->term,
-						'OPERATION' => $OPERATION,
-						'LANGUAGE' => $ps_language->iso_code,
-						'MERCHANT_MERCHANTSIGNATURE' => $signature,
-						'MERCHANT_ORDER' => $paytpv_order_ref,
-						'MERCHANT_AMOUNT' => $importe,
-						'MERCHANT_CURRENCY' => $currency->iso_code,
-						'URLOK' => $URLOK,
-						'URLKO' => $URLKO,
-						'3DSECURE' => $this->tdfirst
-					);
-					break;
-
-				// Suscripcion
-				case 1:
-					$OPERATION = "9";
-					$subscription_stratdate = date("Ymd");
-					$susc_periodicity = $_POST["paytpv_periodicity"];
-					$subs_cycles = $_POST["paytpv_cycles"];
-
-					// Si es indefinido, ponemos como fecha tope la fecha + 10 años.
-					if ($subs_cycles==0)
-						$subscription_enddate = date("Y")+5 . date("m") . date("d");
-					else{
-						// Dias suscripcion
-						$dias_subscription = $subs_cycles * $susc_periodicity;
-						$subscription_enddate = date('Ymd', strtotime("+".$dias_subscription." days"));
-					}
-
-					// Cálculo Firma
-					$signature = md5($this->clientcode.$this->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($this->pass));
-					$fields = array
-					(
-						'MERCHANT_MERCHANTCODE' => $this->clientcode,
-						'MERCHANT_TERMINAL' => $this->term,
-						'OPERATION' => $OPERATION,
-						'LANGUAGE' => $ps_language->iso_code,
-						'MERCHANT_MERCHANTSIGNATURE' => $signature,
-						'MERCHANT_ORDER' => $paytpv_order_ref,
-						'MERCHANT_AMOUNT' => $importe,
-						'MERCHANT_CURRENCY' => $currency->iso_code,
-						'SUBSCRIPTION_STARTDATE' => $subscription_stratdate, 
-						'SUBSCRIPTION_ENDDATE' => $subscription_enddate,
-						'SUBSCRIPTION_PERIODICITY' => $susc_periodicity,
-						'URLOK' => $URLOK,
-						'URLKO' => $URLKO,
-						'3DSECURE' => $this->tdfirst
-					);
-
-					break;
-
-			}
-			
-			//$tmpl_vars = $this->getToken($fields);
+		if($this->operativa==0){ // BANKSTORE		
 
 			$saved_card = $this->getToken();
 			$index = 0;
@@ -330,6 +276,7 @@ class Paytpv extends PaymentModule {
 			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
 			$smarty->assign('active_suscriptions',$active_suscriptions);
 			$smarty->assign('saved_card',$saved_card);
+			$smarty->assign('commerce_password',$this->commerce_password);
 			$smarty->assign('id_cart',$params['cart']->id);
 			
 			$smarty->assign('base_dir', __PS_BASE_URI__);
@@ -355,8 +302,6 @@ class Paytpv extends PaymentModule {
 
 		$tmpl_vars = array_merge(
 			array(
-			'fields' => $fields,
-			'query' => http_build_query($fields),
 			'this_path' => $this->_path)
 		);
 		$smarty->assign($tmpl_vars);
@@ -378,6 +323,18 @@ class Paytpv extends PaymentModule {
 		}
 
 	}
+
+	public function isSecurePay($importe){
+		// Terminal NO Seguro
+		if ($this->terminales==1)
+			return false;
+		// Ambos Terminales, Usar 3D False e Importe < Importe Min 3d secure
+		if ($this->terminales==2 && $this->tdfirst==0 && $importe<=	$this->tdmin)
+			return false;
+		return true;
+	}
+
+
 	public function getToken(){
 
 		$res = array();
@@ -425,27 +382,16 @@ class Paytpv extends PaymentModule {
 
 	}
 	private function getConfigValues(){
-		return Configuration::getMultiple(array('PAYTPV_USERCODE', 'PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE', 'PAYTPV_OPERATIVA', 'PAYTPV_3DFIRST', 'PAYTPV_TERMINALES', 'PAYTPV_IFRAME','PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
+		return Configuration::getMultiple(array('PAYTPV_USERCODE', 'PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE', 'PAYTPV_OPERATIVA', 'PAYTPV_3DFIRST', 'PAYTPV_3DMIN', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_TERMINALES', 'PAYTPV_IFRAME','PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
 	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
 
-		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = ' . $id_customer .' AND paytpv_cc="'.$paytpv_cc.'"';	
-		$result = Db::getInstance()->getRow($sql);
+		$paytpv_cc = '************' . substr($paytpv_cc, -4);
 
-		// Si no existe el token lo insertamos
-		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`) VALUES('.$paytpv_iduser.',"'.$paytpv_tokenuser.'","'.$paytpv_cc.'","'.$paytpv_brand.'",'.$id_customer.')';
-			Db::getInstance()->Execute($sql);
-		}else{
-			// Si existe actualizamos la fecha de uso para mostrarla luego la primera
-			$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set date = \''.pSQL(date('Y-m-d H:i:s')).'\' where id_customer = '.intval($id_customer).' and paytpv_cc="'.$paytpv_cc.'"';
-			Db::getInstance()->Execute($sql);
-
-			// Eliminamos el usuario creado en paytpv. (NO DEJAMOS CREAR DOS TARJETAS IGUALES AL MIMSO USUARIO)
-			$result = $this->remove_user($paytpv_iduser,$paytpv_tokenuser);
-		}
+		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`) VALUES('.$paytpv_iduser.',"'.$paytpv_tokenuser.'","'.$paytpv_cc.'","'.$paytpv_brand.'",'.$id_customer.')';
+		Db::getInstance()->Execute($sql);
+		
 	}
 
 	public function savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$id_customer,$id_order,$price){
@@ -563,7 +509,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 
-	public function removeCard($paytpv_cc){
+	public function removeCard($paytpv_iduser){
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
 		$client = new WS_Client(
@@ -575,14 +521,14 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		);
 		// Datos usuario
 
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and paytpv_cc="'.$paytpv_cc .'"';
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and paytpv_iduser="'.$paytpv_iduser .'"';
 		$result = Db::getInstance()->getRow($sql);
 		$paytpv_iduser = $result["paytpv_iduser"];
 		$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
 		$result = $client->remove_user( $paytpv_iduser, $paytpv_tokenuser);
 		
-		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_cc`="'.$paytpv_cc.'"';
+		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_iduser`="'.$paytpv_iduser.'"';
 		Db::getInstance()->Execute($sql);
 		return true;
 

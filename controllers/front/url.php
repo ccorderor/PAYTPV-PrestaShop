@@ -39,7 +39,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 	 */
 
 	public function initContent()
-
 	{
 
 		parent::initContent();
@@ -148,14 +147,16 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			//if ($sign!=$local_sign)	die('Error 4');
 		}
 
-		$id_cart = (int)substr($ref,0,8);
-		$cart = new Cart($id_cart);
-		$customer = new Customer((int) $cart->id_customer);
-		$context = Context::getContext();
-		$context->cart = $cart;
-		$context->customer = $customer;
+		
 
 		if($result == 0){
+			$id_cart = (int)substr($ref,0,8);
+			$cart = new Cart($id_cart);
+			$customer = new Customer((int) $cart->id_customer);
+			$context = Context::getContext();
+			$context->cart = $cart;
+			$context->customer = $customer;
+		
 			$id_order = Order::getOrderByCartId(intval($id_cart));
 			
 			$transaction = array(
@@ -233,7 +234,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				
 			}
 			// Si venimos de URLOK y se ha registrado el pago mandamos a la pagina de confirmacion de orden
-			if($pagoRegistrado){
+			if($esURLOK && $pagoRegistrado){
 				$values = array(
 					'id_cart' => $id_cart,
 					'id_module' => (int)$this->module->id,
@@ -258,8 +259,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 		}
 		die('Error');
-		
-
 	}
 
 }

@@ -39,17 +39,60 @@ class PaytpvUrlokModuleFrontController extends ModuleFrontController
 	 */
 
 	public function initContent()
-
 	{
 
 		parent::initContent();
-		$this->context->smarty->assign(array(
-			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
-		));
-		$this->setTemplate('payment_ok.tpl');
+
+		$id_cart = (int)(Tools::getValue('id_cart', 0));
+		$id_order = Order::getOrderByCartId(intval($id_cart));
+		$key = Tools::getValue('key');
+
+
+
+		// Vienen los parametros por GET
+		if ($id_cart>0 && $id_order>0){
+			$values = array(
+				'id_cart' => $id_cart,
+				'id_module' => (int)$this->module->id,
+				'id_order' => $id_order,
+				'key' => $key
+			);
+			Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
+		// No vienen los parametros
+		}else{
+			$id_customer = Context::getContext()->customer->id;
+
+			$result = Db::getInstance()->getRow('
+			SELECT * FROM `'._DB_PREFIX_.'paytpv_order`	WHERE `id_customer` = '.$id_customer.' ORDER BY `date` DESC');
+
+			if (empty($result) === false){
+				$id_order = $result["id_order"];
+				$fecha_order = strtotime($result['date']);
+				$fecha_actual = strtotime("now");
+
+				// Si hay order y se ha realizado hace menos de un minuto
+				if ($id_order>0 && $fecha_order > strtotime('-1 minute',$fecha_actual)){
+					$order = new Order((int)($id_order));
+					$id_cart = $order->id_cart;
+
+					$values = array(
+						'id_cart' => $id_cart,
+						'id_module' => (int)$this->module->id,
+						'id_order' => $id_order,
+						'key' => Context::getContext()->customer->secure_key
+					);
+
+					Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
+				}
+			}
+
+			$this->context->smarty->assign(array(
+				'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
+			));
+
+			$this->setTemplate('payment_ok.tpl');
+		}
 	}
 
 }
-
-
 

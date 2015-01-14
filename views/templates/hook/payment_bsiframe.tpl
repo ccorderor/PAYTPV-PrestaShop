@@ -9,6 +9,11 @@
                 'beforeShow': onOpenDirectPay
             });
 
+        $("#exec_directpay").click(function() {
+           var suscripcion="&suscripcion="+($("#suscripcion").is(':checked')?1:0)+"&periodicity="+$("#susc_periodicity").val()+"&cycles="+$("#susc_cycles").val();
+           window.location.href = $("#card").val()+suscripcion;
+        });
+
         $("#suscripcion").click(function() {
            checkSuscription();
         });
@@ -57,9 +62,11 @@
         if ($("#card").val()=="0"){
             $("#storingStep").removeClass("hidden").show();
             $("#open_directpay").hide();
+            $("#exec_directpay").hide();
         }else{
             $("#storingStep").hide();
             $("#open_directpay").show();
+            $("#exec_directpay").show();
         }
         $(".paytpv_iframe").hide();
 
@@ -100,15 +107,13 @@
                 'ajax': true
             },
             success: function(result)
-            {
-               
-                
+            {   
                 if (result.error=='0')
                 {
                     
                     $("#storingStep").hide();
                     $("#paytpv_iframe").attr("src",result.url);
-                    $(".paytpv_iframe").slideDown(1000);
+                    $(".paytpv_iframe").slideDown(500);
                 }
             },
             dataType:"json"
@@ -147,7 +152,7 @@
                     $("#div_periodicity").hide();
                     $("#storingStep").hide();
                     $("#paytpv_iframe").attr("src",result.url);
-                    $(".paytpv_iframe").slideDown(1000);
+                    $(".paytpv_iframe").slideDown(500);
                 }
             },
             dataType:"json"
@@ -317,9 +322,15 @@
                     {/section}
                 </select>
                 &nbsp;&nbsp;
-                <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">           
-                    {l s='Pagar' mod='paytpv'}
-                </a>
+                {if ($commerce_password)}
+                    <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">          
+                        {l s='Pagar' mod='paytpv'}
+                    </a>
+                {else}
+                    <a id="exec_directpay" href="#directpay" class="button button-small btn btn-default">          
+                        {l s='Pagar' mod='paytpv'}
+                    </a>
+                {/if}
                 
                 <div id="confirm" style="display:none">
                     <p class="title"></p>

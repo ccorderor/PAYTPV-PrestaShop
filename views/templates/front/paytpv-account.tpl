@@ -33,8 +33,9 @@
         
         $(".remove_card").on("click", function(e){   
             e.preventDefault();
-            $("#paytpv_cc").val($(this).attr("id"));
-            confirm("{l s='Eliminar tarjeta' mod='paytpv'}" + ": " + $(this).attr("id"), true, function(resp) {
+            $("#paytpv_iduser").val($(this).attr("id"));
+            cc_iduser = $("#cc_"+$(this).attr("id")).val()
+            confirm("{l s='Eliminar tarjeta' mod='paytpv'}" + ": " + cc_iduser, true, function(resp) {
                 if (resp)   removeCard();
             });
         });
@@ -81,20 +82,20 @@
     }
 
     function vincularTarjeta(){
-    	if ($("#savecard").is(':checked')){
-    		$('#savecard').attr("disabled", true);
-    		$('#close_vincular').show();
-    		$('#nueva_tarjeta').show();
-    	}else{
+        if ($("#savecard").is(':checked')){
+            $('#savecard').attr("disabled", true);
+            $('#close_vincular').show();
+            $('#nueva_tarjeta').show();
+        }else{
             alert("{l s='Debe aceptar los términos y condiciones del servicio' mod='paytpv'}");
-    	}
+        }
 
     }
 
     function close_vincularTarjeta(){
-    	$('#savecard').attr("disabled", false);
-    	$('#nueva_tarjeta').hide();
-    	$('#close_vincular').hide();
+        $('#savecard').attr("disabled", false);
+        $('#nueva_tarjeta').hide();
+        $('#close_vincular').hide();
     }
 
     function confirmationRemove(paytpv_cc){
@@ -103,26 +104,26 @@
         $("#deltecard").open();
     }
 
-	function removeCard()
-	{
-		paytpv_cc = $("#paytpv_cc").val();
-		$.ajax({
-			url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true)|addslashes}",
-			type: "POST",
-			data: {
-				'paytpv_cc': paytpv_cc,
-				'ajax': true
-			},
-			success: function(result)
-			{
-				if (result == '0')
-				{
-                   $("#card_"+paytpv_cc).fadeOut(1000);
-				}
- 		 	}
-		});
-		
-	};
+    function removeCard()
+    {
+        paytpv_iduser = $("#paytpv_iduser").val();
+        $.ajax({
+            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true)|addslashes}",
+            type: "POST",
+            data: {
+                'paytpv_iduser': paytpv_iduser,
+                'ajax': true
+            },
+            success: function(result)
+            {
+                if (result == '0')
+                {
+                   $("#card_"+paytpv_iduser).fadeOut(1000);
+                }
+            }
+        });
+        
+    };
 
 
     function cancelSuscription()
@@ -172,16 +173,16 @@
     }
 
     .button_del{
-    	float:right;
+        float:right;
     }
 
     .bankstoreCard {
-		border: 1px solid #e5e5e5;
-		border-radius: 4px;
-		margin-bottom: 10px;
-		padding: 20px;
-		color: #a6a6a6;
-		}
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        padding: 20px;
+        color: #a6a6a6;
+        }
 
     .suscriptionCard {
         border: 1px solid #e5e5e5;
@@ -204,9 +205,9 @@
         }
 
 
-	.remove_card,.cancel_suscription{
-		color: #ff6000!important;
-	}
+    .remove_card,.cancel_suscription{
+        color: #ff6000!important;
+    }
 
     #div_suscripciones li{
         list-style:none;
@@ -215,33 +216,36 @@
 
 </style>
 
+
 {capture name=path}
-	<a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}">
-		{l s='Mis tarjetas vinculadas' mod='paytpv'}</a>
-		<span class="navigation-pipe">{$navigationPipe}</span>{l s='Mis tarjetas vinculadas.' mod='paytpv'}
+    <a href="{$link->getPageLink('my-account', true)|escape:'html'}">{l s='Mi cuenta' mod='paytpv'}</a>
+    <span class="navigation-pipe">{$navigationPipe}</span>
+        {l s='Mis tarjetas y suscripciones' mod='paytpv'}</a>
+        
 {/capture}
-{include file="$tpl_dir./breadcrumb.tpl"}
+
 
 <div id="paytpv_block_account">
-	<h2>{l s='Mis tarjetas vinculadas' mod='paytpv'}</h2>
-	{if isset($saved_card[0])}
-		<div class="span6" id="div_tarjetas">
+    <h2>{l s='Mis tarjetas vinculadas' mod='paytpv'}</h2>
+    {if isset($saved_card[0])}
+        <div class="span6" id="div_tarjetas">
             {l s='Tarjetas disponibles' mod='paytpv'}:
             {section name=card loop=$saved_card}   
-                <div class="bankstoreCard" id="card_{$saved_card[card].CC}">  
-    	            {$saved_card[card].CC} ({$saved_card[card].BRAND})
-    	            <label class="button_del">
-    		            <a href="#" id="{$saved_card[card].CC}" class="remove_card">
-    			         {l s='Eliminar tarjeta' mod='paytpv'}
-    			        </a>
-    		    	</label>
-            	</div>
+                <div class="bankstoreCard" id="card_{$saved_card[card].IDUSER}">  
+                    {$saved_card[card].CC} ({$saved_card[card].BRAND})
+                    <label class="button_del">
+                        <a href="#" id="{$saved_card[card].IDUSER}" class="remove_card">
+                         {l s='Eliminar tarjeta' mod='paytpv'}
+                        </a>
+                        <input type="hidden" name="cc_{$saved_card[card].IDUSER}" id="cc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CC}">
+                    </label>
+                </div>
             {/section}
-    	</div>
+        </div>
    
-	{else}
-		<p class="warning">{l s='No tiene asociado todavía ninguna tarjeta. ' mod='paytpv'}</p>
-	{/if}
+    {else}
+        <p class="warning">{l s='No tiene asociado todavía ninguna tarjeta. ' mod='paytpv'}</p>
+    {/if}
 
     <div id="storingStep" class="alert alert-info" style="display: block;">
         <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
@@ -254,8 +258,8 @@
             {l s='Vincular tarjeta' mod='paytpv'}
         </a>
         <a href="javascript:void(0);" onclick="close_vincularTarjeta();" title="{l s='Cancelar' mod='paytpv'}" class="button button-small btn btn-default" id="close_vincular" style="display:none">
-	            {l s='Cancelar' mod='paytpv'}
-	    </a>
+                {l s='Cancelar' mod='paytpv'}
+        </a>
 
         <p class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
             <iframe src="https://secure.paytpv.com/gateway/bnkgateway.php?{$query}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
@@ -320,6 +324,7 @@
         <input type="button" class="confirm yes button" value="{l s='Aceptar' mod='paytpv'}" />
         <input type="button" class="confirm no button" value="{l s='Cancelar' mod='paytpv'}" />
         <input type="hidden" name="paytpv_cc" id="paytpv_cc">
+        <input type="hidden" name="paytpv_iduser" id="paytpv_iduser">
         <input type="hidden" name="id_suscription" id="id_suscription">
     </div>
 
@@ -388,9 +393,9 @@
     </div>
 
 
-	<ul class="footer_links">
-		<li class="fleft">
-			<a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}"><img src="{$img_dir}icon/my-account.gif" alt="" class="icon" /></a>
-			<a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}">{l s='Mi cuenta.' mod='paytpv'}</a></li>
-	</ul>
+    <ul class="footer_links">
+        <li class="fleft">
+            <a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}"><img src="{$img_dir}icon/my-account.gif" alt="" class="icon" /></a>
+            <a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}">{l s='Mi cuenta.' mod='paytpv'}</a></li>
+    </ul>
 </div>

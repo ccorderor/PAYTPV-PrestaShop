@@ -1,12 +1,11 @@
-
     {$errorMessage}
 
     <img src="{$base_dir}modules/paytpv/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='Este módulo te permite aceptar pagos con tarjeta.' mod='paytpv'}</b><br /><br />
             {l s='Si el cliente elije este modo de pago, podrá pagar de forma automática.' mod='paytpv'}<br /><br /><br />
     <form action="{$serverRequestUri|strip_tags}" method="post">
-        <fieldset>
-            <legend>{l s='Configuración del producto paytpv.com' mod='paytpv'}</legend>
-            <p>{l s='Por favor complete la información requerida. Puede obtener los datos a través de la plataforma de cliente de PayTPV.' mod='paytpv'}</p>
+    	<fieldset>
+    		<legend>{l s='Configuración del producto paytpv.com' mod='paytpv'}</legend>
+    		<p>{l s='Por favor complete la información requerida. Puede obtener los datos a través de la plataforma de cliente de PayTPV.' mod='paytpv'}</p>
             <label for="operativa" id="lbloperativa">{l s='Tipo de operativa' mod='paytpv'}</label>
             <div class="margin-form">
                 <select name="operativa" onchange="checkoperativa();" id="operativa">
@@ -36,29 +35,46 @@
                 </div>
             </div>
 
-            <div id="3dfirst_container">
-                <label for="3dfirst" id="lbl3dfirst">{l s='3D Secure en la primera compra' mod='paytpv'}</label>
+            <div id="tdfirst_container">
+                <label for="tdfirst" id="lbltdfirst">{l s='Usar 3D Secure' mod='paytpv'}</label>
                 <div class="margin-form">
-                    <select name="3dfirst" onchange="check3dfirst();" id="3dfirst">
-                        <option value="0" {if $3dfirst==0}selected="1"{/if}>No</option>
-                        <option value="1" {if $3dfirst==1}selected="1"{/if}>Si</option>
+                    <select name="tdfirst" onchange="checktdfirst();" id="tdfirst">
+                        <option value="0" {if $tdfirst==0}selected="1"{/if}>No</option>
+                        <option value="1" {if $tdfirst==1}selected="1"{/if}>Si</option>
                     </select>
                 </div>
             </div>
 
+            <div id="tdmin_container">
+                <label for="tdmin" id="lbltdmin">{l s='Activar 3D Secure para pagos superiores a'}</label>
+                <div class="margin-form"><input type="number" step="0.01" size="60" name="tdmin" id="tdmin" value="{$tdmin}" style="width:120px;text-align:right"/>&euro;</div>
+            </div>
+
+            <br/>
+            <div id="commerce_password_container">
+                <label for="commerce_password_container" id="lblcommerce_password_container">{l s='Contraseña del comercio en pagos con Tarjeta Guardada'}</label>
+                <div class="margin-form">
+                    <select name="commerce_password" id="commerce_password">
+                        <option value="0" {if $commerce_password==0}selected="1"{/if}>No</option>
+                        <option value="1" {if $commerce_password==1}selected="1"{/if}>Si</option>
+                    </select>
+                </div>
+            </div>
+
+            <br/>
             <div id="usercode_container">
                 <label for="usercode">{l s='Nombre de usuario' mod='paytpv'}</label>
                 <div class="margin-form"><input type="text" size="60" name="usercode" id="usercode" value="{$usercode}" /></div>
             </div>
 
-            <label>{l s='Contraseña' mod='paytpv'}</label>
-            <div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
+    		<label>{l s='Contraseña' mod='paytpv'}</label>
+    		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
 
-            <label>{l s='Número de terminal' mod='paytpv'}</label>
-            <div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
+    		<label>{l s='Número de terminal' mod='paytpv'}</label>
+    		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
 
-            <label>{l s='Código de cliente' mod='paytpv'}</label>
-            <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
+    		<label>{l s='Código de cliente' mod='paytpv'}</label>
+    		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
 
             <div id="suscriptions_container" style="display:none">
                 <label>{l s='Activar Suscripciones' mod='paytpv'}</label>
@@ -67,9 +83,9 @@
                         <option value="0" {if $suscriptions==0}selected="1"{/if}>No</option>
                         <option value="1" {if $suscriptions==1}selected="1"{/if}>Si</option>
                     </select>
-                </div>  
+                </div>	
             </div>
-        </fieldset> 
+    	</fieldset>	
 
         <br/>
 
@@ -89,17 +105,17 @@
 
         <br/>
 
-        <center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
+    	<center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
 
-        <div>
-            <p>Por último tendrá que configurar en su cuenta de <a href="https://www.paytpv.com">PayTPV</a> la siguientes URLs:
-                <ul>
-                    <li>URLOK: {$OK}</li>
-                    <li>URLKO: {$KO}</li>
-                    <li>URL Notificación: {$OK}</li>                
-                </ul>
-            </p>
-        </div>
+    	<div>
+    		<p>Por último tendrá que configurar en su cuenta de <a href="https://www.paytpv.com">PayTPV</a> la siguientes URLs:
+    			<ul>
+    				<li>URLOK: {$OK}</li>
+    				<li>URLKO: {$KO}</li>
+    				<li>URL Notificación: {$NOTIFICACION}</li>				
+    			</ul>
+    		</p>
+    	</div>
 
     </form>
 
@@ -137,7 +153,7 @@
                 </tbody>
                 </table>
                 </fieldset>    
-        {/if}   
+        {/if}	
 
     </form>
 
@@ -146,15 +162,24 @@
             if(jQuery("#operativa").val() == 0){
                 jQuery("#usercode_container").hide();
                 jQuery("#iframe_container").hide();
-                jQuery("#3dfirst_container").show();
+                jQuery("#tdfirst_container").show();
+                if(jQuery("#terminales").val() == 2)
+                    jQuery("#tdmin_container").show();
+                else
+                    jQuery("#tdmin_container").hide();
+                
                 jQuery("#terminales_container").show();
-                jQuery("#suscriptions_container").show();    
+                jQuery("#suscriptions_container").show();
+                jQuery("#commerce_password_container").show();
+                
             }else{
                 jQuery("#usercode_container").show();
                 jQuery("#iframe_container").show();
-                jQuery("#3dfirst_container").hide();
+                jQuery("#tdfirst_container").hide();
+                jQuery("#tdmin_container").hide();
                 jQuery("#terminales_container").hide(); 
                 jQuery("#suscriptions_container").hide(); 
+                jQuery("#commerce_password_container").hide();
               }
         }
 
@@ -163,32 +188,42 @@
             // Seguro
             switch (jQuery("#terminales").val()){
                 case "0": // SEGURO
-                case "2": // AMBOS
-                    jQuery("#3dfirst").val(1);
+                    jQuery("#tdfirst").val(1);
+                    jQuery("#tdmin_container").hide();
                     break;
                 case "1": // NO SEGURO
-                    jQuery("#3dfirst").val(0);
+                    jQuery("#tdfirst").val(0);
+                    jQuery("#tdmin_container").hide();
                     break;
+                case "2": // AMBOS
+                    if (jQuery("#tdfirst").val()==0)
+                        jQuery("#tdmin_container").show();
+                    else
+                        jQuery("#tdmin_container").hide();
+                    break;
+                
             }
         }
 
-        function check3dfirst(){
+        function checktdfirst(){
             // Si solo tiene terminal seguro la primera compra va por seguro
-            if(jQuery("#terminales").val() == 0 && jQuery("#3dfirst").val()==0){
+            if(jQuery("#terminales").val() == 0 && jQuery("#tdfirst").val()==0){
                 alert("{l s='Si solo tiene un terminal seguro los pagos van siempre por seguro' mod='paytpv'}");
-                jQuery("#3dfirst").val(1);
+                jQuery("#tdfirst").val(1);
             }
-            // Si solo tiene terminal seguro la primera compra va por seguro
-            if(jQuery("#terminales").val() == 1 && jQuery("#3dfirst").val()==1){
+            // Si solo tiene terminal no seguro la primera compra va por seguro
+            if(jQuery("#terminales").val() == 1 && jQuery("#tdfirst").val()==1){
                 alert("{l s='Si solo tiene un terminal NO seguro los pagos van siempre por NO seguro' mod='paytpv'}");
-                jQuery("#3dfirst").val(0);
+                jQuery("#tdfirst").val(0);
             }
 
-            // Si solo tiene terminal seguro la primera compra va por seguro
-            if(jQuery("#terminales").val() == 2 && jQuery("#3dfirst").val()==0){
-                alert("{l s='Si tiene un terminal Seguro y otro No Seguro la primera compra va por seguro' mod='paytpv'}");
-                jQuery("#3dfirst").val(1);
+            if(jQuery("#terminales").val() == 2){
+                if (jQuery("#tdfirst").val()==0)
+                    jQuery("#tdmin_container").show();
+                else
+                    jQuery("#tdmin_container").hide();
             }
+
         }
 
         checkoperativa();

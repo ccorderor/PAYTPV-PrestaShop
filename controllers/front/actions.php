@@ -64,7 +64,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	{
 		$paytpv = $this->module;
 
-		if ($paytpv->removeCard(Tools::getValue('paytpv_cc')))
+		if ($paytpv->removeCard(Tools::getValue('paytpv_iduser')))
 			die('0');
 		die('1');
 	}
@@ -86,6 +86,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	public function processAddCard()
 	{
 		global $cookie;
+
+
 		$paytpv = $this->module;
 
 		$id_cart = Tools::getValue('id_cart');
@@ -100,12 +102,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		// Valor de compra				
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
+		$currency = new Currency(intval($id_currency));
+
 		if( !is_object(Context::getContext()->currency) )
    			Context::getContext()->currency = new Currency($id_currency);
 
-		$currency = new Currency(intval($id_currency));		
-		$importe = number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
-
+		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
+		$importe = number_format($total_pedido * 100, 0, '.', '');
 		$ps_language = new Language(intval($cookie->id_lang));
 
 		$values = array(
@@ -113,18 +116,24 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			'key' => Context::getContext()->customer->secure_key
 		);
 
+
+
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 
+		
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
 
+		$tdfirst = $paytpv->tdfirst;
 
+		$secure_pay = $paytpv->isSecurePay($total_pedido)?1:0;
 
+		
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles)){
+		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
 			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($paytpv->pass));
@@ -140,8 +149,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'MERCHANT_CURRENCY' => $currency->iso_code,
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO,
-				'3DSECURE' => $paytpv->tdfirst
+				'3DSECURE' => $secure_pay
 			);
+
 			$query = http_build_query($fields);
 			$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
 			$arrReturn["error"] = 0;
@@ -173,9 +183,10 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
 		if( !is_object(Context::getContext()->currency) )
-   			Context::getContext()->currency = new Currency($id_currency);
+			Context::getContext()->currency = new Currency($id_currency);
 
-		$currency = new Currency(intval($id_currency));
+
+		$currency = new Currency(intval($id_currency));		
 		$importe = number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
 
 		$ps_language = new Language(intval($cookie->id_lang));
@@ -187,6 +198,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 
+		
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
@@ -194,7 +206,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles)){
+		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles)){
 			$OPERATION = "9";
 			$subscription_stratdate = date("Ymd");
 			$susc_periodicity = $periodicity;

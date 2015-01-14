@@ -51,17 +51,22 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		$msg_paytpv_contrasena = "";
 		// Verificar contraseña usuario.
-        if (!$paytpv->validPassword($this->context->cart->id_customer,Tools::getValue('password'))){
-        	$this->setTemplate('payment_fail.tpl');
-        	$msg_paytpv_contrasena = $paytpv->l('Contraseña invalida');
-        	$smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
-        	return;
-        }
+		if ($paytpv->commerce_password){
+	        if (!$paytpv->validPassword($this->context->cart->id_customer,Tools::getValue('password'))){
+	        	$this->setTemplate('payment_fail.tpl');
+	        	$msg_paytpv_contrasena = $paytpv->l('Contraseña invalida');
+	        	$smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
+	        	return;
+	        }
+	    }
+
+
 
         $data = $paytpv->getDataToken($_GET["TOKEN_USER"]);
 
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
+		$total_pedido = Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency);
 		$importe = number_format(Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
 		
 		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0);
@@ -71,9 +76,13 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		// Si el cliente solo tiene un terminal seguro, el segundo pago va siempre por seguro.
 		// Si tiene un terminal NO Seguro ó ambos, el segundo pago siempre lo mandamos por NO Seguro
 		
+
 		// PAGO SEGURO
-		if ($terminales==0){
-			
+
+		$secure_pay = $paytpv->isSecurePay($total_pedido)?1:0;
+
+		if ($secure_pay){
+
 			$ps_language = new Language(intval($cookie->id_lang));		
 			$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT) . date('is');
 
@@ -82,9 +91,10 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				'key' => Context::getContext()->customer->secure_key
 			);
 			$ssl = Configuration::get('PS_SSL_ENABLED');
+			
 			$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
-
 			$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
+
 
 		
 			$OPERATION = "109"; //exec_purchase_token
@@ -102,7 +112,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 					'MERCHANT_CURRENCY' => $currency->iso_code,
 					'IDUSER' => $data["IDUSER"],
 					'TOKEN_USER' => $data['TOKEN_USER'],
-					'3DSECURE' => $paytpv->tdfirst,
+					'3DSECURE' => $secure_pay,
 					'URLOK' => $URLOK,
 					'URLKO' => $URLKO
 				);
@@ -116,7 +126,6 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		}
 		/* FIN AÑADIDO */
 		
-		
 		$client = new WS_Client(
 			array(
 				'clientcode' => $paytpv->clientcode,
@@ -125,9 +134,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			)
 		);
 		
-		
 		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$this->context->cart->id );
-
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
 			$id_cart = (int)substr($charge[ 'DS_MERCHANT_ORDER'],0,8);
 			$importe = number_format($charge[ 'DS_MERCHANT_AMOUNT']/ 100, 2);
