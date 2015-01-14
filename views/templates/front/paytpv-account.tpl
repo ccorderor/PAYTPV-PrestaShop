@@ -392,10 +392,4 @@
         </div>
     </div>
 
-
-    <ul class="footer_links">
-        <li class="fleft">
-            <a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}"><img src="{$img_dir}icon/my-account.gif" alt="" class="icon" /></a>
-            <a href="{$link->getPageLink('my-account', true)|escape:'htmlall':'UTF-8'}">{l s='Mi cuenta.' mod='paytpv'}</a></li>
-    </ul>
 </div>
