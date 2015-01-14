@@ -329,7 +329,7 @@ class Paytpv extends PaymentModule {
 		if ($this->terminales==1)
 			return false;
 		// Ambos Terminales, Usar 3D False e Importe < Importe Min 3d secure
-		if ($this->terminales==2 && $this->tdfirst==0 && $importe<=	$this->tdmin)
+		if ($this->terminales==2 && $this->tdfirst==0 && ($this->tdmin=="" || $importe<=$this->tdmin))
 			return false;
 		return true;
 	}
