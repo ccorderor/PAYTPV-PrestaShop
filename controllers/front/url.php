@@ -111,7 +111,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 			// Si viene order[iduser]fecha
 			if (sizeof($datos)>1){
-				$datos2 = explode("]",Tools::getValue('Order'));
+				$datos2 = explode("]",$ref);
 				$fecha = $datos2[1];
 
 				$fecha_act = date("Ymd");
