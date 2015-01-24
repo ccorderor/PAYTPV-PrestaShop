@@ -339,7 +339,7 @@ class Paytpv extends PaymentModule {
             return true;
 
         // Si se supera el importe maximo para compra segura
-        if ($terminales==2 && $this->tdmin < $importe)
+        if ($terminales==2 && ($this->tdmin!="" && $this->tdmin < $importe))
             return true;
         
         return false;
