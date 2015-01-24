@@ -128,7 +128,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$tdfirst = $paytpv->tdfirst;
 
-		$secure_pay = $paytpv->isSecurePay($total_pedido)?1:0;
+		$secure_pay = $paytpv->isSecureTransaction($total_pedido,0)?1:0;
 
 		
 		$arrReturn = array();
@@ -187,7 +187,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 
 		$currency = new Currency(intval($id_currency));		
-		$importe = number_format(Tools::convertPrice($cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
+
+		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
+		$importe = number_format($total_pedido * 100, 0, '.', '');
 
 		$ps_language = new Language(intval($cookie->id_lang));
 
@@ -203,6 +205,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
+
+		$secure_pay = $paytpv->isSecureTransaction($total_pedido,0)?1:0;
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
@@ -238,7 +242,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'SUBSCRIPTION_PERIODICITY' => $susc_periodicity,
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO,
-				'3DSECURE' => $paytpv->tdfirst
+				'3DSECURE' => $secure_pay
 			);
 			$query = http_build_query($fields);
 			$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;

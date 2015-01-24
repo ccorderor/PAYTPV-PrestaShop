@@ -79,7 +79,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		// PAGO SEGURO
 
-		$secure_pay = $paytpv->isSecurePay($total_pedido)?1:0;
+		$secure_pay = $paytpv->isSecureTransaction($total_pedido,$data["IDUSER"])?1:0;
 
 		if ($secure_pay){
 

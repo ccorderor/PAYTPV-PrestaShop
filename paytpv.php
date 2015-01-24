@@ -324,6 +324,28 @@ class Paytpv extends PaymentModule {
 
 	}
 
+	public function isSecureTransaction($importe,$card){
+        $op = $this->operativa;
+        $terminales = $this->terminales;
+        $payment_data = Mage::app()->getRequest()->getParam('payment', array());
+        // Transaccion Segura:
+        // Si es TPVWEB
+        // Si es Bankstore y solo tiene Terminal Seguro
+        if (1 == $op || (0 == $op && $terminales==0))
+            return true;   
+   
+
+        // Si esta definido que el pago es 3d secure y no estamos usando una tarjeta tokenizada
+        if ($this->tdfirst && $card==0)
+            return true;
+
+        // Si se supera el importe maximo para compra segura
+        if ($terminales==2 && $this->tdmin < $importe)
+            return true;
+        
+        return false;
+    }
+
 	public function isSecurePay($importe){
 		// Terminal NO Seguro
 		if ($this->terminales==1)
