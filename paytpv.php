@@ -327,7 +327,6 @@ class Paytpv extends PaymentModule {
 	public function isSecureTransaction($importe,$card){
         $op = $this->operativa;
         $terminales = $this->terminales;
-        $payment_data = Mage::app()->getRequest()->getParam('payment', array());
         // Transaccion Segura:
         // Si es TPVWEB
         // Si es Bankstore y solo tiene Terminal Seguro
