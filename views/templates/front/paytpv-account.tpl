@@ -35,7 +35,7 @@
             e.preventDefault();
             $("#paytpv_iduser").val($(this).attr("id"));
             cc_iduser = $("#cc_"+$(this).attr("id")).val()
-            confirm("{l s='Eliminar tarjeta' mod='paytpv'}" + ": " + cc_iduser, true, function(resp) {
+            confirm("{l s='Remove Card' mod='paytpv'}" + ": " + cc_iduser, true, function(resp) {
                 if (resp)   removeCard();
             });
         });
@@ -43,7 +43,7 @@
         $(".cancel_suscription").on("click", function(e){   
             e.preventDefault();
             $("#id_suscription").val($(this).attr("id"));
-            confirm("{l s='Cancelar suscripción' mod='paytpv'}", true, function(resp) {
+            confirm("{l s='Cancel Subscription' mod='paytpv'}", true, function(resp) {
                 if (resp)   cancelSuscription();
             });
         });
@@ -87,7 +87,7 @@
             $('#close_vincular').show();
             $('#nueva_tarjeta').show();
         }else{
-            alert("{l s='Debe aceptar los términos y condiciones del servicio' mod='paytpv'}");
+            alert("{l s='You must accept the terms and conditions of service' mod='paytpv'}");
         }
 
     }
@@ -140,7 +140,7 @@
             {
                 if (result == '0')
                 {
-                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">{l s='CANCELADA' mod='paytpv'}</span>");
+                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">{l s='CANCELED' mod='paytpv'}</span>");
                     //$("#suscription_"+id_suscription).fadeOut(1000);
                 }
             }
@@ -218,24 +218,24 @@
 
 
 {capture name=path}
-    <a href="{$link->getPageLink('my-account', true)|escape:'html'}">{l s='Mi cuenta' mod='paytpv'}</a>
+    <a href="{$link->getPageLink('my-account', true)|escape:'html'}">{l s='My account' mod='paytpv'}</a>
     <span class="navigation-pipe">{$navigationPipe}</span>
-        {l s='Mis tarjetas y suscripciones' mod='paytpv'}</a>
+        {l s='My Cards and Subscriptions' mod='paytpv'}</a>
         
 {/capture}
 
 
 <div id="paytpv_block_account">
-    <h2>{l s='Mis tarjetas vinculadas' mod='paytpv'}</h2>
+    <h2>{l s='My Cards' mod='paytpv'}</h2>
     {if isset($saved_card[0])}
         <div class="span6" id="div_tarjetas">
-            {l s='Tarjetas disponibles' mod='paytpv'}:
+            {l s='Available Cards' mod='paytpv'}:
             {section name=card loop=$saved_card}   
                 <div class="bankstoreCard" id="card_{$saved_card[card].IDUSER}">  
                     {$saved_card[card].CC} ({$saved_card[card].BRAND})
                     <label class="button_del">
                         <a href="#" id="{$saved_card[card].IDUSER}" class="remove_card">
-                         {l s='Eliminar tarjeta' mod='paytpv'}
+                         {l s='Remove Card' mod='paytpv'}
                         </a>
                         <input type="hidden" name="cc_{$saved_card[card].IDUSER}" id="cc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CC}">
                     </label>
@@ -244,21 +244,21 @@
         </div>
    
     {else}
-        <p class="warning">{l s='No tiene asociado todavía ninguna tarjeta. ' mod='paytpv'}</p>
+        <p class="warning">{l s='There is still no card associated.' mod='paytpv'}</p>
     {/if}
 
     <div id="storingStep" class="alert alert-info" style="display: block;">
-        <h4>{l s='¡Agilice sus futuras compras!' mod='paytpv'}</h4>
-        {l s='Vincule una tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.' mod='paytpv'}
+        <h4>{l s='STREAMLLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
+        {l s='Link a card to your account to make all procedures easily and quickly.' mod='paytpv'}
         <br>
-        <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> {l s='Al vincular una tarjet acepta los' mod='paytpv'} <a id="open_conditions" href="#conditions"><span class="terminos">{l s='términos y condiciones del servicio' mod='paytpv'}</span></a>.</label>
+        <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> {l s='When you link a Tarjet accepts ' mod='paytpv'} <a id="open_conditions" href="#conditions"><span class="terminos">{l s='terms and conditions of service' mod='paytpv'}</span></a>.</label>
 
 
-        <a href="javascript:void(0);" onclick="vincularTarjeta();" title="{l s='Vincular Tarjeta de crédito' mod='paytpv'}" class="button button-small btn btn-default">
-            {l s='Vincular tarjeta' mod='paytpv'}
+        <a href="javascript:void(0);" onclick="vincularTarjeta();" title="{l s='Link card' mod='paytpv'}" class="button button-small btn btn-default">
+            {l s='Link card' mod='paytpv'}
         </a>
-        <a href="javascript:void(0);" onclick="close_vincularTarjeta();" title="{l s='Cancelar' mod='paytpv'}" class="button button-small btn btn-default" id="close_vincular" style="display:none">
-                {l s='Cancelar' mod='paytpv'}
+        <a href="javascript:void(0);" onclick="close_vincularTarjeta();" title="{l s='Cancel' mod='paytpv'}" class="button button-small btn btn-default" id="close_vincular" style="display:none">
+                {l s='Cancel' mod='paytpv'}
         </a>
 
         <p class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
@@ -268,28 +268,28 @@
     <br/>
     <hr>
     <br/>
-    <h2>{l s='Mis suscripciones' mod='paytpv'}</h2>
+    <h2>{l s='My Subscriptions' mod='paytpv'}</h2>
     {if isset($suscriptions[0])}
         <div class="span6" id="div_suscripciones">
-            {l s='Suscripciones' mod='paytpv'}:
+            {l s='Subscriptions' mod='paytpv'}:
             <ul>
                 {section name=suscription loop=$suscriptions} 
                     <li class="suscriptionCard" id="suscription_{$suscriptions[suscription].ID_SUSCRIPTION}">  
-                        <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscriptions[suscription].ID_ORDER}")|escape:'html'}">{l s='Pedido' mod='paytpv'}: {$suscriptions[suscription].ORDER_REFERENCE}</a>
+                        <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscriptions[suscription].ID_ORDER}")|escape:'html'}">{l s='Order' mod='paytpv'}: {$suscriptions[suscription].ORDER_REFERENCE}</a>
                         <br>
-                        {l s='Cada' mod='paytpv'} {$suscriptions[suscription].PERIODICITY} {l s='días' mod='paytpv'} - repetir {$suscriptions[suscription].CYCLES} veces - Precio: {$suscriptions[suscription].PRICE} - Inicio: {$suscriptions[suscription].DATE_YYYYMMDD}
+                        {l s='Every' mod='paytpv'} {$suscriptions[suscription].PERIODICITY} {l s='days' mod='paytpv'} - {l s='repeat' mod='paytpv'} {$suscriptions[suscription].CYCLES} {l s='times' mod='paytpv'} - {l s='Amount' mod='paytpv'}: {$suscriptions[suscription].PRICE} - {l s='Start' mod='paytpv'}: {$suscriptions[suscription].DATE_YYYYMMDD}
                         <label class="button_del">
                             {if $suscriptions[suscription].STATUS==0}
                                 <a href="#" id="{$suscriptions[suscription].ID_SUSCRIPTION}" class="cancel_suscription">
-                                 {l s='Cancelar Suscripcion' mod='paytpv'}
+                                 {l s='Cancel Subscription' mod='paytpv'}
                                 </a>
                             {else if $suscriptions[suscription].STATUS==1}
                                 <span class="canceled_suscription">
-                                    {l s='CANCELADA' mod='paytpv'}
+                                    {l s='CANCELED' mod='paytpv'}
                                 </span>
                             {else if $suscriptions[suscription].STATUS==2}
                                 <span class="finised_suscription">
-                                    {l s='FINALIZADA' mod='paytpv'}
+                                    {l s='FINISHED' mod='paytpv'}
                                 </span>
                             {/if}
                         </label>
@@ -298,8 +298,8 @@
                             <ul >
                                 {section name=suscription_pay loop=$suscription_pay}
                                 <li class="suscription_pay" id="suscription_pay{$suscription_pay[suscription_pay].ID_SUSCRIPTION}">
-                                     <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscription_pay[suscription_pay].ID_ORDER}")|escape:'html'}">{l s='Pedido' mod='paytpv'}: {$suscription_pay[suscription_pay].ORDER_REFERENCE}</a>
-                                     Precio: {$suscription_pay[suscription_pay].PRICE} - Fecha: {$suscription_pay[suscription_pay].DATE_YYYYMMDD}
+                                     <a href="{$link->getPageLink('order-detail',true,null,"id_order={$suscription_pay[suscription_pay].ID_ORDER}")|escape:'html'}">{l s='Order' mod='paytpv'}: {$suscription_pay[suscription_pay].ORDER_REFERENCE}</a>
+                                     {l s='Amount' mod='paytpv'}: {$suscription_pay[suscription_pay].PRICE} - {l s='Date' mod='paytpv'}: {$suscription_pay[suscription_pay].DATE_YYYYMMDD}
 
                                 </li>
                                 {/section}
@@ -312,7 +312,7 @@
         </div>
    
     {else}
-        <p class="warning">{l s='No tiene ninguna suscripción. ' mod='paytpv'}</p>
+        <p class="warning">{l s='There is no subscription.' mod='paytpv'}</p>
     {/if}
 
     <div id="alert" style="display:none">
@@ -321,8 +321,8 @@
 
     <div id="confirm" style="display:none">
         <p class="title"></p>
-        <input type="button" class="confirm yes button" value="{l s='Aceptar' mod='paytpv'}" />
-        <input type="button" class="confirm no button" value="{l s='Cancelar' mod='paytpv'}" />
+        <input type="button" class="confirm yes button" value="{l s='Accept' mod='paytpv'}" />
+        <input type="button" class="confirm no button" value="{l s='Cancel' mod='paytpv'}" />
         <input type="hidden" name="paytpv_cc" id="paytpv_cc">
         <input type="hidden" name="paytpv_iduser" id="paytpv_iduser">
         <input type="hidden" name="id_suscription" id="id_suscription">
@@ -330,66 +330,44 @@
 
     <div style="display: none;">
         <div id="conditions" style="overflow:auto;">
-            <h1 class="estilo-tit1">Tarjetas vinculadas</h1>
+            <h1 class="estilo-tit1">{l s='Related Cards' mod='paytpv'}</h1>
             <p>
-            <abbr title="">Este comercio</abbr> no almacena ni transmite los datos tarjetas
-            de crédito o débito. Los datos son enviados a través de un canal cifrado y seguro a la
-            plataforma <abbr title="PayTPV On Line S.L.">PAYTPV</abbr>.
+            {l s='This trade does not store or transmit data credit card or debit card. The data are sent via a secure, encrypted channel platform PayTPV.' mod='paytpv'}
             </p>
             <p>
-           En cualquier momento, el usuario puede añadir ó eliminar los datos de sus tarjetas vinculadas. En el apartado Mi cuenta, verá un apartado "Mis tarjetas vinculadas" donde se mostrarán las tarjetas almacenadas y podrán ser eliminadas.
+            {l s='At any time, the user can add or remove data from your linked card. In the My Account section, you will see a section "My cards" where the cards will be stored and may be removed.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Política de seguridad</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Security Policy' mod='paytpv'}</h2>
             <p>
-            Toda la información de transacciones que se transmite entre este sitio y los sistemas de PAYTPV se
-            cifra mediante certificados SSL de 256 bits. Toda la información del titular se transmite cifrada y todos
-            los mensajes enviados a sus servidores desde PAYTPV se firman mediante hashing SHA para evitar su manipulación.
-            La información que se transmite a los servidores de PAYTPV no se puede examinar, escanear, utilizar o
-            modificar por cualquier externo que obtenga acceso a información confidencial.
+            {l s='All transaction information is transmitted between this site and PayTPV systems is encrypted using 256-bit SSL certificates. All cardholder information is transmitted encrypted and all messages sent to your servers from PayTPV signed using SHA hashing to prevent tampering. The information is transmitted to servers PayTPV can not probe, scan, used or modified by any external to gain access to confidential information.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Cifrado y almacenamiento de datos</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Encryption and Data Storage' mod='paytpv'}</h2>
             <p>
-            Una vez en los sistemas de PAYTPV, la información confidencial se protege utilizando estándares de
-            cifrado de 1024 bits. Las claves de cifrado se mantienen en sistemas de alta seguridad volátiles y con
-            doble autenticación lo que imposibilita su extracción. Bancos, agentes de seguridad y entidades
-            bancarias realizan auditorías con regularidad para garantizar la protección de los datos.
+            {l s='Once PayTPV systems, confidential information is protected using standard 1024-bit encryption. Encryption keys are kept in high security systems with double authentication volatile and which precludes their extraction. Banks, security agents and banks perform regular audits to ensure data protection.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Seguridad en los sistemas</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='System Safety' mod='paytpv'}</h2>
             <p>
-            Los sistemas de PAYTPV se examinan trimestralmente mediante herramientas específicas ISO, un Asesor de
-            Seguridad Cualificado (QSA) independiente y un proveedor de exploración aprobado (ASV) por las marcas de
-            tarjetas de pago.
+            {l s='PayTPV systems are reviewed quarterly by specific tools ISO, a Qualified Qualified Security Assessor (QSA) and an independent approved scanning vendor (ASV) for the payment card brands.' mod='paytpv'}
             </p>
             <p>
-            PAYTPV también se somete a una auditoría anual según los estándares de seguridad de
-            datos del sector de tarjetas de pago (PCI DSS) y es un proveedor de servicios de pago de Nivel 1 totalmente
-            aprobado, que es el mayor nivel de cumplimiento.
+            {l s='PayTPV also subject to an annual audit by the standards of data security (PCI DSS) and Payment Card Industry is a provider of payment services fully approved Level 1, which is the highest level of compliance.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Enlaces con entidades bancarias</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Links to banks' mod='paytpv'}</h2>
             <p>
-            PAYTPV tiene varios enlaces privados con redes bancarias que son completamente independientes de Internet y que
-            no atraviesan ninguna red de acceso público. Toda la información del titular enviada a los bancos
-            y todos los mensajes de autorización enviados como respuesta están protegidos y no se pueden
-            manipular.
+            {l s='PayTPV has multiple private links to banking networks that are completely independent of the Internet and which do not cross any public access network. Any cardholder information sent to the banks and all messages sent in response authorization are protected and can not be manipulated.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Seguridad interna</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Internal security' mod='paytpv'}</h2>
             <p>
-            PAYTPV está auditado en controles de acceso a los entornos de producción. Los CPD donde se alojan
-            los sistemas operan conforme a los requisitos para los centros Tier III. De esta forma se garantiza que la
-            seguridad no se ponga en riesgo en ningún momento. Se dispone de sofisticados sistemas de alarma,
-            vigilancia mediante circuitos cerrados de TV y vigilantes de seguridad, presentes 24 horas al día y 7 días
-            a la semana en las instalaciones, así como de una monitorización y un mantenimiento rigurosos.
-            Toda la información de transacciones y tarjetas de clientes está protegida incluso de nuestros
-            propios empleados.
+            {l s='PayTPV is audited access controls production environments. The CPD stay where systems operate according to the requirements for Tier III centers. This ensures that safety is not put at risk at any time. It has sophisticated alarm systems, surveillance and closed circuit TV security guards present 24 hours a day, 7 days a week on site, as well as monitoring and a rigorous maintenance. All transaction information and customer card is protected even our own employees.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">Recuperación de desastres</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Disaster Recovery' mod='paytpv'}</h2>
             <p>
-            PAYTPV dispone de sistemas de Backup alojados en diferentes países para garantizar una seguridad de
-            sistemas óptima y una alta disponibilidad. Asimismo, cuenta con una política de continuación
-            comercial y recuperación de desastres completa.
+            {l s='PayTPV has hosted Backup systems in different countries to ensure optimal safety systems and high availability. It also has a policy of commercial below and complete disaster recovery.' mod='paytpv'}
             </p>
             <p>&nbsp;</p>
         </div>
     </div>
 
+
+    
 </div>

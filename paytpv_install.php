@@ -56,7 +56,7 @@ class PayTpvInstall
 				`suscription` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
 				`periodicity` INT(3) NOT NULL,
 				`cycles` INT(2) NOT NULL,
-				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				`date` DATETIME NOT NULL,
 				PRIMARY KEY (`id_customer`, `id_cart`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
@@ -68,7 +68,7 @@ class PayTpvInstall
 				`paytpv_cc` VARCHAR(32) NOT NULL,
 				`paytpv_brand` VARCHAR(32) NULL,
 				`id_customer` int(10) unsigned NOT NULL,
-				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				`date` DATETIME NOT NULL,
 				PRIMARY KEY (`paytpv_iduser`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
@@ -83,7 +83,7 @@ class PayTpvInstall
 				`periodicity` INT(3) NOT NULL,
 				`cycles` INT(2) NOT NULL,
 				`price` DECIMAL(20,6) NOT NULL DEFAULT 0,
-				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				`date` DATETIME NOT NULL,
 				`status` SMALLINT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`id_suscription`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
@@ -98,7 +98,7 @@ class PayTpvInstall
 				`id_customer` INT(10) UNSIGNED NOT NULL,
 				`id_order` INT(10) UNSIGNED NOT NULL,
 				`price` DECIMAL(20,6) NOT NULL DEFAULT 0,
-				`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				`date` DATETIME NOT NULL,
 				PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;

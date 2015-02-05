@@ -1,10 +1,10 @@
 <p class="payment_module">
 
-	<a href="javascript:$('#paytpv_form').submit();" title="{l s='Conectar con el TPV' mod='paytpv'}">
+	<a href="javascript:$('#paytpv_form').submit();" title="{l s='Connect with TPV' mod='paytpv'}">
 
-		<img src="{$module_dir}/views/img/tarjetas.png" alt="{l s='Conectar con el TPV' mod='paytpv'}" />
+		<img src="{$module_dir}/views/img/tarjetas.png" alt="{l s='Connect with TPV' mod='paytpv'}" />
 
-		{l s='Pago seguro con tarjeta de crédito' mod='paytpv'}
+		{l s='Secure payment by credit card' mod='paytpv'}
 
 	</a>
 

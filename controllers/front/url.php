@@ -51,6 +51,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$result = 666;
 		$paytpv = $this->module;
 
+		$reg_estado = $paytpv->reg_estado;
+
 		$suscripcion = 0;
 
 		//Logger::addLog(print_r($_POST,true), 1);
@@ -125,7 +127,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 			
 			if ($sign!=$local_sign)	die('Error 3');
 		}
@@ -146,8 +148,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 			//if ($sign!=$local_sign)	die('Error 4');
 		}
-
-		
 
 		if($result == 0){
 			$id_cart = (int)substr($ref,0,8);
@@ -220,14 +220,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					}
 					// SUSCRIPCION
 					if ($suscripcion==1){
-						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
-						$client = new WS_Client(
-							array(
-								'clientcode' => $paytpv->clientcode,
-								'term' => $paytpv->term,
-								'pass' => $paytpv->pass,
-							)
-						);
 						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
 					}
 				}

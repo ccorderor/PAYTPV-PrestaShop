@@ -1,1 +1,1 @@
-<table width="100%" border="0">    <tr><td><td><img src="{$base_dir}img/admin/icon-valid.png"/></td></td>    <td>{l s='Gracias por confiar en nosotros. Su compra se ha formalizado correctamente y en breve procesaremos su pedido.'}</td></tr></table>
+<table width="100%" border="0">    <tr><td><td><img src="{$base_dir}img/admin/icon-valid.png"/></td></td>    <td>{l s='Thank you for trusting us. Your purchase has been formalized correctly and soon we will process your order.' mod='paytpv'}</td></tr></table>
