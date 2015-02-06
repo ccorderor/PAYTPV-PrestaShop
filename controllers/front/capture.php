@@ -136,18 +136,9 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		
 		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$this->context->cart->id );
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
-			$id_cart = (int)substr($charge[ 'DS_MERCHANT_ORDER'],0,8);
-			$importe = number_format($charge[ 'DS_MERCHANT_AMOUNT']/ 100, 2);
-			$result = $charge[ 'DS_ERROR_ID'];
-			$transaction = array(
-				'transaction_id' => $charge['DS_MERCHANT_AUTHCODE'],
-				'result' => $result
-			);
-			$customer = new Customer((int) $this->context->cart->id_customer);
-			// Registramos el pago
-			$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
-			$id_order = Order::getOrderByCartId(intval($id_cart));
-			$paytpv->savePayTpvOrder($data['IDUSER'],$data['TOKEN_USER'],0,$customer->id,$id_order,$importe);
+			//Esperamos a que la notificación genere el pedido
+			sleep ( 3 );
+			$id_order = Order::getOrderByCartId(intval($this->context->cart->id));
 			$values = array(
 				'id_cart' => $this->context->cart->id,
 				'id_module' => (int)$this->module->id,
