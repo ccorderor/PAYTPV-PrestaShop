@@ -197,10 +197,7 @@
                     jQuery("#tdmin_container").hide();
                     break;
                 case "2": // AMBOS
-                    if (jQuery("#tdfirst").val()==0)
-                        jQuery("#tdmin_container").show();
-                    else
-                        jQuery("#tdmin_container").hide();
+                    jQuery("#tdmin_container").show();
                     break;
                 
             }
@@ -218,12 +215,14 @@
                 jQuery("#tdfirst").val(0);
             }
 
+            /*
             if(jQuery("#terminales").val() == 2){
                 if (jQuery("#tdfirst").val()==0)
                     jQuery("#tdmin_container").show();
                 else
                     jQuery("#tdmin_container").hide();
             }
+            */
 
         }
 

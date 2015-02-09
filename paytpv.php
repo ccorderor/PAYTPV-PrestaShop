@@ -47,6 +47,8 @@ class Paytpv extends PaymentModule {
 			$this->tdfirst = $config['PAYTPV_3DFIRST'];
 		if (isset($config['PAYTPV_3DMIN']))
 			$this->tdmin = $config['PAYTPV_3DMIN'];
+		else
+			$this->tdmin = "";
 		if (isset($config['PAYTPV_COMMERCEPASSWORD']))
 			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
 		if (isset($config['PAYTPV_TERMINALES']))
@@ -341,7 +343,23 @@ class Paytpv extends PaymentModule {
         // Si se supera el importe maximo para compra segura
         if ($terminales==2 && ($this->tdmin!="" && $this->tdmin < $importe))
             return true;
+
+         // Si esta definido como que la primera compra es Segura y es la primera compra aunque este tokenizada
+        if ($terminales==2 && $this->tdfirst && $card>0 && $this->isFirstPurchaseToken($card))
+            return true;
+
         
+        
+        return false;
+    }
+
+    function isFirstPurchaseToken($IDUSER)
+    {
+        $sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_customer='.(int)$this->context->customer->id. ' and paytpv_iduser='.$IDUSER;
+		$result = Db::getInstance()->getRow($sql);
+		if (empty($result) === true){
+        	return true;
+        }
         return false;
     }
 
@@ -480,7 +498,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$status = $row['status'];
 			if ($row['status']==1)
 				$status = $row['status'];  // CANCELADA
-			else if ($num_pagos==$row['cycles'] && $row['cycles']>0)
+			else if ($num_pagos==$row['cycles'] && $row['cycles']>0)	
 				$status = 2; // FINALIZADO
 							
 
