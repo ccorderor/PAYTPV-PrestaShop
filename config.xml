@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<module>
-    <name>paytpv</name>
-    <displayName><![CDATA[paytpv.com]]></displayName>
-    <version><![CDATA[6.0.1]]></version>
-    <description><![CDATA[This module allows you to accept card payments via paytpv.com]]></description>
-    <author><![CDATA[PayTPV]]></author>
-    <tab><![CDATA[payment_security]]></tab>
-    <is_configurable>1</is_configurable>
-    <need_instance>1</need_instance>
-       <limited_countries></limited_countries>
-</module>
+        <module>
+            <name>paytpv</name>
+            <displayName><![CDATA[paytpv.com]]></displayName>
+            <version><![CDATA[6.0.1]]></version>
+            <description><![CDATA[This module allows you to accept card payments via paytpv.com]]></description>
+            <author><![CDATA[PayTPV]]></author>
+            <tab><![CDATA[payment_security]]></tab>
+            <is_configurable>1</is_configurable>
+            <need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+        </module>

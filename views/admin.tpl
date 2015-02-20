@@ -1,7 +1,39 @@
+{*
+* 2007-2015 PrestaShop
+*
+* NOTICE OF LICENSE
+*
+* This source file is subject to the Academic Free License (AFL 3.0)
+* that is bundled with this package in the file LICENSE.txt.
+* It is also available through the world-wide-web at this URL:
+* http://opensource.org/licenses/afl-3.0.php
+* If you did not receive a copy of the license and are unable to
+* obtain it through the world-wide-web, please send an email
+* to license@prestashop.com so we can send you a copy immediately.
+*
+* DISCLAIMER
+*
+* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+* versions in the future. If you wish to customize PrestaShop for your
+* needs please refer to http://www.prestashop.com for more information.
+*
+*  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
+*  @copyright  2015 PAYTPV ON LINE S.L.
+*  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+*}
+
     {$errorMessage}
 
-    <img src="{$base_dir}modules/paytpv/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='This module allows you to accept card payments.' mod='paytpv'}</b><br /><br />
+    <img src="{$base_dir}modules/paytpv/views/img/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='This module allows you to accept card payments.' mod='paytpv'}</b><br /><br />
             {l s='If the customer chooses this payment method, the customer could pay automatically.' mod='paytpv'}<br /><br /><br />
+    <div>
+        <p><H1>{l s='PRERREQUISTES' mod='paytpv'}</H1></p>
+            <ul>
+                <li>{l s='The store must be installed on line and not locally to be able to use the service' mod='paytpv'}</li>
+                <li>{l s='PayTPV server must be accessible. (checking is required when the server is firewalled)' mod='paytpv'}</li>
+            </ul>
+        </p>
+    </div>
     <form action="{$serverRequestUri|strip_tags}" method="post">
     	<fieldset>
     		<legend>{l s='Product Configuration paytpv.com' mod='paytpv'}</legend>
@@ -9,8 +41,8 @@
             <label for="operativa" id="lbloperativa">{l s='Operation method' mod='paytpv'}</label>
             <div class="margin-form">
                 <select name="operativa" onchange="checkoperativa();" id="operativa">
-                    <option value="1" {if $operativa==1}selected="1"{/if}>TPV WEB</option>
                     <option value="0" {if $operativa==0}selected="1"{/if}>BANKSTORE</option>
+                    <option value="1" {if $operativa==1}selected="1"{/if}>TPV WEB</option>
                 </select>
             </div>
 
@@ -77,7 +109,7 @@
     		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
 
             <div id="suscriptions_container" style="display:none">
-                <label>{l s='Active Subscriptions' mod='paytpv'}</label>
+                <label>{l s='Enable Subscriptions' mod='paytpv'}</label>
                 <div class="margin-form">
                     <select name="suscriptions" id="suscriptions">
                         <option value="0" {if $suscriptions==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
@@ -108,15 +140,25 @@
     	<center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
 
     	<div>
-            <p><H1>{l s='IMPORTANT' mod='paytpv'}</H1></p>
-    		<p><strong>{l s='Finally you need to configure your account <a href="https://www.paytpv.com"> PayTPV </a> the following URLs:' mod='paytpv'}</strong>
-    			<ul>
-    				<li><strong>URLOK:</strong> {$OK}</li>
-    				<li><strong>URLKO:</strong> {$KO}</li>
-    				<li><strong>URL NOTIFICACION:</strong> {$NOTIFICACION}</li>				
-    			</ul>
-    		</p>
+            <p class="important">{l s='IMPORTANT' mod='paytpv'}</p>
+    		<p><strong>{l s='Finally you need to configure your account' mod='paytpv'} <a class='link' target="_blank" href="https://www.paytpv.com/clientes.php"> PayTPV </a>{l s='the following URLs for the payment module work properly' mod='paytpv'}:</strong>
+            </p>
+			<ul class="paytpv">
+				<li><strong>URL OK:</strong> {$OK}</li>
+				<li><strong>URL KO:</strong> {$KO}</li>
+                <li><strong>{l s='Type of notice (IMPORTANT)' mod='paytpv'}:</strong> {l s='Url Notice or Url Notice and email' mod='paytpv'}
+                    <ul class="paytpv">
+                        <li><strong>URL NOTIFICACION:</strong> {$NOTIFICACION}</li>
+                    </ul>
+                </li>		
+			</ul>
+
     	</div>
+
+        <div>
+            <p class="important">{l s='USER DOCUMENTATION' mod='paytpv'}</p>
+            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://www.paytpv.com/sdk.php">{l s='User Documentation'  mod='paytpv'}</a></strong>
+        </div>
 
     </form>
 

@@ -1,4 +1,6 @@
-{*
+<?php
+
+/*
 * 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
@@ -20,25 +22,16 @@
 *  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*}
+*/
 
-<p class="payment_module">
+				    	
 
-	<a href="javascript:$('#paytpv_form').submit();" title="{l s='Connect with TPV' mod='paytpv'}">
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");				
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
-		<img src="{$module_dir}/views/img/tarjetas.png" alt="{l s='Connect with TPV' mod='paytpv'}" />
+header("Location: ../");
 
-		{l s='Secure payment by credit card' mod='paytpv'}
-
-	</a>
-
-</p>
-<form action="https://www.paytpv.com/gateway/fsgateway.php" method="post" id="paytpv_form" class="hidden">
-
-{foreach from=$fields key=k item=v}
-
-    <input type="hidden" name="{$k}" value="{$v}" />
-
-{/foreach}
-
-</form>
+exit;

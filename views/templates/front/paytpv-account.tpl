@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -17,204 +17,10 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
+*  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
 *}
-
-<script type="text/javascript">
-
-    $(document).ready(function() {
-        $("#open_conditions").fancybox({
-                autoSize:false,
-                'width':parseInt($(window).width() * 0.7)
-            });
-        
-        $(".remove_card").on("click", function(e){   
-            e.preventDefault();
-            $("#paytpv_iduser").val($(this).attr("id"));
-            cc_iduser = $("#cc_"+$(this).attr("id")).val()
-            confirm("{l s='Remove Card' mod='paytpv'}" + ": " + cc_iduser, true, function(resp) {
-                if (resp)   removeCard();
-            });
-        });
-
-        $(".cancel_suscription").on("click", function(e){   
-            e.preventDefault();
-            $("#id_suscription").val($(this).attr("id"));
-            confirm("{l s='Cancel Subscription' mod='paytpv'}", true, function(resp) {
-                if (resp)   cancelSuscription();
-            });
-        });
-
-    });
-
-    function confirm(msg, modal, callback) {
-        $.fancybox("#confirm",{
-            modal: modal,
-            beforeShow: function() {
-                $(".title").html(msg);
-            },
-            afterShow: function() {
-                $(".confirm").on("click", function(event){
-                    if($(event.target).is(".yes")){
-                        ret = true;
-                    } else if ($(event.target).is(".no")){
-                        ret = false;
-                    }
-                    $.fancybox.close();
-                });
-            },
-            afterClose: function() {
-                callback.call(this, ret);
-            }
-        });
-    }
-
-    function alert(msg) {
-        $.fancybox("#alert",{
-            beforeShow: function() {
-                $(".title").html(msg);
-            },
-            modal: false,
-        });
-    }
-
-    function vincularTarjeta(){
-        if ($("#savecard").is(':checked')){
-            $('#savecard').attr("disabled", true);
-            $('#close_vincular').show();
-            $('#nueva_tarjeta').show();
-        }else{
-            alert("{l s='You must accept the terms and conditions of service' mod='paytpv'}");
-        }
-
-    }
-
-    function close_vincularTarjeta(){
-        $('#savecard').attr("disabled", false);
-        $('#nueva_tarjeta').hide();
-        $('#close_vincular').hide();
-    }
-
-    function confirmationRemove(paytpv_cc){
-        $("#cc").html(paytpv_cc);
-        $("#paytpv_cc").val(paytpv_cc);
-        $("#deltecard").open();
-    }
-
-    function removeCard()
-    {
-        paytpv_iduser = $("#paytpv_iduser").val();
-        $.ajax({
-            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true)|addslashes}",
-            type: "POST",
-            data: {
-                'paytpv_iduser': paytpv_iduser,
-                'ajax': true
-            },
-            success: function(result)
-            {
-                if (result == '0')
-                {
-                   $("#card_"+paytpv_iduser).fadeOut(1000);
-                }
-            }
-        });
-        
-    };
-
-
-    function cancelSuscription()
-    {
-        id_suscription = $("#id_suscription").val();
-        $.ajax({
-            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'cancelSuscription'], true)|addslashes}",
-            type: "POST",
-            data: {
-                'id_suscription': id_suscription,
-                'ajax': true
-            },
-            success: function(result)
-            {
-                if (result == '0')
-                {
-                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">{l s='CANCELED' mod='paytpv'}</span>");
-                    //$("#suscription_"+id_suscription).fadeOut(1000);
-                }
-            }
-        });
-        
-    };
-
-</script>
-
-<style>
-    .alert {
-        padding: 8px 35px 8px 14px;
-        margin: 10px 20px 0px 0px;
-        /* text-shadow: 0 1px 0 rgba(255,255,255,0.5); */
-        background-color: #fcf8e3;
-        border: 1px solid #fbeed5;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-       }
-
-    .alert-info {
-        color: #3a87ad;
-        background-color: #d9edf7;
-        border-color: #bce8f1;
-    }
-    .terminos
-    {
-        color:#ff6000;
-    }
-
-    .button_del{
-        float:right;
-    }
-
-    .bankstoreCard {
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        padding: 20px;
-        color: #a6a6a6;
-        }
-
-    .suscriptionCard {
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        padding: 20px;
-
-        color: #a6a6a6;
-        }
-
-    #div_suscripciones_pay {
-        margin-top: 5px;
-      
-        }
-
-    .suscription_pay {
-        border-radius: 4px;
-        padding-left: 50px;
-        color: #a6a6a6;
-        }
-
-
-    .remove_card,.cancel_suscription{
-        color: #ff6000!important;
-    }
-
-    #div_suscripciones li{
-        list-style:none;
-    } 
-
-
-</style>
 
 
 {capture name=path}
@@ -224,6 +30,14 @@
         
 {/capture}
 
+
+<script type="text/javascript">
+    var url_removecard = "{$url_removecard}";
+    var url_cancelsuscription = "{$url_cancelsuscription}";
+    var msg_cancelsuscription = "{$msg_cancelsuscription}";
+    var msg_removecard = "{$msg_removecard}";
+    var msg_accept = "{$msg_accept}";
+</script>
 
 <div id="paytpv_block_account">
     <h2>{l s='My Cards' mod='paytpv'}</h2>

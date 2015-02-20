@@ -1,259 +1,31 @@
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#open_conditions").fancybox({
-                autoSize:false,
-                'width':parseInt($(window).width() * 0.7)
-            });
+{*
+* 2007-2015 PrestaShop
+*
+* NOTICE OF LICENSE
+*
+* This source file is subject to the Academic Free License (AFL 3.0)
+* that is bundled with this package in the file LICENSE.txt.
+* It is also available through the world-wide-web at this URL:
+* http://opensource.org/licenses/afl-3.0.php
+* If you did not receive a copy of the license and are unable to
+* obtain it through the world-wide-web, please send an email
+* to license@prestashop.com so we can send you a copy immediately.
+*
+* DISCLAIMER
+*
+* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+* versions in the future. If you wish to customize PrestaShop for your
+* needs please refer to http://www.prestashop.com for more information.
+*
+*  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
+*  @copyright  2015 PAYTPV ON LINE S.L.
+*  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+*}
 
-        $("#open_directpay").fancybox({
-                'beforeShow': onOpenDirectPay
-            });
-
-        $("#exec_directpay").click(function() {
-           var suscripcion="&suscripcion="+($("#suscripcion").is(':checked')?1:0)+"&periodicity="+$("#susc_periodicity").val()+"&cycles="+$("#susc_cycles").val();
-           window.location.href = $("#card").val()+suscripcion;
-        });
-
-        $("#suscripcion").click(function() {
-           checkSuscription();
-        });
-
-        checkSuscription();
-
-    });
-
-    function checkSuscription(){
-        if ($("#suscripcion").is(':checked')){
-            $("#div_periodicity").show();
-            $("#saved_cards").hide();
-            $("#storingStep").hide();
-            $(".paytpv_iframe").hide();
-        }else{
-            $("#div_periodicity").hide();
-            $("#saved_cards").show();
-            checkCard();
-        }
-       
-    }
-
-    function confirm(msg, modal, callback) {
-        $.fancybox("#confirm",{
-            modal: modal,
-            beforeShow: function() {
-                $(".title").html(msg);
-            },
-            afterShow: function() {
-                $(".confirm").on("click", function(event){
-                    if($(event.target).is(".yes")){
-                        ret = true;
-                    } else if ($(event.target).is(".no")){
-                        ret = false;
-                    }
-                    $.fancybox.close();
-                });
-            },
-            afterClose: function() {
-                callback.call(this, ret);
-            }
-        });
-    }
-
-    function checkCard(){
-        if ($("#card").val()=="0"){
-            $("#storingStep").removeClass("hidden").show();
-            $("#open_directpay").hide();
-            $("#exec_directpay").hide();
-        }else{
-            $("#storingStep").hide();
-            $("#open_directpay").show();
-            $("#exec_directpay").show();
-        }
-        $(".paytpv_iframe").hide();
-
-    }
-
-
-    function onOpenDirectPay(){
-        $("#datos_tarjeta").html($("#card :selected").text());
-        var suscripcion="&suscripcion="+($("#suscripcion").is(':checked')?1:0)+"&periodicity="+$("#susc_periodicity").val()+"&cycles="+$("#susc_cycles").val();
-        
-        $("#pago_directo").attr("action",$("#card").val()+suscripcion);
-    }
-
-    function useCard(){
-        if (confirm("{l s='Accept to pay and complete your order.' mod='paytpv'}")){
-           window.location.href = $("#card").val()+suscripcion;
-        }
-    }
-
-    
-    function addCard(){
-        $("#paytpv_agree").val($("#savecard").is(':checked')?1:0);
-        $("#action_paytpv").val("add");
-
-        $("#form_paytpv").submit();
-    }
-
-
-    function addCardJQ(){
-        $("#paytpv_iframe").attr("src","");
-        paytpv_agree = $("#savecard").is(':checked')?1:0;
-        $.ajax({
-            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'addCard'], true)|addslashes}",
-            type: "POST",
-            data: {
-                'paytpv_agree': paytpv_agree,
-                'id_cart' : {$id_cart},
-                'ajax': true
-            },
-            success: function(result)
-            {   
-                if (result.error=='0')
-                {
-                    
-                    $("#storingStep").hide();
-                    $("#paytpv_iframe").attr("src",result.url);
-                    $(".paytpv_iframe").slideDown(500);
-                }
-            },
-            dataType:"json"
-        });
-    }
-
-    function suscribe(){
-        $("#paytpv_agree").val(0);
-        $("#action_paytpv").val("add");
-
-        $("#paytpv_suscripcion").val(1);
-        $("#paytpv_periodicity").val($("#susc_periodicity").val());
-        $("#paytpv_cycles").val($("#susc_cycles").val());
-
-        $("#form_paytpv").submit();
-    }
-
-    function suscribeJQ(){
-        $("#paytpv_iframe").attr("src","");
-        $.ajax({
-            url: "{$link->getModuleLink('paytpv', 'actions', ['process' => 'suscribe'], true)|addslashes}",
-            type: "POST",
-            data: {
-                'paytpv_agree': 0,
-                'paytpv_suscripcion': 1,
-                'paytpv_periodicity': $("#susc_periodicity").val(),
-                'paytpv_cycles': $("#susc_cycles").val(),
-                'id_cart' : {$id_cart},
-                'ajax': true
-            },
-            success: function(result)
-            {
-                           
-                if (result.error=='0')
-                {
-                    $("#div_periodicity").hide();
-                    $("#storingStep").hide();
-                    $("#paytpv_iframe").attr("src",result.url);
-                    $(".paytpv_iframe").slideDown(500);
-                }
-            },
-            dataType:"json"
-        });
-    }
-
-</script>
-
-<style>
-
-    .paytpv
-    {
-        padding-left:17px;
-        display: block;
-        border: 1px solid #d6d4d4;
-        border-radius: 4px;
-    }
-    .paytpv_tarjetas{
-        padding: 5px 15px 15px 15px;
-        font-size: 90%;
-    }
-
-    .alert {
-        padding: 0px 35px 8px 14px;
-        margin: 10px 20px 0px 0px;
-        /* text-shadow: 0 1px 0 rgba(255,255,255,0.5); */
-        background-color: #fcf8e3;
-        border: 1px solid #fbeed5;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-       }
-
-    .alert-info {
-        color: #3a87ad;
-        background-color: #d9edf7;
-        border-color: #bce8f1;
-    }
-
-    #directpay{
-        font-size: 12px;
-         padding: 8px 35px 8px 14px;
-        margin: 10px 20px 0px 0px;
-        /* text-shadow: 0 1px 0 rgba(255,255,255,0.5); */
-        background-color: #fcf8e3;
-        border: 1px solid #fbeed5;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-
-    }
-
-    #directpay p{
-        padding_top: 10px;
-    }
-
-     #directpay .password{
-        border: 1px solid #3a87ad;
-    }
-
-    .button_left {
-        float: left; 
-    }
-
-    .button_right {
-        float: right;
-        height: 50px;
-    }
-
-    .nota {
-        color: #3a87ad;
-        font-size: 90%;
-        background-color: #d9edf7;
-        border-color: #bce8f1;
-        margin: 5px 0px;
-    }
-
-    .suscripcion{
-        list-style:none;
-    }
-
-    .suscription_period{
-        padding: 5px 0px;
-    }
-    .suscripcion li{
-        color: rgb(3, 173, 212);
-    }
-
-    #tipo-pago p{
-        padding-bottom: 10px;
-    }
-
-    .hidden{
-        display:none;
-    }
-
-</style>
 <div class="row">
     <div class="col-xs-12 col-md-6">
         <div class="paytpv">            
-            <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}paytpv.png"></a>
+            <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}views/img/paytpv.png"></a>
             <br>
             {if ($msg_paytpv!="")}
                 <p>
@@ -300,7 +72,7 @@
                     </select>
                     &nbsp;&nbsp;
                     <span class="">
-                    <a href="javascript:void(0);" onclick="suscribeJQ();" title="{l s='Subscribe' mod='paytpv'}" class="button button-small btn btn-default">
+                    <a href="javascript:void(0);" onclick="suscribeJQ('{$subscribe_url}');" title="{l s='Subscribe' mod='paytpv'}" class="button button-small btn btn-default">
                         {l s='Subscribe' mod='paytpv'}
                     </a>
                     </span>             
@@ -348,7 +120,7 @@
                 <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" checked>{l s='Yes, remember my card accepting ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of service' mod='paytpv'}</a>.</label>
 
 
-                <a href="javascript:void(0);" onclick="addCardJQ();" title="{l s='NEW CARD' mod='paytpv'}" class="button button-small btn btn-default">
+                <a href="javascript:void(0);" onclick="addCardJQ('{$addcard_url}');" title="{l s='NEW CARD' mod='paytpv'}" class="button button-small btn btn-default">
                     {l s='Next' mod='paytpv'}
                 </a>
             </div>
@@ -443,6 +215,8 @@
         <input type="hidden" name="paytpv_suscripcion" id="paytpv_suscripcion"  value="0">
         <input type="hidden" name="paytpv_periodicity" id="paytpv_periodicity"  value="0">
         <input type="hidden" name="paytpv_cycles" id="paytpv_cycles"  value="0">
+
+        <input type="hidden" name="id_cart" id="id_cart"  value="{$id_cart}">
 
     </form>
 </div>

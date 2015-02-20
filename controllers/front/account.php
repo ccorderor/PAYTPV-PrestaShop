@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,10 +18,9 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
+*  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
 */
 
 /**
@@ -78,11 +77,23 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 					'URLOK' => $URLOK,
 				    'URLKO' => $URLKO
 				);
+
+				$paytpv_path = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$paytpv->name.'/';
 				
+				$this->context->controller->addCSS( $paytpv_path . 'css/account.css' , 'all' );
+			 	$this->context->controller->addJS( $paytpv_path . 'js/paytpv_account.js');
+
 				$this->context->smarty->assign('query',http_build_query($fields));
 				$this->context->smarty->assign('saved_card',$saved_card);
 				$this->context->smarty->assign('suscriptions',$suscriptions);
 				$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
+
+				$this->context->smarty->assign('url_removecard',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true));
+				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'cancelSuscription'], true));
+				
+				$this->context->smarty->assign('msg_cancelsuscription',$paytpv->l('Cancel Subscription'));
+				$this->context->smarty->assign('msg_removecard',$paytpv->l('Remove Card'));
+				$this->context->smarty->assign('msg_accept',$paytpv->l('You must accept the terms and conditions of service'));
 				$this->setTemplate('paytpv-account.tpl');
 			}
 		}
