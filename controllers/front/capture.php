@@ -66,7 +66,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		$total_pedido = Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency);
 		$importe = number_format(Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
 		
-		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0);
+		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
 		
 		$terminales = Configuration::get('PAYTPV_TERMINALES');
 		
@@ -81,7 +81,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		if ($secure_pay){
 
 			$ps_language = new Language(intval($cookie->id_lang));		
-			$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT) . date('is');
+			$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
 
 			$values = array(
 				'id_cart' => (int)$this->context->cart->id,
@@ -130,8 +130,8 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				'pass' => $paytpv->pass,
 			)
 		);
-		
-		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$this->context->cart->id );
+		$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
+		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$paytpv_order_ref);
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
 			//Esperamos a que la notificación genere el pedido
 			sleep ( 3 );

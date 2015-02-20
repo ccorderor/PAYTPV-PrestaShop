@@ -269,15 +269,13 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				}
 			// NO ORDER
 			}else{
-				// 
+				 
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
-				
+				$id_order = Order::getOrderByCartId(intval($id_cart));
 				$id_suscription = 0;
+				$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
 				// BANKSTORE: Si hay notificacion
 				if(Tools::getValue('IdUser')){
-					$id_order = Order::getOrderByCartId(intval($id_cart));
-					$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
-
 					// SUSCRIPCION
 					if ($suscripcion==1){
 						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
@@ -318,9 +316,10 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						// **************************************************************************************************
 					}
 
-					// Save paytpv order
-					$paytpv->savePayTpvOrder(Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$id_suscription,$cart->id_customer,$id_order,$importe);
-					if ($pagoRegistrado AND $reg_estado == 1)
+					$paytpv_iduser = Tools::getValue('IdUser');
+					$paytpv_tokenuser = Tools::getValue('TokenUser');
+
+					if ($suscripcion AND $reg_estado == 1)
 						class_registro::removeByCartID($id_cart);
 
 					
@@ -338,7 +337,14 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						$id_order = Order::getOrderByCartId(intval($id_cart));
 						$paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
 					}
+				// Token Payment
+				}else{
+					$result = $paytpv->getDataTokenPaytpv_iduser($datos_order["paytpv_iduser"]);
+					$paytpv_iduser = $result["paytpv_iduser"];
+					$paytpv_tokenuser = $result["paytpv_tokenuser"];
 				}
+				// Save paytpv order
+				$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
 				
 			}
 			// if URLOK and registered payemnt go to order confirmation

@@ -1,3 +1,5 @@
+<?php
+
 /*
 * 2007-2015 PrestaShop
 *
@@ -22,48 +24,34 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
-.button_del{
-    float:right;
-}
+if (!defined('_PS_VERSION_'))
+	exit;
 
-.bankstoreCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    }
+function upgrade_module_6_0_4($object)
+{
 
-.suscriptionCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    color: #a6a6a6;
-}
+	/* Update hooks */
+	$object->registerHook('displayPayment');
+	$object->registerHook('displayPaymentTop');
+	$object->registerHook('displayPaymentReturn');
+	$object->registerHook('displayMyAccountBlock'); 
+	$object->registerHook('displayAdminOrder'); 
+	$object->registerHook('displayCustomerAccount');
+	$object->registerHook('actionProductCancel');
 
-#div_suscripciones_pay {
-    margin-top: 5px;
-  
-    }
+	try{
+	    Db::getInstance()->execute('
+	    ALTER TABLE `'._DB_PREFIX_.'paytpv_order_info` 
+	    ADD COLUMN `paytpv_iduser` INT(11) NOT NULL DEFAULT 0'
+	    );
+	}catch (exception $e){}
 
-.suscription_pay {
-    border-radius: 4px;
-    padding-left: 50px;
-    color: #a6a6a6;
-    }
+	try{
+	    Db::getInstance()->execute('
+	    ALTER TABLE `'._DB_PREFIX_.'paytpv_order` 
+	    ADD COLUMN `payment_status` varchar(255) DEFAULT NULL'
+	    );
+	}catch (exception $e){}
 
-
-#div_suscripciones li{
-    list-style:none;
-} 
-
-.checkbox.savedcard {
-    clear: both;
-    float: left;
-    margin: 15px 0 25px 0;
-}
-
-#storingStep.box{
-    border: 1px solid #e5e5e5;
-    padding: 14px 18px 13px;
+    return true;
 }

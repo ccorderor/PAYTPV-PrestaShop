@@ -123,7 +123,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
-		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
+		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
 		$tdfirst = $paytpv->tdfirst;
 
@@ -132,7 +132,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0)){
+		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
 			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($paytpv->pass));
@@ -203,13 +203,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 
-		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT) . date('is');
+		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
 		$secure_pay = $paytpv->isSecureTransaction($total_pedido,0)?1:0;
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles)){
+		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles,0)){
 			$OPERATION = "9";
 			$subscription_stratdate = date("Ymd");
 			$susc_periodicity = $periodicity;

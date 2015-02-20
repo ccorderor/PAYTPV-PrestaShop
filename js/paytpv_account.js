@@ -41,7 +41,7 @@ $(document).ready(function() {
         $(".cancel_suscription").on("click", function(e){   
             e.preventDefault();
             $("#id_suscription").val($(this).attr("id"));
-            confirm(msg_cancelsuscripton, true, function(resp) {
+            confirm(msg_cancelsuscription, true, function(resp) {
                 if (resp)   cancelSuscription();
             });
         });
@@ -138,7 +138,7 @@ $(document).ready(function() {
             {
                 if (result == '0')
                 {
-                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">{l s='CANCELED' mod='paytpv'}</span>");
+                    $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">"+status_canceled+"</span>");
                 }
             }
         });

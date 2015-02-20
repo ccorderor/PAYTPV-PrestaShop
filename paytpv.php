@@ -24,13 +24,12 @@
 */
 
 if (!defined('_PS_VERSION_'))
-
 	exit;
+
 include_once(_PS_MODULE_DIR_.'/paytpv/class_registro.php');
 
 class Paytpv extends PaymentModule {
 
-	const INSTALL_SQL_FILE = 'install.sql';
 	private $_html = '';
 
 	private $_postErrors = array();
@@ -40,7 +39,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '6.0.3';
+		$this->version = '6.0.4';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
@@ -90,6 +89,8 @@ class Paytpv extends PaymentModule {
 	}
 	public function install() {
 
+
+
 		include_once(_PS_MODULE_DIR_.'/'.$this->name.'/paytpv_install.php');
 		$paypal_install = new PayTpvInstall();
 		$res = $paypal_install->createTables();
@@ -106,7 +107,9 @@ class Paytpv extends PaymentModule {
 			!$this->registerHook('displayPaymentReturn') ||
 			!$this->registerHook('displayMyAccountBlock') || 
 			!$this->registerHook('displayAdminOrder') || 
-			!$this->registerHook('displayCustomerAccount')) 
+			!$this->registerHook('displayCustomerAccount') ||
+			!$this->registerHook('actionProductCancel')
+			) 
 			return false;
 		return true;
 
@@ -117,6 +120,8 @@ class Paytpv extends PaymentModule {
 		$paypal_install->deleteConfiguration();
 		return parent::uninstall();
 	}
+
+
 	private function _postValidation(){
 
 	    // Show error when required fields.
@@ -224,30 +229,6 @@ class Paytpv extends PaymentModule {
 		$showcard = false;
 		$msg_paytpv = "";
 
-		
-		
-		if (isset($_POST["action_paytpv"])){
-			switch ($_POST["action_paytpv"]){
-				case "remove":
-					$res = $this->removeCard($_POST["paytpv_cc"]);
-					if ($res)
-						$msg_paytpv = $this->l('The card was successfully removed');
-				break;
-
-				case "add":
-					
-					$paytpv_agree = $_POST["paytpv_agree"];
-					$suscripcion = $_POST["paytpv_suscripcion"];
-					$periodicity = $_POST["paytpv_periodicity"];
-					$cycles = $_POST["paytpv_cycles"];
-
-				    $paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT) . date('is');
-				 	$this->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles);
-					$showcard = true;
-				  
-				break;
-			}
-		}
 		$smarty->assign('msg_paytpv',$msg_paytpv);
 		$smarty->assign('showcard',$showcard);
 
@@ -257,8 +238,7 @@ class Paytpv extends PaymentModule {
 		$currency = new Currency(intval($id_currency));		
 		$importe = number_format(Tools::convertPrice($params['cart']->getOrderTotal(true, 3), $currency)*100, 0, '.', '');		
 
-		// Order ref is Cart Id + hhmm.
-		$paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT) . date('is');
+		$paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT);
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 		$values = array(
 			'id_cart' => (int)$params['cart']->id,
@@ -291,8 +271,6 @@ class Paytpv extends PaymentModule {
 			}
 			$saved_card[$index]['url'] = 0;
 
-
-
 			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
 			$smarty->assign('active_suscriptions',$active_suscriptions);
 			$smarty->assign('saved_card',$saved_card);
@@ -317,7 +295,6 @@ class Paytpv extends PaymentModule {
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO
 			);
-
 		}
 
 		$tmpl_vars = array_merge(
@@ -412,6 +389,7 @@ class Paytpv extends PaymentModule {
 		return  $res;
 
 	}
+
 	public function getDataToken($token){
 
 		$res = array();
@@ -429,15 +407,75 @@ class Paytpv extends PaymentModule {
 		return  $res;
 
 	}
+
+	public function getDataTokenPaytpv_iduser($paytpv_iduser){
+
+		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc FROM '._DB_PREFIX_.'paytpv_customer WHERE paytpv_iduser="'.pSQL($paytpv_iduser).'"';
+		$result = Db::getInstance()->getRow($sql);
+		return $result;
+	}
+
+
 	public function hookDisplayPaymentReturn($params) {
+		global $cookie;
 
 		if (!$this->active)
 			return;
 		$this->context->smarty->assign(array(
 			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/'
 		));
+
+		$id_order = Order::getOrderByCartId(intval($params["objOrder"]->id_cart));
+		$order = new Order($id_order);
+
+		$this->context->smarty->assign('reference',$order->reference);
 		$this->context->smarty->assign('base_dir',__PS_BASE_URI__);
-		return $this->display(__FILE__, 'payment_return.tpl');
+
+		$this->_html .= $this->display(__FILE__, 'payment_return.tpl');
+
+		
+		$result = $this->getSuscriptionOrder($id_order);
+		if ($order->module == $this->name && !empty($result)){
+			
+			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
+			$currency = new Currency(intval($id_currency));
+
+			$suscription_type = $this->l('This is a Subscription');
+			
+			$id_suscription = $result["id_suscription"];
+			$id_customer = $result["id_customer"];
+			$periodicity = $result["periodicity"];
+			$cycles = ($result['cycles']!=0)?$result['cycles']:$this->l('N');
+			$status = $result["status"];
+			$date = $result["date"];
+			$price = number_format(Tools::convertPrice($result['price'], $currency), 2, '.', '') . " " . $currency->sign;	
+			$num_pagos = $result['pagos'];
+
+			if ($status==0)
+				$status = $this->l('ACTIVE');
+			else if ($status==1)
+				$status = $this->l('CANCELED');
+			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
+				$status = $this->l('FINISHED');
+                               
+			$ps_language = new Language(intval($cookie->id_lang));
+
+			$date_YYYYMMDD = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+
+
+			$this->context->smarty->assign('suscription_type', $suscription_type);
+			$this->context->smarty->assign('id_customer', $id_customer);
+			$this->context->smarty->assign('periodicity', $periodicity);
+			$this->context->smarty->assign('cycles', $cycles);
+			$this->context->smarty->assign('status', $status);
+			$this->context->smarty->assign('date_yyyymmdd', $date_YYYYMMDD);
+			$this->context->smarty->assign('price', $price);
+
+			$this->_html .= $this->display(__FILE__, 'order_suscription_customer_info.tpl');
+		}
+
+		
+		return $this->_html;
 
 	}
 	private function getConfigValues(){
@@ -679,17 +717,23 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 
-	public function save_paytpv_order_info($id_customer,$id_cart,$paytpvagree,$suscription,$peridicity,$cycles){
+	public function save_paytpv_order_info($id_customer,$id_cart,$paytpvagree,$suscription,$peridicity,$cycles,$paytpv_iduser){
 		// Eliminamos la orden si existe.
 		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_order_info where id_customer = '.pSQL($id_customer) .' and id_cart= "'. pSQL($id_cart) .'"';
 		Db::getInstance()->Execute($sql);
 
 		// Insertamos los datos de la orden
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order_info (`id_customer`,`id_cart`,`paytpvagree`,`suscription`,`periodicity`,`cycles`,`date`) VALUES('.pSQL($id_customer).',"'.pSQL($id_cart).'",'.pSQL($paytpvagree).','.pSQL($suscription).','.pSQL($peridicity).','.pSQL($cycles).',"'.pSQL(date('Y-m-d H:i:s')).'")';
+		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order_info (`id_customer`,`id_cart`,`paytpvagree`,`suscription`,`periodicity`,`cycles`,`date`,`paytpv_iduser`) VALUES('.pSQL($id_customer).',"'.pSQL($id_cart).'",'.pSQL($paytpvagree).','.pSQL($suscription).','.pSQL($peridicity).','.pSQL($cycles).',"'.pSQL(date('Y-m-d H:i:s')).'",'.pSQL($paytpv_iduser).')';
 		Db::getInstance()->Execute($sql);
 		
 		return true;
 
+	}
+
+	public function get_paytpv_order($id_order){
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order="'.pSQL($id_order).'"';
+		$result = Db::getInstance()->getRow($sql);
+		return $result;
 	}
 
 
@@ -707,6 +751,98 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 
+	/* 
+		Refund
+	*/
+
+	public function hookActionProductCancel($params)
+	{
+
+		if (Tools::isSubmit('generateDiscount'))
+			return false;
+		elseif ($params['order']->module != $this->name || !($order = $params['order']) || !Validate::isLoadedObject($order))
+			return false;
+		elseif (!$order->hasBeenPaid())
+			return false;
+
+		$order_detail = new OrderDetail((int)$params['id_order_detail']);
+		if (!$order_detail || !Validate::isLoadedObject($order_detail))
+			return false;
+
+		$paytpv_order = $this->get_paytpv_order((int)$order->id);
+		if (empty($paytpv_order)){
+			die('error');
+			return false;
+		}
+
+
+		$paytpv_iduser = $paytpv_order["paytpv_iduser"];
+		$paytpv_tokenuser = $paytpv_order["paytpv_tokenuser"];
+
+		$id_currency = $order->id_currency;
+		$currency = new Currency(intval($id_currency));
+
+		$orderPayment = $order->getOrderPaymentCollection()->getFirst();
+		$authcode = $orderPayment->transaction_id;
+
+		$products = $order->getProducts();
+		$cancel_quantity = Tools::getValue('cancelQuantity');
+
+		$amount = (float)($products[(int)$order_detail->id]['product_price_wt'] * (int)$cancel_quantity[(int)$order_detail->id]);
+		$amount = number_format($amount * 100, 0, '.', '');
+
+		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
+
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency->iso_code,$authcode,$amount);
+		$refund_txt = $response["txt"];
+
+		$message = $this->l('PayTPV Refund ').  "[" . $refund_txt . "]" .  '<br>';
+		$this->_addNewPrivateMessage((int)$order->id, $message);
+
+	}
+
+	private function _makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency,$authcode,$amount){
+		// Refund amount
+		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+		$client = new WS_Client(
+			array(
+				'clientcode' => $this->clientcode,
+				'term' => $this->term,
+				'pass' => $this->pass,
+			)
+		);
+		
+		// Refund amount of transaction
+		$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency, $authcode, $amount);
+		$refund_txt = $this->l('OK');
+		$response["error"] = 0;
+		$response["txt"] = $this->l('OK');
+		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ) {
+			$response["txt"] = $this->l('ERROR') . " " . $result[ 'DS_ERROR_ID'];
+			$response["error"] = 1;
+		}
+		return $response;
+
+	}
+
+	public function _addNewPrivateMessage($id_order, $message)
+	{
+		if (!(bool)$id_order)
+			return false;
+
+		$new_message = new Message();
+		$message = strip_tags($message, '<br>');
+
+		if (!Validate::isCleanHtml($message))
+			$message = $this->l('Payment message is not valid, please check your module.');
+
+		$new_message->message = $message;
+		$new_message->id_order = (int)$id_order;
+		$new_message->private = 1;
+
+		return $new_message->add();
+	}
+
 	/*
 
 	Datos cuenta
@@ -715,8 +851,6 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	public function hookDisplayCustomerAccount($params)
 	{
 		$this->smarty->assign('in_footer', false);
-
-
 		return $this->display(__FILE__, 'my-account.tpl');
 	}
 
@@ -729,8 +863,13 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	public function hookDisplayAdminOrder($params)
 	{
 		global $cookie;
+
+		if (Tools::isSubmit('submitPayTpvRefund'))
+			$this->_doTotalRefund($params['id_order']);
+
+		$order = new Order((int)$params['id_order']);
 		$result = $this->getSuscriptionOrder($params["id_order"]);
-		if (!empty($result)){
+		if ($order->module == $this->name && !empty($result)){
 			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 			$currency = new Currency(intval($id_currency));
 
@@ -769,10 +908,127 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$this->context->smarty->assign('date_yyyymmdd', $date_YYYYMMDD);
 			$this->context->smarty->assign('price', $price);
 
-
-			return $this->display(__FILE__, 'order_suscription_info.tpl');
+			$this->_html .= $this->display(__FILE__, 'order_suscription_info.tpl');
 		}
-		
+
+		// Total Refund Template
+		if ($order->module == $this->name && $this->_canRefund((int)$params['id_order'])){
+
+			if (version_compare(_PS_VERSION_, '1.5', '>='))
+					$order_state = $order->current_state;
+				else
+					$order_state = OrderHistory::getLastOrderState($order->id);
+
+			$products = $order->getProducts();
+			$amt = 0.00;
+			foreach ($products as $product)
+				$amt += (float)($product['product_price_wt']) * ($product['product_quantity'] - $product['product_quantity_refunded']);
+			$amt += (float)($order->total_shipping) + (float)($order->total_wrapping) - (float)($order->total_discounts);
+
+			$currency = new Currency((int)$order->id_currency);
+
+			$amt .= " " . $currency->sign;
+
+			$this->context->smarty->assign(
+					array(
+						'base_url' => _PS_BASE_URL_.__PS_BASE_URI__,
+						'module_name' => $this->name,
+						'order_state' => $order_state,
+						'params' => $params,
+						'amount' => $amt,
+						'ps_version' => _PS_VERSION_
+					)
+				);
+
+
+
+			$template_refund = 'views/templates/admin/admin_order/refund.tpl';
+			$this->_html .=  $this->display(__FILE__, $template_refund);
+			$this->_postProcess();
+		}
+
+		return $this->_html;	
+	}
+
+
+	private function _doTotalRefund($id_order)
+	{
+
+		$paytpv_order = $this->get_paytpv_order((int)$id_order);
+		if (empty($paytpv_order)){
+			return false;
+		}
+
+		$order = new Order((int)$id_order);
+		if (!Validate::isLoadedObject($order))
+			return false;
+
+		$products = $order->getProducts();
+		$currency = new Currency((int)$order->id_currency);
+		if (!Validate::isLoadedObject($currency))
+			$this->_errors[] = $this->l('Not a valid currency');
+
+		if (count($this->_errors))
+			return false;
+
+		$decimals = (is_array($currency) ? (int)$currency['decimals'] : (int)$currency->decimals) * _PS_PRICE_DISPLAY_PRECISION_;
+
+		// Amount for refund
+		$amt = 0.00;
+
+		foreach ($products as $product)
+			$amt += (float)($product['product_price_wt']) * ($product['product_quantity'] - $product['product_quantity_refunded']);
+		$amt += (float)($order->total_shipping) + (float)($order->total_wrapping) - (float)($order->total_discounts);
+
+
+		$paytpv_iduser = $paytpv_order["paytpv_iduser"];
+		$paytpv_tokenuser = $paytpv_order["paytpv_tokenuser"];
+
+		$id_currency = $order->id_currency;
+		$currency = new Currency(intval($id_currency));
+
+		$orderPayment = $order->getOrderPaymentCollection()->getFirst();
+		$authcode = $orderPayment->transaction_id;
+
+		$products = $order->getProducts();
+		$cancel_quantity = Tools::getValue('cancelQuantity');
+
+		$amount = number_format($amt * 100, 0, '.', '');
+
+		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
+
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency->iso_code,$authcode,$amount);
+		$refund_txt = $response["txt"];
+		$message = $this->l('PayTPV Total Refund ').  "[" . $refund_txt . "]" .  '<br>';
+		if ($response['error'] == 0)
+		{
+			if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paytpv_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int)$id_order))
+				die(Tools::displayError('Error when updating PayTPV database'));
+
+			$history = new OrderHistory();
+			$history->id_order = (int)$id_order;
+			$history->changeIdOrderState((int)Configuration::get('PS_OS_REFUND'), $history->id_order);
+			$history->addWithemail();
+			$history->save();
+		}
+
+		$this->_addNewPrivateMessage((int)$id_order, $message);
+
+		Tools::redirect($_SERVER['HTTP_REFERER']);
+	}
+
+
+	private function _canRefund($id_order)
+	{
+		if (!(bool)$id_order)
+			return false;
+
+		$paytpv_order = Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'paytpv_order`
+			WHERE `id_order` = '.(int)$id_order);
+
+		return $paytpv_order && $paytpv_order['payment_status'] != 'Refunded';
 	}
 }
 

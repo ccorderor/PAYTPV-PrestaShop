@@ -1,3 +1,4 @@
+<?php
 /*
 * 2007-2015 PrestaShop
 *
@@ -21,49 +22,13 @@
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
-
-.button_del{
-    float:right;
-}
-
-.bankstoreCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    }
-
-.suscriptionCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    color: #a6a6a6;
-}
-
-#div_suscripciones_pay {
-    margin-top: 5px;
-  
-    }
-
-.suscription_pay {
-    border-radius: 4px;
-    padding-left: 50px;
-    color: #a6a6a6;
-    }
-
-
-#div_suscripciones li{
-    list-style:none;
-} 
-
-.checkbox.savedcard {
-    clear: both;
-    float: left;
-    margin: 15px 0 25px 0;
-}
-
-#storingStep.box{
-    border: 1px solid #e5e5e5;
-    padding: 14px 18px 13px;
-}
+				    	
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+						
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+						
+header("Location: ../");
+exit;

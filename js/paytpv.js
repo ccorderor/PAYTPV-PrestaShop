@@ -33,7 +33,7 @@ $(document).ready(function() {
             'beforeShow': onOpenDirectPay
         });
 
-    $("#exec_directpay").click(function() {
+    $("body").on("click",".paytpv #exec_directpay",function() {
        var suscripcion="&suscripcion="+($("#suscripcion").is(':checked')?1:0)+"&periodicity="+$("#susc_periodicity").val()+"&cycles="+$("#susc_cycles").val();
        window.location.href = $("#card").val()+suscripcion;
     });

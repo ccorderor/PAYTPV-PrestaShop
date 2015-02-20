@@ -70,13 +70,7 @@ class WS_Client {
 
 		$DS_MERCHANT_AMOUNT = $amount;
 
-		if($ref=='')
-
-			$DS_MERCHANT_ORDER = time();
-
-		else
-
-			$DS_MERCHANT_ORDER = str_pad( $ref, 8, "0", STR_PAD_LEFT ) . round(rand(0,99));
+		$DS_MERCHANT_ORDER = $ref;
 
 		$DS_MERCHANT_MERCHANTSIGNATURE = sha1( $DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $DS_MERCHANT_AMOUNT . $DS_MERCHANT_ORDER . $this->config[ 'pass' ] );
 
@@ -308,6 +302,7 @@ class WS_Client {
 
 	function execute_refund( $idUser, $tokeUser, $order, $currency,  $authcode, $amount ) {
 
+		
 		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
 		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
 		$DS_IDUSER = $idUser;
@@ -335,6 +330,8 @@ class WS_Client {
 			'DS_MERCHANT_AMOUNT' => $DS_MERCHANT_AMOUNT
 
 		);
+
+
 		$this->write_log("Petición execute_refund:\n".print_r($p,true));
 
 		$res = $this->client->call( 'execute_refund', $p, '', '', false, true );

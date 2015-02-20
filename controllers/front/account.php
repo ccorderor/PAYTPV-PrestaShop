@@ -91,9 +91,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$this->context->smarty->assign('url_removecard',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true));
 				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'cancelSuscription'], true));
 				
-				$this->context->smarty->assign('msg_cancelsuscription',$paytpv->l('Cancel Subscription'));
-				$this->context->smarty->assign('msg_removecard',$paytpv->l('Remove Card'));
-				$this->context->smarty->assign('msg_accept',$paytpv->l('You must accept the terms and conditions of service'));
+				$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELED'));
 				$this->setTemplate('paytpv-account.tpl');
 			}
 		}

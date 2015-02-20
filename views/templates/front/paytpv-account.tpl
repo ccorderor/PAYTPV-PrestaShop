@@ -34,9 +34,10 @@
 <script type="text/javascript">
     var url_removecard = "{$url_removecard}";
     var url_cancelsuscription = "{$url_cancelsuscription}";
-    var msg_cancelsuscription = "{$msg_cancelsuscription}";
-    var msg_removecard = "{$msg_removecard}";
-    var msg_accept = "{$msg_accept}";
+    var msg_cancelsuscription = "{l s='Cancel Subscription' mod='paytpv'}"
+    var msg_removecard = "{l s='Remove Card' mod='paytpv'}";
+    var msg_accept = "{l s='You must accept the terms and conditions of service' mod='paytpv'}";
+    var status_canceled = "{$status_canceled}";
 </script>
 
 <div id="paytpv_block_account">
@@ -61,27 +62,28 @@
         <p class="warning">{l s='There is still no card associated.' mod='paytpv'}</p>
     {/if}
 
-    <div id="storingStep" class="alert alert-info" style="display: block;">
+    <div id="storingStep" class="box">
         <h4>{l s='STREAMLLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
-        {l s='Link a card to your account to make all procedures easily and quickly.' mod='paytpv'}
-        <br>
-        <label class="checkbox"><input type="checkbox" name="savecard" id="savecard"> {l s='When you link a Tarjet accepts ' mod='paytpv'} <a id="open_conditions" href="#conditions"><span class="terminos">{l s='terms and conditions of service' mod='paytpv'}</span></a>.</label>
+        <p>{l s='Link a card to your account to make all procedures easily and quickly.' mod='paytpv'}</p>
 
-
-        <a href="javascript:void(0);" onclick="vincularTarjeta();" title="{l s='Link card' mod='paytpv'}" class="button button-small btn btn-default">
-            {l s='Link card' mod='paytpv'}
-        </a>
-        <a href="javascript:void(0);" onclick="close_vincularTarjeta();" title="{l s='Cancel' mod='paytpv'}" class="button button-small btn btn-default" id="close_vincular" style="display:none">
-                {l s='Cancel' mod='paytpv'}
-        </a>
+        <p class="checkbox">
+            <span class="checked"><input type="checkbox" name="savecard" id="savecard"></span>
+            <label for="savecard">{l s='When you link a Tarjet accepts ' mod='paytpv'}<a id="open_conditions" href="#conditions" class="link"><strong>{l s='terms and conditions of service' mod='paytpv'}</strong></a></label>
+        </p>
+        <p>
+            <a href="javascript:void(0);" onclick="vincularTarjeta();" title="{l s='Link card' mod='paytpv'}" class="button button-small btn btn-default">
+                <span>{l s='Link card' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+            </a>
+            <a href="javascript:void(0);" onclick="close_vincularTarjeta();" title="{l s='Cancel' mod='paytpv'}" class="button button-small btn btn-default" id="close_vincular" style="display:none">
+                <span>{l s='Cancel' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+            </a>
+        </p>
 
         <p class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
             <iframe src="https://secure.paytpv.com/gateway/bnkgateway.php?{$query}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
         </p>
     </div>
-    <br/>
     <hr>
-    <br/>
     <h2>{l s='My Subscriptions' mod='paytpv'}</h2>
     {if isset($suscriptions[0])}
         <div class="span6" id="div_suscripciones">

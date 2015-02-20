@@ -1,4 +1,4 @@
-/*
+{*
 * 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
@@ -20,50 +20,15 @@
 *  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*/
+*}
 
-.button_del{
-    float:right;
-}
+<p class="alert alert-info">
+	<strong>{$suscription_type}</strong>
 
-.bankstoreCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    }
+	[ {l s='Every' mod='paytpv'} {$periodicity} {l s='days' mod='paytpv'} - {l s='repeat' mod='paytpv'} {$cycles} {l s='times' mod='paytpv'} - {l s='Amount' mod='paytpv'}: {$price} - {l s='Start' mod='paytpv'}: {$date_yyyymmdd} ] 
+</p>
 
-.suscriptionCard {
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    padding: 20px;
-    color: #a6a6a6;
-}
+<p>
+	{l s='You may cancel your subscription at any time from the user area. Section "My Cards and Subscriptions"' mod='paytpv'} 
+</p>
 
-#div_suscripciones_pay {
-    margin-top: 5px;
-  
-    }
-
-.suscription_pay {
-    border-radius: 4px;
-    padding-left: 50px;
-    color: #a6a6a6;
-    }
-
-
-#div_suscripciones li{
-    list-style:none;
-} 
-
-.checkbox.savedcard {
-    clear: both;
-    float: left;
-    margin: 15px 0 25px 0;
-}
-
-#storingStep.box{
-    border: 1px solid #e5e5e5;
-    padding: 14px 18px 13px;
-}
