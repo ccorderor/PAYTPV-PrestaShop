@@ -115,18 +115,16 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$datos = explode("[",$ref);
 			$ref = $datos[0];
 
-			// if[iduser]fecha
-			if (sizeof($datos)>1){
-				$datos2 = explode("]",Tools::getValue('Order'));
-				$fecha = $datos2[1];
+			// Check if is a suscription payment
+			$id_cart = (int)substr($ref,0,8);
+			$id_order = Order::getOrderByCartId(intval($id_cart));
 
-				$fecha_act = date("Ymd");
-				// if date is not actually is a subscription payemnt
-				if ($fecha!=$fecha_act)
-					$suscripcion = 2;	// Subscription payemnt
+			// if exits cart order is a suscription payment
+			if ($id_order){
+				$suscripcion = 2;
 			}
 		}
-
+		
 		// TPV WEB Response
 		else if(Tools::getValue('i')
 			AND Tools::getValue('r')
