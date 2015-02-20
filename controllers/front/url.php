@@ -111,7 +111,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
 			$ref = Tools::getValue('Order');
 
-			// Look if is subscription initial order or a subscription payment (orden[Iduser]Fecha)
+			// Look if is initial order or a subscription payment (orden[Iduser]Fecha)
 			$datos = explode("[",$ref);
 			$ref = $datos[0];
 
@@ -125,7 +125,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				if ($fecha!=$fecha_act)
 					$suscripcion = 2;	// Subscription payemnt
 			}
-			
 		}
 
 		// TPV WEB Response
@@ -163,6 +162,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 			// EXIST ORDER
 			if($id_order){
+
+				$order = new Order($id_order);
+
 				$sql = 'SELECT COUNT(oh.`id_order_history`) AS nb
 						FROM `'._DB_PREFIX_.'order_history` oh
 						WHERE oh.`id_order` = '.(int)$id_order.'
@@ -170,37 +172,158 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				$n = Db::getInstance()->getValue($sql);
 				$pagoRegistrado = $n>0;
 
-				// If exists order and if a subscription payment generate new cart
+				// If a subscription payment
 				// SUSCRIPCION
 				if (Tools::getValue('TransactionType')==9 && $suscripcion==2){
+					$cart_problem_txt = "";
+
 					$new_cart = $cart->duplicate();
-					$new_cart = $new_cart['cart'];
-					$new_cart_id = $new_cart->id;
-					
-					$pagoRegistrado = $paytpv->validateOrder($new_cart_id, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
-					
 					$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
 					$id_suscription = $data_suscription["id_suscription"];
 					$paytpv_iduser = $data_suscription["paytpv_iduser"];
 					$paytpv_tokenuser = $data_suscription["paytpv_tokenuser"];
-					
-					$id_order = Order::getOrderByCartId(intval($new_cart_id));
-					
-					$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$new_cart->id_customer,$id_order,$importe);
+
+					if (!$new_cart || !Validate::isLoadedObject($new_cart['cart'])){
+						exit;
+					}else if (!$new_cart['success']){
+						// Refund amount
+						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+						$client = new WS_Client(
+							array(
+								'clientcode' => $paytpv->clientcode,
+								'term' => $paytpv->term,
+								'pass' => $paytpv->pass,
+							)
+						);
+
+						// Refund amount of transaction
+						$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, Tools::getValue('Order'), Tools::getValue('Currency'), Tools::getValue('AuthCode'), Tools::getValue('Amount'));
+						$refund = 1;
+						if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ) {
+							$refund = 0;
+						}
+
+						$cart_problem_txt = $paytpv->l("Any subscription product is no longer available",(int)$cart->id_lang) . "<br>";
+
+						// Mailing to Customer: Product in suscription is no longer available **********************
+						$message = "<br> " .  $paytpv->l('Dear Customer. There have been variations in the order to which you have subscribed',(int)$cart->id_lang) . " (". $order->reference .")";
+						$message .= "<br><br>" .  $paytpv->l($cart_problem_txt,(int)$cart->id_lang);
+						$message .= "<br> " .  $paytpv->l('Amount of this new subscription payment has been returned',(int)$cart->id_lang);
+						$message .= "<br> " .  $paytpv->l("You can Unsubscribe from your acount if desired",(int)$cart->id_lang);
+
+						$params = array(
+							'{firstname}' => $this->context->customer->firstname,
+							'{lastname}' => $this->context->customer->lastname,
+							'{email}' => $this->context->customer->email,
+							'{order_name}' => $order->reference,
+							'{message}' => $message
+						);
+
+						Mail::Send(
+							(int)$order->id_lang,
+							'order_merchant_comment',
+							sprintf(Mail::l('Problem with subscription order %s', (int)$order->id_lang), $order->reference),
+							$params,
+							$this->context->customer->email,
+							$this->context->customer->firstname.' '.$this->context->customer->lastname,
+							null, null, null, null, _PS_MAIL_DIR_, false, (int)$order->id_shop
+						);
+						// ***********************************************************************
+
+						// Mailing to Merchant: Subscription payment error **********************
+						$params = array(
+							'{firstname}' => $this->context->customer->firstname,
+							'{lastname}' => $this->context->customer->lastname,
+							'{email}' => $this->context->customer->email,
+							'{id_order}' => (int)($order->id),
+							'{order_name}' => $order->getUniqReference(),
+							'{message}' => sprintf(Mail::l('Subscription payment error to order %s', (int)$order->id_lang), $order->reference) . " -- Referencia PayTPV: " . Tools::getValue('Order')
+						);
+
+						if (!Configuration::get('PS_MAIL_EMAIL_MESSAGE'))
+							$to = strval(Configuration::get('PS_SHOP_EMAIL'));
+						else
+						{
+							$to = new Contact((int)(Configuration::get('PS_MAIL_EMAIL_MESSAGE')));
+							$to = strval($to->email);
+						}
+						$toName = strval(Configuration::get('PS_SHOP_NAME'));
+
+						// Mailing 
+						Mail::Send(
+							(int)$order->id_lang,
+							'order_customer_comment',
+							sprintf(Mail::l('Subscription payment error to order %s', (int)$order->id_lang), $order->reference),
+							$params,
+							$to, 
+							$toName,
+							$to, $toName, $this->context->customer->email, $this->context->customer->firstname.' '.$this->context->customer->lastname);
+						// *********************************************************************************
+						die ("[Refund " . $refund . "] ".$cart_problem_txt);
+					}
+
+					$pagoRegistrado = $paytpv->validateOrder($new_cart['cart']->id, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, true, $customer->secure_key);
+					$id_order = Order::getOrderByCartId(intval($new_cart['cart']->id));
+
+					$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
 				}
 			// NO ORDER
 			}else{
 				// 
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
 				
+				$id_suscription = 0;
 				// BANKSTORE: Si hay notificacion
 				if(Tools::getValue('IdUser')){
 					$id_order = Order::getOrderByCartId(intval($id_cart));
-					$paytpv->savePayTpvOrder(Tools::getValue('IdUser'),Tools::getValue('TokenUser'),0,$cart->id_customer,$id_order,$importe);
+					$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
+
+					// SUSCRIPCION
+					if ($suscripcion==1){
+						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
+
+						$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
+						$id_suscription = $data_suscription["id_suscription"];
+
+						// Mailing to Merchant: Subscription order info **********************************************
+						$order = new Order($id_order);
+						
+						$params = array(
+							'{firstname}' => $this->context->customer->firstname,
+							'{lastname}' => $this->context->customer->lastname,
+							'{email}' => $this->context->customer->email,
+							'{id_order}' => (int)($order->id),
+							'{order_name}' => $order->getUniqReference(),
+							'{message}' => sprintf(Mail::l('New subscription to order %s', (int)$order->id_lang), $order->reference)
+						);
+
+						if (!Configuration::get('PS_MAIL_EMAIL_MESSAGE'))
+							$to = strval(Configuration::get('PS_SHOP_EMAIL'));
+						else
+						{
+							$to = new Contact((int)(Configuration::get('PS_MAIL_EMAIL_MESSAGE')));
+							$to = strval($to->email);
+						}
+						$toName = strval(Configuration::get('PS_SHOP_NAME'));
+
+						Mail::Send(
+							(int)$order->id_lang,
+							'order_customer_comment',
+							sprintf(Mail::l('New Subscription to order %s', (int)$order->id_lang), $order->reference),
+							$params,
+							$to, 
+							$toName,
+							$to, $toName, $this->context->customer->email, $this->context->customer->firstname.' '.$this->context->customer->lastname);
+
+						// **************************************************************************************************
+					}
+
+					// Save paytpv order
+					$paytpv->savePayTpvOrder(Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$id_suscription,$cart->id_customer,$id_order,$importe);
 					if ($pagoRegistrado AND $reg_estado == 1)
 						class_registro::removeByCartID($id_cart);
 
-					$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
+					
 					// IF check agreement save token
 					if ($datos_order["paytpvagree"]){
 						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
@@ -214,10 +337,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser') );
 						$id_order = Order::getOrderByCartId(intval($id_cart));
 						$paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
-					}
-					// SUSCRIPCION
-					if ($suscripcion==1){
-						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
 					}
 				}
 				

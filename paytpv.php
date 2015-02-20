@@ -40,7 +40,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '6.0.2';
+		$this->version = '6.0.3';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
@@ -101,10 +101,12 @@ class Paytpv extends PaymentModule {
 		$paypal_install->updateConfiguration();
 		// Valores por defecto al instalar el módulo
 		if (!parent::install() ||
-			!$this->registerHook('payment') ||
-			!$this->registerHook('paymentReturn') ||
+			!$this->registerHook('displayPayment') ||
+			!$this->registerHook('displayPaymentTop') ||
+			!$this->registerHook('displayPaymentReturn') ||
 			!$this->registerHook('displayMyAccountBlock') || 
-			!$this->registerHook('displayCustomerAccount'))
+			!$this->registerHook('displayAdminOrder') || 
+			!$this->registerHook('displayCustomerAccount')) 
 			return false;
 		return true;
 
@@ -205,7 +207,13 @@ class Paytpv extends PaymentModule {
 		return $this->display(__FILE__, 'views/admin.tpl');
 
 	}
-	public function hookPayment($params) {
+
+	public function hookDisplayPaymentTop($params) {
+		$this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
+		$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
+	}
+
+	public function hookDisplayPayment($params) {
 
         // Variables necesarias de fuera		
 
@@ -321,10 +329,7 @@ class Paytpv extends PaymentModule {
 
 		switch ($this->operativa){
 			// BANKSTORE
-			case 0: 
-			    $this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
-			 	$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
-
+			case 0:
 			 	$smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'addCard'], true));
 			 	$smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'suscribe'], true));
 				return $this->display(__FILE__, 'payment_bsiframe.tpl');
@@ -424,7 +429,7 @@ class Paytpv extends PaymentModule {
 		return  $res;
 
 	}
-	public function hookPaymentReturn($params) {
+	public function hookDisplayPaymentReturn($params) {
 
 		if (!$this->active)
 			return;
@@ -450,13 +455,17 @@ class Paytpv extends PaymentModule {
 
 	public function savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$id_customer,$id_order,$price){
 
+		/*
 		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order='.pSQL($id_order). ' and paytpv_iduser='.pSQL($paytpv_iduser);
 		$result = Db::getInstance()->getRow($sql);
 		if (empty($result) === true){
 			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`paytpv_iduser`,`paytpv_tokenuser`,`id_suscription`, `id_customer`, `id_order`,`price`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'",'.pSQL($id_suscription).','.pSQL($id_customer).','.pSQL($id_order).',"'.pSQL($price).'","'.pSQL(date('Y-m-d H:i:s')).'")';
 			Db::getInstance()->Execute($sql);
 		}
+		*/
 		
+		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`paytpv_iduser`,`paytpv_tokenuser`,`id_suscription`, `id_customer`, `id_order`,`price`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'",'.pSQL($id_suscription).','.pSQL($id_customer).','.pSQL($id_order).',"'.pSQL($price).'","'.pSQL(date('Y-m-d H:i:s')).'")';
+		Db::getInstance()->Execute($sql);
 	}
 
 
@@ -479,6 +488,24 @@ class Paytpv extends PaymentModule {
 		return $result;
 	}
 
+
+	public function getSuscriptionOrder($id_order){
+		// Check if is a subscription order
+		$sql = 'select ps.*,count(po.id_order) as pagos,1 as suscription FROM '._DB_PREFIX_.'paytpv_suscription ps
+LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription and po.id_order!='. pSQL($id_order) . '
+where ps.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps.date desc';
+		$result = Db::getInstance()->getRow($sql);
+
+		if (empty($result)){
+			// Check if is a suscription payment
+			$sql = 'select ps.*,count(po.id_order) as pagos, 0 as suscription FROM '._DB_PREFIX_.'paytpv_suscription ps
+LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription 
+where po.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps.date desc';
+			$result = Db::getInstance()->getRow($sql);
+
+		}
+		return $result;
+	}
 	
 	
 	/* Obtener las suscripciones del usuario */
@@ -488,7 +515,7 @@ class Paytpv extends PaymentModule {
 
 		$res = array();
 		$sql = 'select ps.*,count(po.id_order) as pagos FROM '._DB_PREFIX_.'paytpv_suscription ps
-LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription 
+LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription and ps.id_order!=po.id_order
 where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_suscription order by ps.date desc';
 		
 		$assoc = Db::getInstance()->executeS($sql);
@@ -531,10 +558,9 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
 
-		// Si no existe la suscripcion la creamos
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_suscription = ' . pSQL($id_suscription);	
+		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_suscription = ' . pSQL($id_suscription) . ' LIMIT 1,100';	
 		$assoc = Db::getInstance()->executeS($sql);
-		$res = array();
+		$res = array();	
 		foreach ($assoc as $key=>$row) {
 			$res[$key]["ID"] = $row["id"];
 			$order = new Order($row['id_order']);
@@ -689,7 +715,64 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	public function hookDisplayCustomerAccount($params)
 	{
 		$this->smarty->assign('in_footer', false);
+
+
 		return $this->display(__FILE__, 'my-account.tpl');
+	}
+
+
+	/*
+
+	Datos cuenta
+	*/
+
+	public function hookDisplayAdminOrder($params)
+	{
+		global $cookie;
+		$result = $this->getSuscriptionOrder($params["id_order"]);
+		if (!empty($result)){
+			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
+			$currency = new Currency(intval($id_currency));
+
+			$suscription = $result["suscription"];
+			if ($suscription==1){
+				$suscription_type = $this->l('This is a Subscription');
+			}else{
+				$suscription_type = $this->l('This is a Subscription Payment');
+			}
+			$id_suscription = $result["id_suscription"];
+			$id_customer = $result["id_customer"];
+			$periodicity = $result["periodicity"];
+			$cycles = ($result['cycles']!=0)?$result['cycles']:$this->l('N');
+			$status = $result["status"];
+			$date = $result["date"];
+			$price = number_format(Tools::convertPrice($result['price'], $currency), 2, '.', '');	
+			$num_pagos = $result['pagos'];
+
+			if ($status==0)
+				$status = $this->l('ACTIVE');
+			else if ($status==1)
+				$status = $this->l('CANCELED');
+			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
+				$status = $this->l('FINISHED');
+                               
+			$ps_language = new Language(intval($cookie->id_lang));
+
+			$date_YYYYMMDD = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+
+
+			$this->context->smarty->assign('suscription_type', $suscription_type);
+			$this->context->smarty->assign('id_customer', $id_customer);
+			$this->context->smarty->assign('periodicity', $periodicity);
+			$this->context->smarty->assign('cycles', $cycles);
+			$this->context->smarty->assign('status', $status);
+			$this->context->smarty->assign('date_yyyymmdd', $date_YYYYMMDD);
+			$this->context->smarty->assign('price', $price);
+
+
+			return $this->display(__FILE__, 'order_suscription_info.tpl');
+		}
+		
 	}
 }
 

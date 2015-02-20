@@ -304,6 +304,46 @@ class WS_Client {
 		return $res;
 
 	}
+
+
+	function execute_refund( $idUser, $tokeUser, $order, $currency,  $authcode, $amount ) {
+
+		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
+		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
+		$DS_IDUSER = $idUser;
+		$DS_TOKEN_USER = $tokeUser;
+		$DS_MERCHANT_ORDER = $order;
+		$DS_MERCHANT_AUTHCODE = $authcode;
+		$DS_MERCHANT_CURRENCY = $currency;
+		$DS_MERCHANT_AMOUNT = $amount;
+		$DS_MERCHANT_MERCHANTSIGNATURE = sha1($DS_MERCHANT_MERCHANTCODE . $DS_IDUSER . $DS_TOKEN_USER . $DS_MERCHANT_TERMINAL . $DS_MERCHANT_AUTHCODE . $DS_MERCHANT_ORDER . $this->config[ 'pass' ]);
+
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
+
+		$p = array(
+
+			'DS_MERCHANT_MERCHANTCODE' => $DS_MERCHANT_MERCHANTCODE,
+			'DS_MERCHANT_TERMINAL' => $DS_MERCHANT_TERMINAL,
+			'DS_IDUSER' => $DS_IDUSER,
+			'DS_TOKEN_USER' => $DS_TOKEN_USER,
+			'DS_MERCHANT_AUTHCODE' => $DS_MERCHANT_AUTHCODE,
+			'DS_MERCHANT_ORDER' => $DS_MERCHANT_ORDER,
+			'DS_MERCHANT_CURRENCY' => $DS_MERCHANT_CURRENCY,
+			'DS_MERCHANT_MERCHANTSIGNATURE' => $DS_MERCHANT_MERCHANTSIGNATURE,
+			'DS_ORIGINAL_IP' => $DS_ORIGINAL_IP,
+			'DS_MERCHANT_AMOUNT' => $DS_MERCHANT_AMOUNT
+
+		);
+		$this->write_log("Petición execute_refund:\n".print_r($p,true));
+
+		$res = $this->client->call( 'execute_refund', $p, '', '', false, true );
+
+		$this->write_log("Respuesta execute_refund:\n".print_r($res,true));
+
+		return $res;
+
+	}
 }
 
 

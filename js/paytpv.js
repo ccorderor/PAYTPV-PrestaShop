@@ -38,7 +38,7 @@ $(document).ready(function() {
        window.location.href = $("#card").val()+suscripcion;
     });
 
-    $("#suscripcion").click(function() {
+    $("body").on("click",".paytpv #suscripcion",function() {
        checkSuscription();
     });
 
