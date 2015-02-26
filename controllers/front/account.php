@@ -62,6 +62,8 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$order = Context::getContext()->customer->id;
 				$operation = 107;
 				$ssl = Configuration::get('PS_SSL_ENABLED');
+
+				$secure_pay = $paytpv->isSecureTransaction(0,0)?1:0;
 		
 				$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);  
 				// Cálculo Firma
@@ -75,7 +77,8 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,
 					'MERCHANT_ORDER' => $order,
 					'URLOK' => $URLOK,
-				    'URLKO' => $URLKO
+				    'URLKO' => $URLKO,
+				    '3DSECURE' => $secure_pay
 				);
 
 				$paytpv_path = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$paytpv->name.'/';
@@ -88,8 +91,8 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$this->context->smarty->assign('suscriptions',$suscriptions);
 				$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 
-				$this->context->smarty->assign('url_removecard',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'removeCard'], true));
-				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'cancelSuscription'], true));
+				$this->context->smarty->assign('url_removecard',Context::getContext()->link->getModuleLink('paytpv', 'actions', array("process"=>"removeCard"), true));
+				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions',array("process"=>"cancelSuscription"), true));
 				
 				$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELED'));
 				$this->setTemplate('paytpv-account.tpl');
