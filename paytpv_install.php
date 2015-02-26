@@ -102,6 +102,20 @@ class PayTpvInstall
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
 
+		try{
+		    Db::getInstance()->execute('
+		    ALTER TABLE `'._DB_PREFIX_.'paytpv_order_info` 
+		    ADD COLUMN `paytpv_iduser` INT(11) NOT NULL DEFAULT 0'
+		    );
+		}catch (exception $e){}
+
+		try{
+		    Db::getInstance()->execute('
+		    ALTER TABLE `'._DB_PREFIX_.'paytpv_order` 
+		    ADD COLUMN `payment_status` varchar(255) DEFAULT NULL'
+		    );
+		}catch (exception $e){}
+
 		return true;
 	}
 	/**

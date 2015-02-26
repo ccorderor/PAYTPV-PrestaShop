@@ -307,8 +307,10 @@ class Paytpv extends PaymentModule {
 		switch ($this->operativa){
 			// BANKSTORE
 			case 0:
-			 	$smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'addCard'], true));
-			 	$smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', ['process' => 'suscribe'], true));
+			 	$arrAddCard = array("process"=>"addCard");
+			    $arrSubscribe = array("process"=>"suscribe");
+			 	$smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
+			 	$smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
 				return $this->display(__FILE__, 'payment_bsiframe.tpl');
 				break;
 			// TPV-WEB
