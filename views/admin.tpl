@@ -157,7 +157,7 @@
 
         <div>
             <p class="important">{l s='USER DOCUMENTATION' mod='paytpv'}</p>
-            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://www.paytpv.com/sdk.php">{l s='User Documentation'  mod='paytpv'}</a></strong>
+            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://github.com/PayTpv/PAYTPV-PrestaShop/blob/master/PAYTPV_MODULO_PRESTASHOP.pdf?raw=true">{l s='User Documentation'  mod='paytpv'}</a></strong>
         </div>
 
     </form>
