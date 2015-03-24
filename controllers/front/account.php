@@ -92,6 +92,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 
 				$this->context->smarty->assign('url_removecard',Context::getContext()->link->getModuleLink('paytpv', 'actions', array("process"=>"removeCard"), true));
+				$this->context->smarty->assign('url_savedesc',Context::getContext()->link->getModuleLink('paytpv', 'actions', array("process"=>"saveDescriptionCard"), true));
 				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions',array("process"=>"cancelSuscription"), true));
 				
 				$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELED'));

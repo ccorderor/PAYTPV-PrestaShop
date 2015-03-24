@@ -34,10 +34,14 @@
 <script type="text/javascript">
     var url_removecard = "{$url_removecard}";
     var url_cancelsuscription = "{$url_cancelsuscription}";
+    var url_savedesc = "{$url_savedesc}";
     var msg_cancelsuscription = "{l s='Cancel Subscription' mod='paytpv'}"
     var msg_removecard = "{l s='Remove Card' mod='paytpv'}";
     var msg_accept = "{l s='You must accept the terms and conditions of service' mod='paytpv'}";
+    var msg_savedesc = "{l s='Save description' mod='paytpv'}";
+    var msg_descriptionsaved = "{l s='Description saved' mod='paytpv'}";
     var status_canceled = "{$status_canceled}";
+    
 </script>
 
 <div id="paytpv_block_account">
@@ -48,10 +52,16 @@
             {section name=card loop=$saved_card}   
                 <div class="bankstoreCard" id="card_{$saved_card[card].IDUSER}">  
                     {$saved_card[card].CC} ({$saved_card[card].BRAND})
+                    <input type="text" maxlength="32" style="width:300px" id="card_desc_{$saved_card[card].IDUSER}" name="card_desc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CARD_DESC}" placeholder="{l s='add description' mod='paytpv'}">
                     <label class="button_del">
+                        <a href="#" id="{$saved_card[card].IDUSER}" class="save_desc">
+                         {l s='Save description' mod='paytpv'}
+                        </a>
+                         | 
                         <a href="#" id="{$saved_card[card].IDUSER}" class="remove_card">
                          {l s='Remove Card' mod='paytpv'}
                         </a>
+                       
                         <input type="hidden" name="cc_{$saved_card[card].IDUSER}" id="cc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CC}">
                     </label>
                 </div>

@@ -45,37 +45,45 @@
                     <div class="nota">{l s='The first purchase when ordering shall carry out, and the following is defined as the frequency subscription' mod='paytpv'}.
                     {l s='By subscribing you agree to the ' mod='paytpv'} <a id="open_conditions" href="#conditions">{l s='terms and conditions of service' mod='paytpv'}</a>.
                     </div>
-                    {l s='Periodicity:' mod='paytpv'} 
-                    <select name="susc_periodicity" id="susc_periodicity">
-                        <option value="7">{l s='7 days (weekly)' mod='paytpv'}</option>
-                        <option value="30" selected>{l s='30 days (monthly)' mod='paytpv'}</option>
-                        <option value="90">{l s='90 days (quarterly)' mod='paytpv'}</option>
-                        <option value="180">{l s='180 days (biannual)' mod='paytpv'}</option>
-                        <option value="365">{l s='365 days (anual)' mod='paytpv'}</option>
-                    </select>
-                    &nbsp;&nbsp;
-                    {l s='Payments:' mod='paytpv'} 
-                    <select name="susc_cycles" id="susc_cycles">
-                        <option value="0" selected>{l s='Permanent' mod='paytpv'}</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                    </select>
-                    &nbsp;&nbsp;
-                    <span class="">
+                    
+                    <form class="form-inline">
+                        <div class="form-group">    
+                            <label for="susc_periodicity" class="control-label">{l s='Periodicity:' mod='paytpv'} </label>
+                            <select name="susc_periodicity" id="susc_periodicity" class="form-control" style="min-width:200px;">
+                                <option value="7">{l s='7 days (weekly)' mod='paytpv'}</option>
+                                <option value="30" selected>{l s='30 days (monthly)' mod='paytpv'}</option>
+                                <option value="90">{l s='90 days (quarterly)' mod='paytpv'}</option>
+                                <option value="180">{l s='180 days (biannual)' mod='paytpv'}</option>
+                                <option value="365">{l s='365 days (anual)' mod='paytpv'}</option>
+                            </select>
+                        </div>
+                       
+                        <div class="form-group">
+                            <label for="susc_cycles">{l s='Payments:' mod='paytpv'}</label>
+                            <select name="susc_cycles" id="susc_cycles" class="form-control" style="min-width:200px;">
+                                <option value="0" selected>{l s='Permanent' mod='paytpv'}</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                    </form>
+                    
+                    
                     <a href="javascript:void(0);" onclick="suscribeJQ('{$subscribe_url}');" title="{l s='Subscribe' mod='paytpv'}" class="button button-small btn btn-default">
-                        {l s='Subscribe' mod='paytpv'}
+                        <span>{l s='Subscribe' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
                     </a>
-                    </span>             
+                        
+                    
                 </div>
             </div>
             
@@ -83,24 +91,29 @@
             
            
             <div id="saved_cards">
-                {l s='Card' mod='paytpv'}:
-                <select name="card" id="card" onChange="checkCard()">
-                    {section name=card loop=$saved_card}
-                        {if ($saved_card[card].url=="0")}
-                            <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
-                        {else}
-                            <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND})</option>
-                        {/if}
-                    {/section}
-                </select>
-                &nbsp;&nbsp;
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="card">{l s='Card' mod='paytpv'}:</label>
+                        <select name="card" id="card" onChange="checkCard()" class="form-control" style="min-width:300px;">
+                            {section name=card loop=$saved_card }
+                                {if ($saved_card[card].url=="0")}
+                                    <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
+                                {else}
+                                    <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND}) - {$saved_card[card].CARD_DESC}</option>
+                                {/if}
+                            {/section}
+                        </select>
+                    </div>                  
+                    
+                </form>
                 {if ($commerce_password)}
                     <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">          
-                        {l s='Pay' mod='paytpv'}
+                        <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
                     </a>
                 {else}
                     <a id="exec_directpay" href="#directpay" class="button button-small btn btn-default">          
-                        {l s='Pay' mod='paytpv'}
+                        <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                        
                     </a>
                 {/if}
                 
@@ -121,7 +134,8 @@
 
 
                 <a href="javascript:void(0);" onclick="addCardJQ('{$addcard_url}');" title="{l s='NEW CARD' mod='paytpv'}" class="button button-small btn btn-default">
-                    {l s='Next' mod='paytpv'}
+                    <span>{l s='Next' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                    
                 </a>
             </div>
                 

@@ -39,7 +39,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payment_security';
 		$this->author = 'PayTPV';
-		$this->version = '6.0.4';
+		$this->version = '6.0.5';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
@@ -376,7 +376,7 @@ class Paytpv extends PaymentModule {
 	public function getToken(){
 
 		$res = array();
-		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc,paytpv_brand FROM '._DB_PREFIX_.'paytpv_customer WHERE not paytpv_cc="" and id_customer = '.(int)$this->context->customer->id . ' order by date desc';
+		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc,paytpv_brand,card_desc FROM '._DB_PREFIX_.'paytpv_customer WHERE not paytpv_cc="" and id_customer = '.(int)$this->context->customer->id . ' order by date desc';
 
 		$assoc = Db::getInstance()->executeS($sql);
 
@@ -386,6 +386,7 @@ class Paytpv extends PaymentModule {
 			$res[$key]['TOKEN_USER']= $row['paytpv_tokenuser'];
 			$res[$key]['CC'] = $row['paytpv_cc'];
 			$res[$key]['BRAND'] = $row['paytpv_brand'];
+			$res[$key]['CARD_DESC'] = $row['card_desc'];
 		}
 
 		return  $res;
@@ -656,6 +657,13 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			return true;
 		}
 	}
+
+	public function saveDescriptionCard($paytpv_iduser,$card_desc){
+		$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set card_desc = "' .pSQL($card_desc) .'" where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_iduser`="'.pSQL($paytpv_iduser).'"';
+		Db::getInstance()->Execute($sql);
+		return true;
+	}
+
 
 
 	public function removeSuscription($id_suscription){

@@ -38,6 +38,15 @@ $(document).ready(function() {
             });
         });
 
+        $(".save_desc").on("click", function(e){   
+            e.preventDefault();
+            $("#paytpv_iduser").val($(this).attr("id"));
+            card_desc = $("#card_desc_"+$(this).attr("id")).val()
+            confirm(msg_savedesc + ": " + card_desc, true, function(resp) {
+                if (resp)   saveDescriptionCard();
+            });
+        });
+
         $(".cancel_suscription").on("click", function(e){   
             e.preventDefault();
             $("#id_suscription").val($(this).attr("id"));
@@ -117,6 +126,30 @@ $(document).ready(function() {
                 if (result == '0')
                 {
                    $("#card_"+paytpv_iduser).fadeOut(1000);
+                }
+            }
+        });
+        
+    };
+
+    function saveDescriptionCard()
+    {
+        paytpv_iduser = $("#paytpv_iduser").val();
+        car_desc = $("#card_desc_"+paytpv_iduser).val();
+        $.ajax({
+            url: url_savedesc,
+            type: "POST",
+            data: {
+                'paytpv_iduser': paytpv_iduser,
+                'card_desc': car_desc,
+                'ajax': true
+            },
+            success: function(result)
+            {
+                if (result == '0')
+                {
+                   alert(msg_descriptionsaved)
+                   
                 }
             }
         });

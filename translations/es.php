@@ -98,8 +98,11 @@ $_MODULE['<{paytpv}prestashop>paytpv-account_202cdc4b5ee3e7de3ae4f6e369b6ee40'] 
 $_MODULE['<{paytpv}prestashop>paytpv-account_a41be9fecd7f14494f6fefe384ee2e32'] = 'Cancelar Suscripción';
 $_MODULE['<{paytpv}prestashop>paytpv-account_cd6f6d59461ee210cc6dc7441c7e11a2'] = 'Eliminar Tarjeta';
 $_MODULE['<{paytpv}prestashop>paytpv-account_38cfd03dc2c3105c91a9f6b40ec13959'] = 'Debe aceptar los términos y condiciones del servicio';
+$_MODULE['<{paytpv}prestashop>paytpv-account_5821e3c4b58fc3885fa4d9cb52d94aa6'] = 'Guardar descripción';
+$_MODULE['<{paytpv}prestashop>paytpv-account_6f92727e5919ef636b148510d5d910fb'] = 'Descripción guardada';
 $_MODULE['<{paytpv}prestashop>paytpv-account_4e997b9d3b7152f2afeacd96ab1ef1cb'] = 'Mis Tarjetas';
 $_MODULE['<{paytpv}prestashop>paytpv-account_7b9f6b412c7fca8df137d6a347a64079'] = 'Tarjetas disponibles';
+$_MODULE['<{paytpv}prestashop>paytpv-account_96e456d0775fcfdab9ddaab8471373ad'] = 'añada una descripción';
 $_MODULE['<{paytpv}prestashop>paytpv-account_6b020e72c46ba592fd0f6d1fa6bfd9ea'] = 'No tiene asociado todavía ninguna tarjeta';
 $_MODULE['<{paytpv}prestashop>paytpv-account_7494ad2d1e5918ca362b36b372e107e2'] = '¡AGILICE SUS FUTURAS COMPRAS!';
 $_MODULE['<{paytpv}prestashop>paytpv-account_36203216329f872a3ad10d13cf8f4264'] = 'Vincule una tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.';

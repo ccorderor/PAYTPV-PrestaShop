@@ -44,6 +44,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		if (Tools::getValue('process') == 'removeCard')
 			$this->processRemoveCard();
 
+		if (Tools::getValue('process') == 'saveDescriptionCard')
+			$this->saveDescriptionCard();
+
 		if (Tools::getValue('process') == 'cancelSuscription')
 			$this->processCancelSuscription();
 
@@ -64,6 +67,18 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$paytpv = $this->module;
 
 		if ($paytpv->removeCard(Tools::getValue('paytpv_iduser')))
+			die('0');
+		die('1');
+	}
+
+	/**
+	 * Remove card
+	 */
+	public function saveDescriptionCard()
+	{
+		$paytpv = $this->module;
+
+		if ($paytpv->saveDescriptionCard(Tools::getValue('paytpv_iduser'),Tools::getValue('card_desc')))
 			die('0');
 		die('1');
 	}
