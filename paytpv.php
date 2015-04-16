@@ -108,11 +108,11 @@ class Paytpv extends PaymentModule {
 			!$this->registerHook('displayMyAccountBlock') || 
 			!$this->registerHook('displayAdminOrder') || 
 			!$this->registerHook('displayCustomerAccount') ||
-			!$this->registerHook('actionProductCancel')
+			!$this->registerHook('actionProductCancel') ||
+			!$this->registerHook('displayShoppingCart')
 			) 
 			return false;
 		return true;
-
 	}
 	public function uninstall() {
 		include_once(_PS_MODULE_DIR_.'/'.$this->name.'/paytpv_install.php');
@@ -213,9 +213,18 @@ class Paytpv extends PaymentModule {
 
 	}
 
+	public function hookDisplayShoppingCart()
+	{
+		$this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
+		$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
+	}
+
+	
+
 	public function hookDisplayPaymentTop($params) {
 		$this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
 		$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
+		
 	}
 
 	public function hookDisplayPayment($params) {
