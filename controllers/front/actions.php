@@ -123,6 +123,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
 		$importe = number_format($total_pedido * 100, 0, '.', '');
+
+		/* Verificar que el importe es igual al del carrito */
+		$importe_ajax = Tools::getValue('price');
+		$importe_ajax = number_format($importe_ajax * 100, 0, '.', '');
+		if ($importe_ajax!=$importe && $importe_ajax>$importe)	$importe = $importe_ajax;
+		/* Fin Verificacion */
+
 		$ps_language = new Language(intval($cookie->id_lang));
 
 		$values = array(
@@ -204,6 +211,12 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
 		$importe = number_format($total_pedido * 100, 0, '.', '');
+
+		/* Verificar que el importe es igual al del carrito */
+		$importe_ajax = Tools::getValue('price');
+		$importe_ajax = number_format($importe_ajax * 100, 0, '.', '');
+		if ($importe_ajax!=$importe && $importe_ajax>$importe)	$importe = $importe_ajax;
+		/* Fin Verificacion */
 
 		$ps_language = new Language(intval($cookie->id_lang));
 
