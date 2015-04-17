@@ -128,7 +128,6 @@ function addCardJQ(url){
         data: {
             'paytpv_agree': paytpv_agree,
             'id_cart' : $("#id_cart").val(),
-            'price': $("#form_paytpv #MERCHANT_AMOUNT").val(),
             'ajax': true
         },
         success: function(result)
@@ -167,7 +166,6 @@ function suscribeJQ(url){
             'paytpv_periodicity': $("#susc_periodicity").val(),
             'paytpv_cycles': $("#susc_cycles").val(),
             'id_cart' : $("#id_cart").val(),
-            'price': $("#form_paytpv #MERCHANT_AMOUNT").val(),
             'ajax': true
         },
         success: function(result)

@@ -232,8 +232,6 @@
 
         <input type="hidden" name="id_cart" id="id_cart"  value="{$id_cart}">
 
-        <input type="hidden" name="MERCHANT_AMOUNT" id="MERCHANT_AMOUNT"  value="{$cart->getordertotal(true,3)}">
-
     </form>
 </div>
 

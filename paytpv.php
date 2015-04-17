@@ -37,7 +37,7 @@ class Paytpv extends PaymentModule {
 	public function __construct() {
 
 		$this->name = 'paytpv';
-		$this->tab = 'payment_security';
+		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
 		$this->version = '6.0.5';
 		// Array config:  configuration values
@@ -229,17 +229,14 @@ class Paytpv extends PaymentModule {
 
 	public function hookDisplayPayment($params) {
 
-        // Variables necesarias de fuera		
-
-		global $smarty, $cookie, $cart;
 		// Eliminar Tarjeta
 
-		$smarty->assign('msg_paytpv',"");
+		$this->context->smarty->assign('msg_paytpv',"");
 		$showcard = false;
 		$msg_paytpv = "";
 
-		$smarty->assign('msg_paytpv',$msg_paytpv);
-		$smarty->assign('showcard',$showcard);
+		$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
+		$this->context->smarty->assign('showcard',$showcard);
 
 	    // Valor de compra				
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
@@ -263,7 +260,7 @@ class Paytpv extends PaymentModule {
 		$tmpl_vars = array();
 		
 		$URLOK=$URLKO=Context::getContext()->link->getModuleLink($this->name, 'url',$values,$ssl);
-		$ps_language = new Language(intval($cookie->id_lang));
+		
 
 		$suscripcion = (isset($_POST["paytpv_suscripcion"]))?$_POST["paytpv_suscripcion"]:0;
 
@@ -281,12 +278,12 @@ class Paytpv extends PaymentModule {
 			$saved_card[$index]['url'] = 0;
 
 			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
-			$smarty->assign('active_suscriptions',$active_suscriptions);
-			$smarty->assign('saved_card',$saved_card);
-			$smarty->assign('commerce_password',$this->commerce_password);
-			$smarty->assign('id_cart',$params['cart']->id);
+			$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
+			$this->context->smarty->assign('saved_card',$saved_card);
+			$this->context->smarty->assign('commerce_password',$this->commerce_password);
+			$this->context->smarty->assign('id_cart',$params['cart']->id);
 			
-			$smarty->assign('base_dir', __PS_BASE_URI__);
+			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 
 		}else{  // TPV WEB
 			$OPERATION = 1;
@@ -300,7 +297,7 @@ class Paytpv extends PaymentModule {
 				"AMOUNT" => $importe,
 				"CURRENCY" => $currency->iso_code,
 				"SIGNATURE" => $signature,
-				"CONCEPT" => $paytpv_clientconcept.", ".($cookie->logged ? $cookie->customer_firstname.' '.$cookie->customer_lastname : ""),
+				"CONCEPT" => $paytpv_clientconcept.", ".($this->context->customer->isLogged() ? $cookie->customer_firstname.' '.$cookie->customer_lastname : ""),
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO
 			);
@@ -310,7 +307,7 @@ class Paytpv extends PaymentModule {
 			array(
 			'this_path' => $this->_path)
 		);
-		$smarty->assign($tmpl_vars);
+		$this->context->smarty->assign($tmpl_vars);
 		
 
 		switch ($this->operativa){
@@ -318,8 +315,8 @@ class Paytpv extends PaymentModule {
 			case 0:
 			 	$arrAddCard = array("process"=>"addCard");
 			    $arrSubscribe = array("process"=>"suscribe");
-			 	$smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
-			 	$smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
+			 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
+			 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
 				return $this->display(__FILE__, 'payment_bsiframe.tpl');
 				break;
 			// TPV-WEB
@@ -429,7 +426,6 @@ class Paytpv extends PaymentModule {
 
 
 	public function hookDisplayPaymentReturn($params) {
-		global $cookie;
 
 		if (!$this->active)
 			return;
@@ -470,9 +466,9 @@ class Paytpv extends PaymentModule {
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
 				$status = $this->l('FINISHED');
                                
-			$ps_language = new Language(intval($cookie->id_lang));
+			
 
-			$date_YYYYMMDD = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+			$date_YYYYMMDD = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
 
 
 			$this->context->smarty->assign('suscription_type', $suscription_type);
@@ -560,8 +556,6 @@ where po.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps
 	
 	/* Obtener las suscripciones del usuario */
 	public function getSuscriptions(){
-		global $cookie;
-		$ps_language = new Language(intval($cookie->id_lang));
 
 		$res = array();
 		$sql = 'select ps.*,count(po.id_order) as pagos FROM '._DB_PREFIX_.'paytpv_suscription ps
@@ -583,7 +577,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$res[$key]['CYCLES'] = ($row['cycles']!=0)?$row['cycles']:$this->l('Permanent');
 			$res[$key]['PRICE'] = number_format(Tools::convertPrice($row['price'], $currency), 2, '.', '');		
 			$res[$key]['DATE'] = $row['date'];
-			$res[$key]['DATE_YYYYMMDD'] = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
+			$res[$key]['DATE_YYYYMMDD'] = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
 
 			$num_pagos = $row['pagos'];
 			
@@ -603,8 +597,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	
 	/* Obtener los pagos de una suscripcion */
 	public function getSuscriptionPay($id_suscription){
-		global $cookie;
-		$ps_language = new Language(intval($cookie->id_lang));
+		
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
 
@@ -618,7 +611,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$res[$key]['ORDER_REFERENCE']= $order->reference;
 			$res[$key]["PRICE"] = number_format(Tools::convertPrice($row['price'], $currency), 2, '.', '');	
 			$res[$key]['DATE'] = $row['date'];
-			$res[$key]['DATE_YYYYMMDD'] = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
+			$res[$key]['DATE_YYYYMMDD'] = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
 		}
 
 		return $res;
@@ -881,8 +874,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 	public function hookDisplayAdminOrder($params)
 	{
-		global $cookie;
-
+		
 		if (Tools::isSubmit('submitPayTpvRefund'))
 			$this->_doTotalRefund($params['id_order']);
 
@@ -914,9 +906,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
 				$status = $this->l('FINISHED');
                                
-			$ps_language = new Language(intval($cookie->id_lang));
-
-			$date_YYYYMMDD = ($ps_language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+			$date_YYYYMMDD = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
 
 
 			$this->context->smarty->assign('suscription_type', $suscription_type);

@@ -41,11 +41,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 	{
 		parent::initContent();
 
-		
 		$this->context->controller->addJqueryPlugin('fancybox');
-		global $cookie;
-
-
 
 		if (!Context::getContext()->customer->isLogged())
 			Tools::redirect('index.php?controller=authentication&redirect=module&module=paytpv&action=account');
@@ -58,7 +54,6 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 			$suscriptions = $paytpv->getSuscriptions();
 
 			if (Context::getContext()->customer->id){
-				$ps_language = new Language(intval($cookie->id_lang));
 				$order = Context::getContext()->customer->id;
 				$operation = 107;
 				$ssl = Configuration::get('PS_SSL_ENABLED');
@@ -73,7 +68,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 					'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
 					'MERCHANT_TERMINAL' => $paytpv->term,
 					'OPERATION' => $operation,
-					'LANGUAGE' => $ps_language->iso_code,
+					'LANGUAGE' => $this->context->language->iso_code,
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,
 					'MERCHANT_ORDER' => $order,
 					'URLOK' => $URLOK,

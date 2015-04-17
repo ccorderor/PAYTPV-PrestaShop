@@ -37,9 +37,10 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
      */
    	public function initContent()
     {
-    	global $smarty,$cookie,$cart;
 
     	parent::initContent();
+
+    	
         $this->context->smarty->assign(array(
             'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
         ));  
@@ -52,7 +53,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 	        if (!$paytpv->validPassword($this->context->cart->id_customer,Tools::getValue('password'))){
 	        	$this->setTemplate('payment_fail.tpl');
 	        	$msg_paytpv_contrasena = $paytpv->l('Invalid Password');
-	        	$smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
+	        	$this->context->smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
 	        	return;
 	        }
 	    }
@@ -80,7 +81,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		if ($secure_pay){
 
-			$ps_language = new Language(intval($cookie->id_lang));		
+				
 			$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
 
 			$values = array(
@@ -102,7 +103,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 					'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
 					'MERCHANT_TERMINAL' => $paytpv->term,
 					'OPERATION' => $OPERATION,
-					'LANGUAGE' => $ps_language->iso_code,
+					'LANGUAGE' => $this->context->language->iso_code,
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,
 					'MERCHANT_ORDER' => $paytpv_order_ref,
 					'MERCHANT_AMOUNT' => $importe,
@@ -148,11 +149,11 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 			if (isset($reg_estado) && $reg_estado == 1)
 			//se anota el pedido como no pagado
-			class_registro::add($cart->id_customer, $this->context->cart->id, $importe, $charge[ 'DS_RESPONSE' ]);
+			class_registro::add($this->context->cart->id_customer, $this->context->cart->id, $importe, $charge[ 'DS_RESPONSE' ]);
 		}
 				
 		
-		$smarty->assign('base_dir',__PS_BASE_URI__);
+		$this->context->smarty->assign('base_dir',__PS_BASE_URI__);
         $this->setTemplate('payment_fail.tpl');
 
     }
