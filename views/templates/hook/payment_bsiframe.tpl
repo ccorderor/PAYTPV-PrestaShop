@@ -99,7 +99,7 @@
                                 {if ($saved_card[card].url=="0")}
                                     <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
                                 {else}
-                                    <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND}) - {$saved_card[card].CARD_DESC}</option>
+                                    <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND}){if ($saved_card[card].CARD_DESC!="")} - {$saved_card[card].CARD_DESC}{/if}</option>
                                 {/if}
                             {/section}
                         </select>
