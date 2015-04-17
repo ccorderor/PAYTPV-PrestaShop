@@ -94,7 +94,7 @@
                 <form class="form-inline">
                     <div class="form-group">
                         <label for="card">{l s='Card' mod='paytpv'}:</label>
-                        <select name="card" id="card" onChange="checkCard()" class="form-control" style="min-width:300px;">
+                        <select name="card" id="card" onChange="checkCard()" class="form-control">
                             {section name=card loop=$saved_card }
                                 {if ($saved_card[card].url=="0")}
                                     <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
