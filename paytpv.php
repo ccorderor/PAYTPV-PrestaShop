@@ -127,7 +127,7 @@ class Paytpv extends PaymentModule {
 	    // Show error when required fields.
 		if (isset($_POST['btnSubmit']))
 		{
-			if (empty($_POST['usercode']))
+			if ($_POST['operativa']==1 && empty($_POST['usercode']))
 				$this->_postErrors[] = $this->l('The user code is required paytpv.com.');
 			if (empty($_POST['pass']))
 				$this->_postErrors[] = $this->l('Password is required paytpv.com product.');
