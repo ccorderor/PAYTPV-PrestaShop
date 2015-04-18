@@ -29,7 +29,6 @@ if (!defined('_PS_VERSION_'))
 
 function upgrade_module_6_0_5($object)
 {
-
 	try{
 	    Db::getInstance()->execute('
 	    ALTER TABLE `'._DB_PREFIX_.'paytpv_customer` 

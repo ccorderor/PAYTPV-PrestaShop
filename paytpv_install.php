@@ -50,7 +50,7 @@ class PayTpvInstall
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_order_info` (
 				`id_customer` int(10) unsigned NOT NULL,
 				`id_cart` int(10) unsigned NOT NULL,
-				`paytpv_iduser` int(10) unsigned NOT NULL DEFAULT 0,
+				`paytpv_iduser` int(11) UNSIGNED NOT NULL DEFAULT 0,
 				`paytpvagree` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
 				`suscription` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
 				`periodicity` INT(3) NOT NULL,
@@ -62,12 +62,13 @@ class PayTpvInstall
 
 		if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_customer` (
-				`paytpv_iduser` int NOT NULL,
+				`paytpv_iduser` int(11) UNSIGNED NOT NULL,
 				`paytpv_tokenuser` VARCHAR(64) NOT NULL,
 				`paytpv_cc` VARCHAR(32) NOT NULL,
 				`paytpv_brand` VARCHAR(32) NULL,
 				`id_customer` int(10) unsigned NOT NULL,
 				`date` DATETIME NOT NULL,
+				`card_desc` VARCHAR(32) NULL DEFAULT NULL,
 				PRIMARY KEY (`paytpv_iduser`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
@@ -77,7 +78,7 @@ class PayTpvInstall
 				`id_suscription` int(10) unsigned NOT NULL AUTO_INCREMENT,
 				`id_customer` int(10) unsigned NOT NULL,
 				`id_order` INT(10) UNSIGNED NOT NULL,
-				`paytpv_iduser` INT(11) NOT NULL,
+				`paytpv_iduser` INT(11) UNSIGNED NOT NULL,
 				`paytpv_tokenuser` VARCHAR(64) NOT NULL,
 				`periodicity` INT(3) NOT NULL,
 				`cycles` INT(2) NOT NULL,
@@ -91,30 +92,17 @@ class PayTpvInstall
 		if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_order` (
 				`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-				`paytpv_iduser` INT(11) NOT NULL,
+				`paytpv_iduser` INT(11) UNSIGNED NOT NULL,
 				`paytpv_tokenuser` VARCHAR(64) NOT NULL,
 				`id_suscription` INT(10) UNSIGNED NOT NULL,
 				`id_customer` INT(10) UNSIGNED NOT NULL,
 				`id_order` INT(10) UNSIGNED NOT NULL,
 				`price` DECIMAL(20,6) NOT NULL DEFAULT 0,
 				`date` DATETIME NOT NULL,
+				`payment_status` VARCHAR(255) DEFAULT NULL,
 				PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
-
-		try{
-		    Db::getInstance()->execute('
-		    ALTER TABLE `'._DB_PREFIX_.'paytpv_order_info` 
-		    ADD COLUMN `paytpv_iduser` INT(11) NOT NULL DEFAULT 0'
-		    );
-		}catch (exception $e){}
-
-		try{
-		    Db::getInstance()->execute('
-		    ALTER TABLE `'._DB_PREFIX_.'paytpv_order` 
-		    ADD COLUMN `payment_status` varchar(255) DEFAULT NULL'
-		    );
-		}catch (exception $e){}
 
 		return true;
 	}

@@ -42,7 +42,7 @@ function upgrade_module_6_0_4($object)
 	try{
 	    Db::getInstance()->execute('
 	    ALTER TABLE `'._DB_PREFIX_.'paytpv_order_info` 
-	    ADD COLUMN `paytpv_iduser` INT(11) NOT NULL DEFAULT 0'
+	    ADD COLUMN `paytpv_iduser` INT(11) UNSIGNED NOT NULL DEFAULT 0'
 	    );
 	}catch (exception $e){}
 
