@@ -28,7 +28,7 @@
 
 <h2>{l s='Payment completed' mod='paytpv'}</h2>
 	<img src="{$base_dir}img/admin/icon-valid.png"/>&nbsp;&nbsp;   
-	{l s='Thank you for trusting us. Your purchase has been formalized correctly and soon we will process your order.'  mod='paytpv'}
+	{l s='Thank you for trusting us. Your purchase has been formalized correctly and we will process your order soon.'  mod='paytpv'}
 	
 
 <ul class="footer_links">    

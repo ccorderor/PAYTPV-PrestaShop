@@ -32,16 +32,16 @@
 				<p><b>{l s='Information:' mod='paytpv'}</b> {l s='Payment accepted' mod='paytpv'}</p>
 				<ul>
 					<li>
-					{l s='"Standard Refund" or "Refund product" options: a partial refund to customer credit card is made unless you select "Generate a voucher".' mod='paytpv'}</li>
+					{l s='"Standard refund" or "Return Products": performs a partial Refund in the Customer\'s credit card unless you select "Create a voucher"' mod='paytpv'}</li>
 					<li>
-					{l s='"Partitial Refund" does not return amount to the credit card customer.' mod='paytpv'}
+					{l s='"Partial refund": does not perform the refund of the amount in the Customer\'s credit card.' mod='paytpv'}
 					</li>
 				</ul>
 				<p><b>{l s='Outstanding amount:' mod='paytpv'}</b> {$amount}</p>
 				<p class="center">
 					<button type="submit" class="btn btn-default" name="submitPayTpvRefund" onclick="if (!confirm('{l s='Are you sure?' mod='paytpv'}'))return false;">
 						<i class="icon-undo"></i>
-						{l s='Refund total transaction' mod='paytpv'}
+						{l s='Total Refund of the Payment' mod='paytpv'}
 					</button>
 				</p>
 			</form>	
@@ -55,9 +55,9 @@
 	<p><b>{l s='Information:' mod='paytpv'}</b> {l s='Payment accepted' mod='paytpv'}</p>
 	<ul>
 		<li>
-		{l s='"Standard Refund" or "Refund product" options: a partial refund to customer credit card is made unless you select "Generate a voucher".' mod='paytpv'}</li>
+		{l s='"Standard refund" or "Return Products": performs a partial Refund in the Customer\'s credit card unless you select "Create a voucher".' mod='paytpv'}</li>
 		<li>
-		{l s='"Partitial Refund" does not return amount to the credit card customer.' mod='paytpv'}
+		{l s='"Partial refund": does not perform the refund of the amount in the Customer\'s credit card.' mod='paytpv'}
 		</li>
 	</ul>
 	<p><b>{l s='Outstanding amount:' mod='paytpv'}</b> {$amount}</p>

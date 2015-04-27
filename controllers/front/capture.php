@@ -52,7 +52,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		if ($paytpv->commerce_password){
 	        if (!$paytpv->validPassword($this->context->cart->id_customer,Tools::getValue('password'))){
 	        	$this->setTemplate('payment_fail.tpl');
-	        	$msg_paytpv_contrasena = $paytpv->l('Invalid Password');
+	        	$msg_paytpv_contrasena = $paytpv->l('Incorrect password');
 	        	$this->context->smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
 	        	return;
 	        }

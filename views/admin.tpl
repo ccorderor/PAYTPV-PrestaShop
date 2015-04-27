@@ -24,21 +24,21 @@
 
     {$errorMessage}
 
-    <img src="{$base_dir}modules/paytpv/views/img/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='This module allows you to accept card payments.' mod='paytpv'}</b><br /><br />
-            {l s='If the customer chooses this payment method, the customer could pay automatically.' mod='paytpv'}<br /><br /><br />
+    <img src="{$base_dir}modules/paytpv/views/img/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='This module allows you to accept card payments via paytpv.com.' mod='paytpv'}</b><br /><br />
+            {l s='If the customer chooses this payment method, they will be able to make payments automatically.' mod='paytpv'}<br /><br /><br />
     <div>
         <p><H1>{l s='PRERREQUISTES' mod='paytpv'}</H1></p>
             <ul>
-                <li>{l s='The store must be installed on line and not locally to be able to use the service' mod='paytpv'}</li>
-                <li>{l s='PayTPV server must be accessible. (checking is required when the server is firewalled)' mod='paytpv'}</li>
+                <li>{l s='The store must be installed on-line, NOT in Local in order to use this module' mod='paytpv'}</li>
+                <li>{l s='The PayTPV server must be accessible. (check that there are no problems when there is a firewall)' mod='paytpv'}</li>
             </ul>
         </p>
     </div>
     <form action="{$serverRequestUri|strip_tags}" method="post">
     	<fieldset>
-    		<legend>{l s='Product Configuration paytpv.com' mod='paytpv'}</legend>
-    		<p>{l s='Please complete the information requested. You can get the data through client platform PayTPV.' mod='paytpv'}</p>
-            <label for="operativa" id="lbloperativa">{l s='Operation method' mod='paytpv'}</label>
+    		<legend>{l s='Paytpv.com Product Configuration' mod='paytpv'}</legend>
+    		<p>{l s='Please complete the information requested. You can obtain information on the PayTPV product.' mod='paytpv'}</p>
+            <label for="operativa" id="lbloperativa">{l s='Type of Operation' mod='paytpv'}</label>
             <div class="margin-form">
                 <select name="operativa" onchange="checkoperativa();" id="operativa">
                     <option value="0" {if $operativa==0}selected="1"{/if}>BANKSTORE</option>
@@ -47,7 +47,7 @@
             </div>
 
             <div id="iframe_container">
-                <label>{l s='Integration method' mod='paytpv'}</label>
+                <label>{l s='Integration Method' mod='paytpv'}</label>
                 <div class="margin-form">
                     <select name="iframe">
                             <option value="0" {if $iframe==0}selected="1"{/if}>Full screen</option>
@@ -61,7 +61,7 @@
                 <div class="margin-form">
                     <select name="terminales" onchange="checkterminales();" id="terminales" >
                         <option value="0" {if $terminales==0} selected="1"{/if}>{l s='Secure' mod='paytpv'}</option>
-                        <option value="1" {if $terminales==1} selected="1"{/if}>{l s='No Secure' mod='paytpv'}</option>
+                        <option value="1" {if $terminales==1} selected="1"{/if}>{l s='Non-Secure' mod='paytpv'}</option>
                         <option value="2" {if $terminales==2} selected="1"{/if}>{l s='Both' mod='paytpv'}</option>
                     </select>
                 </div>
@@ -78,13 +78,13 @@
             </div>
 
             <div id="tdmin_container">
-                <label for="tdmin" id="lbltdmin">{l s='Use 3D Secure in purchases above' mod='paytpv'}</label>
+                <label for="tdmin" id="lbltdmin">{l s='Use 3D Secure on purchases over' mod='paytpv'}</label>
                 <div class="margin-form"><input type="number" step="0.01" size="60" name="tdmin" id="tdmin" value="{$tdmin}" style="width:120px;text-align:right"/>&euro;</div>
             </div>
 
             <br/>
             <div id="commerce_password_container">
-                <label for="commerce_password_container" id="lblcommerce_password_container">{l s='Commerce password required in saved cards purchase' mod='paytpv'}</label>
+                <label for="commerce_password_container" id="lblcommerce_password_container">{l s='Request business password on purchases with stored cards' mod='paytpv'}</label>
                 <div class="margin-form">
                     <select name="commerce_password" id="commerce_password">
                         <option value="0" {if $commerce_password==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
@@ -102,14 +102,14 @@
     		<label>{l s='User Password' mod='paytpv'}</label>
     		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
 
-    		<label>{l s='Terminal number' mod='paytpv'}</label>
+    		<label>{l s='Terminal Number' mod='paytpv'}</label>
     		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
 
     		<label>{l s='Client Code' mod='paytpv'}</label>
     		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
 
             <div id="suscriptions_container" style="display:none">
-                <label>{l s='Enable Subscriptions' mod='paytpv'}</label>
+                <label>{l s='Activate Subscriptions' mod='paytpv'}</label>
                 <div class="margin-form">
                     <select name="suscriptions" id="suscriptions">
                         <option value="0" {if $suscriptions==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
@@ -137,16 +137,16 @@
 
         <br/>
 
-    	<center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Settings' mod='paytpv' mod='paytpv'}" /></center>
+    	<center><input type="submit" id="btnSubmit" class="button" name="btnSubmit" value="{l s='Save Configuration' mod='paytpv' mod='paytpv'}" /></center>
 
     	<div>
             <p class="important">{l s='IMPORTANT' mod='paytpv'}</p>
-    		<p><strong>{l s='Finally you need to configure your account' mod='paytpv'} <a class='link' target="_blank" href="https://www.paytpv.com/clientes.php"> PayTPV </a>{l s='the following URLs for the payment module work properly' mod='paytpv'}:</strong>
+    		<p><strong>{l s='Finally you need to configure in your account' mod='paytpv'} <a class='link' target="_blank" href="https://www.paytpv.com/clientes.php"> PayTPV </a>{l s='the following URLs for the payment module to work properly' mod='paytpv'}:</strong>
             </p>
 			<ul class="paytpv">
 				<li><strong>URL OK:</strong> {$OK}</li>
 				<li><strong>URL KO:</strong> {$KO}</li>
-                <li><strong>{l s='Type of notice (IMPORTANT)' mod='paytpv'}:</strong> {l s='Url Notice or Url Notice and email' mod='paytpv'}
+                <li><strong>{l s='Type of Notification (IMPORTANT)' mod='paytpv'}:</strong> {l s='Notification via URL or Notification via URL and email' mod='paytpv'}
                     <ul class="paytpv">
                         <li><strong>URL NOTIFICACION:</strong> {$NOTIFICACION}</li>
                     </ul>
@@ -157,7 +157,7 @@
 
         <div>
             <p class="important">{l s='USER DOCUMENTATION' mod='paytpv'}</p>
-            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://github.com/PayTpv/PAYTPV-PrestaShop/blob/master/PAYTPV_MODULO_PRESTASHOP.pdf?raw=true">{l s='User Documentation'  mod='paytpv'}</a></strong>
+            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://github.com/PayTpv/PAYTPV-PrestaShop/blob/master/PAYTPV_MODULO_PRESTASHOP.pdf?raw=true">{l s='USER DOCUMENTATION'  mod='paytpv'}</a></strong>
         </div>
 
     </form>
@@ -168,7 +168,7 @@
 
     <form action="'.$_SERVER['REQUEST_URI'].'" method="post">
         <fieldset>
-            <legend><img src="../img/admin/contact.gif" alt="" title="" />{l s='Transactions with errors' mod='paytpv'}</legend>
+            <legend><img src="../img/admin/contact.gif" alt="" title="" />{l s='Failed Transactions' mod='paytpv'}</legend>
             <table class="table">
                 <thead>
                     <tr>
@@ -248,12 +248,12 @@
         function checktdfirst(){
             // Si solo tiene terminal seguro la primera compra va por seguro
             if(jQuery("#terminales").val() == 0 && jQuery("#tdfirst").val()==0){
-                alert("{l s='If you only have a secure terminal payments are always Secure' mod='paytpv'}");
+                alert("{l s='If you only have a Secure terminal, payments always go via Secure' mod='paytpv'}");
                 jQuery("#tdfirst").val(1);
             }
             // Si solo tiene terminal no seguro la primera compra va por seguro
             if(jQuery("#terminales").val() == 1 && jQuery("#tdfirst").val()==1){
-                alert("{l s='If you have only a No Secure terminal payments are always Unsure' mod='paytpv'}");
+                alert("{l s='If you only have a Non-Secure terminal, payments always go via Non-Secure' mod='paytpv'}");
                 jQuery("#tdfirst").val(0);
             }
 

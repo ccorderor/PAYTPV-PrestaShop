@@ -90,7 +90,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$this->context->smarty->assign('url_savedesc',Context::getContext()->link->getModuleLink('paytpv', 'actions', array("process"=>"saveDescriptionCard"), true));
 				$this->context->smarty->assign('url_cancelsuscription',Context::getContext()->link->getModuleLink('paytpv', 'actions',array("process"=>"cancelSuscription"), true));
 				
-				$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELED'));
+				$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELLED'));
 				$this->setTemplate('paytpv-account.tpl');
 			}
 		}

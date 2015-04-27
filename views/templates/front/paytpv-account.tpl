@@ -37,7 +37,7 @@
     var url_savedesc = "{$url_savedesc}";
     var msg_cancelsuscription = "{l s='Cancel Subscription' mod='paytpv'}"
     var msg_removecard = "{l s='Remove Card' mod='paytpv'}";
-    var msg_accept = "{l s='You must accept the terms and conditions of service' mod='paytpv'}";
+    var msg_accept = "{l s='You must accept the terms and conditions of the service' mod='paytpv'}";
     var msg_savedesc = "{l s='Save description' mod='paytpv'}";
     var msg_descriptionsaved = "{l s='Description saved' mod='paytpv'}";
     var status_canceled = "{$status_canceled}";
@@ -52,7 +52,7 @@
             {section name=card loop=$saved_card}   
                 <div class="bankstoreCard" id="card_{$saved_card[card].IDUSER}">  
                     {$saved_card[card].CC} ({$saved_card[card].BRAND})
-                    <input type="text" maxlength="32" style="width:300px" id="card_desc_{$saved_card[card].IDUSER}" name="card_desc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CARD_DESC}" placeholder="{l s='add description' mod='paytpv'}">
+                    <input type="text" maxlength="32" style="width:300px" id="card_desc_{$saved_card[card].IDUSER}" name="card_desc_{$saved_card[card].IDUSER}" value="{$saved_card[card].CARD_DESC}" placeholder="{l s='Add a description' mod='paytpv'}">
                     <label class="button_del">
                         <a href="#" id="{$saved_card[card].IDUSER}" class="save_desc">
                          {l s='Save description' mod='paytpv'}
@@ -69,16 +69,16 @@
         </div>
    
     {else}
-        <p class="warning">{l s='There is still no card associated.' mod='paytpv'}</p>
+        <p class="warning">{l s='You still have no card associated.' mod='paytpv'}</p>
     {/if}
 
     <div id="storingStep" class="box">
-        <h4>{l s='STREAMLLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
-        <p>{l s='Link a card to your account to make all procedures easily and quickly.' mod='paytpv'}</p>
+        <h4>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
+        <p>{l s='Link a card to your account to be able to make all procedures easily and quickly.' mod='paytpv'}</p>
 
         <p class="checkbox">
             <span class="checked"><input type="checkbox" name="savecard" id="savecard"></span>
-            <label for="savecard">{l s='When you link a Tarjet accepts ' mod='paytpv'}<a id="open_conditions" href="#conditions" class="link"><strong>{l s='terms and conditions of service' mod='paytpv'}</strong></a></label>
+            <label for="savecard">{l s='By linking a card you accept the ' mod='paytpv'}<a id="open_conditions" href="#conditions" class="link"><strong>{l s='terms and conditions of the service' mod='paytpv'}</strong></a></label>
         </p>
         <p>
             <a href="javascript:void(0);" onclick="vincularTarjeta();" title="{l s='Link card' mod='paytpv'}" class="button button-small btn btn-default">
@@ -111,11 +111,11 @@
                                 </a>
                             {else if $suscriptions[suscription].STATUS==1}
                                 <span class="canceled_suscription">
-                                    {l s='CANCELED' mod='paytpv'}
+                                    {l s='CANCELLED' mod='paytpv'}
                                 </span>
                             {else if $suscriptions[suscription].STATUS==2}
                                 <span class="finised_suscription">
-                                    {l s='FINISHED' mod='paytpv'}
+                                    {l s='ENDED' mod='paytpv'}
                                 </span>
                             {/if}
                         </label>
@@ -138,7 +138,7 @@
         </div>
    
     {else}
-        <p class="warning">{l s='There is no subscription.' mod='paytpv'}</p>
+        <p class="warning">{l s='There are no subscriptions.' mod='paytpv'}</p>
     {/if}
 
     <div id="alert" style="display:none">
@@ -158,37 +158,37 @@
         <div id="conditions" style="overflow:auto;">
             <h1 class="estilo-tit1">{l s='Related Cards' mod='paytpv'}</h1>
             <p>
-            {l s='This trade does not store or transmit data credit card or debit card. The data are sent via a secure, encrypted channel platform PayTPV.' mod='paytpv'}
+            {l s='This business does not store or transmit credit card or debit card data. Data are sent over an encrypted and secure channel to the PayTPV platform.' mod='paytpv'}
             </p>
             <p>
-            {l s='At any time, the user can add or remove data from your linked card. In the My Account section, you will see a section "My cards" where the cards will be stored and may be removed.' mod='paytpv'}
+            {l s='At any time, the user can add or remove data from their linked cards. In the section My account, they will see a section "My linked cards" where stored cards are displayed and they may be removed.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Security Policy' mod='paytpv'}</h2>
             <p>
-            {l s='All transaction information is transmitted between this site and PayTPV systems is encrypted using 256-bit SSL certificates. All cardholder information is transmitted encrypted and all messages sent to your servers from PayTPV signed using SHA hashing to prevent tampering. The information is transmitted to servers PayTPV can not probe, scan, used or modified by any external to gain access to confidential information.' mod='paytpv'}
+            {l s='All transaction information transmitted between this site and PayTPV systems is encrypted using 256-bit SSL certificates. All cardholder information is transmitted encrypted and all messages sent to your servers from PayTPV are signed using SHA hashing to prevent tampering. The information that is transmitted to PayTPV servers cannot be examined, scanned, used or modified by any external party that gains access to confidential information.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Encryption and Data Storage' mod='paytpv'}</h2>
             <p>
-            {l s='Once PayTPV systems, confidential information is protected using standard 1024-bit encryption. Encryption keys are kept in high security systems with double authentication volatile and which precludes their extraction. Banks, security agents and banks perform regular audits to ensure data protection.' mod='paytpv'}
+            {l s='Once in the PayTPV systems, confidential information is protected using standard 1024-bit encryption. Encryption keys are kept in volatile high security systems with double authentication, which makes their extraction impossible. Banks, security agents and banking institutions perform regular audits to ensure data protection.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='System Safety' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV systems are reviewed quarterly by specific tools ISO, a Qualified Qualified Security Assessor (QSA) and an independent approved scanning vendor (ASV) for the payment card brands.' mod='paytpv'}
+            {l s='PAYTPV systems are reviewed quarterly by specific ISO tools, an independent Qualified Security Assessor (QSA) and a scanning vendor (ASV) approved by the payment card brands.' mod='paytpv'}
             </p>
             <p>
-            {l s='PayTPV also subject to an annual audit by the standards of data security (PCI DSS) and Payment Card Industry is a provider of payment services fully approved Level 1, which is the highest level of compliance.' mod='paytpv'}
+            {l s='PAYTPV is also subject to an annual audit according to the standards of data security of the Payment Card Industry (PCI DSS) and is a fully approved Level 1 provider of payment services, which is the highest level of compliance.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Links to banks' mod='paytpv'}</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Links to banking institutions' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV has multiple private links to banking networks that are completely independent of the Internet and which do not cross any public access network. Any cardholder information sent to the banks and all messages sent in response authorization are protected and can not be manipulated.' mod='paytpv'}
+            {l s='PAYTPV has multiple private links to banking networks that are completely independent of the Internet and which do not cross any public access network. All the information of the holder sent to banks and all the authorization messages sent in response are protected and cannot be manipulated.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Internal security' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV is audited access controls production environments. The CPD stay where systems operate according to the requirements for Tier III centers. This ensures that safety is not put at risk at any time. It has sophisticated alarm systems, surveillance and closed circuit TV security guards present 24 hours a day, 7 days a week on site, as well as monitoring and a rigorous maintenance. All transaction information and customer card is protected even our own employees.' mod='paytpv'}
+            {l s='PAYTPV is audited in access controls to production environments. The CPD where systems are hosted operate according to the requirements for Tier III centers. This ensures that safety is not put at risk at any time. It has sophisticated alarm systems, surveillance by means of closed circuit TV and security guards 24 hours a day, 7 days a week on site, as well as rigorous monitoring and maintenance. All the information about transactions and customer cards is protected even from our own employees.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Disaster Recovery' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV has hosted Backup systems in different countries to ensure optimal safety systems and high availability. It also has a policy of commercial below and complete disaster recovery.' mod='paytpv'}
+            {l s='PAYTPV has Backup systems hosted in different countries to ensure optimal safety of the systems and high availability. It also has a complete business continuity and disaster recovery policy.' mod='paytpv'}
             </p>
             <p>&nbsp;</p>
         </div>

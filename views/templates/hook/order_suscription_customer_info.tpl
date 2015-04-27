@@ -29,6 +29,6 @@
 </p>
 
 <p>
-	{l s='You may cancel your subscription at any time from the user area. Section "My Cards and Subscriptions"' mod='paytpv'} 
+	{l s='You may cancel your subscription at any time from the User Area. In the section My Cards and Subscriptions' mod='paytpv'} 
 </p>
 

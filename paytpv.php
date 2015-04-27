@@ -39,7 +39,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.0.5';
+		$this->version = '6.0.6';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
@@ -128,13 +128,13 @@ class Paytpv extends PaymentModule {
 		if (isset($_POST['btnSubmit']))
 		{
 			if ($_POST['operativa']==1 && empty($_POST['usercode']))
-				$this->_postErrors[] = $this->l('The user code is required paytpv.com.');
+				$this->_postErrors[] = $this->l('Paytpv.com User Code required.');
 			if (empty($_POST['pass']))
-				$this->_postErrors[] = $this->l('Password is required paytpv.com product.');
+				$this->_postErrors[] = $this->l('Paytpv.com Password required.');
 			if (empty($_POST['term']))
-				$this->_postErrors[] = $this->l('Terminal number paytpv.com required product.');
+				$this->_postErrors[] = $this->l('Paytpv.com Terminal number required.');
 			if (empty($_POST['clientcode']))
-				$this->_postErrors[] = $this->l('The client code is required paytpv.com.');
+				$this->_postErrors[] = $this->l('Paytpv.com Customer code required');
 		}
 
 	}
@@ -153,7 +153,7 @@ class Paytpv extends PaymentModule {
 			Configuration::updateValue('PAYTPV_IFRAME', $_POST['iframe']); 
 			Configuration::updateValue('PAYTPV_TERMINALES', $_POST['terminales']); 
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
-			return '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="'.$this->l('ok').'" /> '.$this->l('Updated configuration').'</div>';          
+			return '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="'.$this->l('ok').'" /> '.$this->l('Configuration updated').'</div>';          
 		}
 
 	}
@@ -448,7 +448,7 @@ class Paytpv extends PaymentModule {
 			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 			$currency = new Currency(intval($id_currency));
 
-			$suscription_type = $this->l('This is a Subscription');
+			$suscription_type = $this->l('This order is a Subscription');
 			
 			$id_suscription = $result["id_suscription"];
 			$id_customer = $result["id_customer"];
@@ -462,9 +462,9 @@ class Paytpv extends PaymentModule {
 			if ($status==0)
 				$status = $this->l('ACTIVE');
 			else if ($status==1)
-				$status = $this->l('CANCELED');
+				$status = $this->l('CANCELLED');
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
-				$status = $this->l('FINISHED');
+				$status = $this->l('ENDED');
                                
 			
 
@@ -787,7 +787,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			return false;
 		}
 
-
+		$paytpv_date = date("Ymd",strtotime($paytpv_order['date']));
 		$paytpv_iduser = $paytpv_order["paytpv_iduser"];
 		$paytpv_tokenuser = $paytpv_order["paytpv_tokenuser"];
 
@@ -805,7 +805,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
 
-		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency->iso_code,$authcode,$amount);
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount);
 		$refund_txt = $response["txt"];
 
 		$message = $this->l('PayTPV Refund ').  "[" . $refund_txt . "]" .  '<br>';
@@ -813,7 +813,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 	}
 
-	private function _makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency,$authcode,$amount){
+	private function _makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency,$authcode,$amount){
 		// Refund amount
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 		$client = new WS_Client(
@@ -829,6 +829,17 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		$refund_txt = $this->l('OK');
 		$response["error"] = 0;
 		$response["txt"] = $this->l('OK');
+
+		// If is a subscription and error y initial refund.
+		if ($result[ 'DS_ERROR_ID']==130){
+			$paytpv_order_ref .= "[" . $paytpv_iduser . "]" . $paytpv_date;
+			// Refund amount of transaction
+			$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency, $authcode, $amount);
+			$refund_txt = $this->l('OK');
+			$response["error"] = 0;
+			$response["txt"] = $this->l('OK');
+
+		}
 		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ) {
 			$response["txt"] = $this->l('ERROR') . " " . $result[ 'DS_ERROR_ID'];
 			$response["error"] = 1;
@@ -846,7 +857,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		$message = strip_tags($message, '<br>');
 
 		if (!Validate::isCleanHtml($message))
-			$message = $this->l('Payment message is not valid, please check your module.');
+			$message = $this->l('Payments messages are invalid, please check the module.');
 
 		$new_message->message = $message;
 		$new_message->id_order = (int)$id_order;
@@ -886,9 +897,9 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 			$suscription = $result["suscription"];
 			if ($suscription==1){
-				$suscription_type = $this->l('This is a Subscription');
+				$suscription_type = $this->l('This order is a Subscription');
 			}else{
-				$suscription_type = $this->l('This is a Subscription Payment');
+				$suscription_type = $this->l('This order is a payment for Subscription');
 			}
 			$id_suscription = $result["id_suscription"];
 			$id_customer = $result["id_customer"];
@@ -902,9 +913,9 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			if ($status==0)
 				$status = $this->l('ACTIVE');
 			else if ($status==1)
-				$status = $this->l('CANCELED');
+				$status = $this->l('CANCELLED');
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
-				$status = $this->l('FINISHED');
+				$status = $this->l('ENDED');
                                
 			$date_YYYYMMDD = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
 
@@ -975,7 +986,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		$products = $order->getProducts();
 		$currency = new Currency((int)$order->id_currency);
 		if (!Validate::isLoadedObject($currency))
-			$this->_errors[] = $this->l('Not a valid currency');
+			$this->_errors[] = $this->l('Invalid Currency');
 
 		if (count($this->_errors))
 			return false;
@@ -989,7 +1000,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$amt += (float)($product['product_price_wt']) * ($product['product_quantity'] - $product['product_quantity_refunded']);
 		$amt += (float)($order->total_shipping) + (float)($order->total_wrapping) - (float)($order->total_discounts);
 
-
+		$paytpv_date = date("Ymd",strtotime($paytpv_order['date']));
 		$paytpv_iduser = $paytpv_order["paytpv_iduser"];
 		$paytpv_tokenuser = $paytpv_order["paytpv_tokenuser"];
 
@@ -1006,7 +1017,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
 
-		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$currency->iso_code,$authcode,$amount);
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount);
 		$refund_txt = $response["txt"];
 		$message = $this->l('PayTPV Total Refund ').  "[" . $refund_txt . "]" .  '<br>';
 		if ($response['error'] == 0)

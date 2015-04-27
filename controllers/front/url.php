@@ -204,9 +204,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						$cart_problem_txt = $paytpv->l("Any subscription product is no longer available",(int)$cart->id_lang) . "<br>";
 
 						// Mailing to Customer: Product in suscription is no longer available **********************
-						$message = "<br> " .  $paytpv->l('Dear Customer. There have been variations in the order to which you have subscribed',(int)$cart->id_lang) . " (". $order->reference .")";
+						$message = "<br> " .  $paytpv->l('Dear Customer. There have been changes in the order to which you are subscribed',(int)$cart->id_lang) . " (". $order->reference .")";
 						$message .= "<br><br>" .  $paytpv->l($cart_problem_txt,(int)$cart->id_lang);
-						$message .= "<br> " .  $paytpv->l('Amount of this new subscription payment has been returned',(int)$cart->id_lang);
+						$message .= "<br> " .  $paytpv->l('The payment amount of the subscription has been refunded to your account',(int)$cart->id_lang);
 						$message .= "<br> " .  $paytpv->l("You can Unsubscribe from your acount if desired",(int)$cart->id_lang);
 
 						$params = array(
@@ -251,7 +251,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						Mail::Send(
 							(int)$order->id_lang,
 							'order_customer_comment',
-							sprintf(Mail::l('Subscription payment error to order %s', (int)$order->id_lang), $order->reference),
+							sprintf(Mail::l('Subscription payment error in order %s', (int)$order->id_lang), $order->reference),
 							$params,
 							$to, 
 							$toName,

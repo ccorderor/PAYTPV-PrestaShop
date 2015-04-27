@@ -37,24 +37,24 @@
                 <p class="checkbox">
                    
                     <span class="checked"><input type="checkbox" name="suscripcion" id="suscripcion" value="1"></span>
-                    <label for="suscripcion">{l s='Subscribe to this order?' mod='paytpv'}</label>
+                    <label for="suscripcion">{l s='Would you like to subscribe to this order?' mod='paytpv'}</label>
                     
                 </p>
                 
                 <div id="div_periodicity" class="suscription_period" style="display:none">
-                    <div class="nota">{l s='The first purchase when ordering shall carry out, and the following is defined as the frequency subscription' mod='paytpv'}.
-                    {l s='By subscribing you agree to the ' mod='paytpv'} <a id="open_conditions" href="#conditions">{l s='terms and conditions of service' mod='paytpv'}</a>.
+                    <div class="nota">{l s='The first purchase will be made when placing the order and the following as defined as the frequency of the subscription' mod='paytpv'}.
+                    {l s='By subscribing you agree to the ' mod='paytpv'} <a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.
                     </div>
                     
                     <form class="form-inline">
                         <div class="form-group">    
-                            <label for="susc_periodicity" class="control-label">{l s='Periodicity:' mod='paytpv'} </label>
+                            <label for="susc_periodicity" class="control-label">{l s='Frequency:' mod='paytpv'} </label>
                             <select name="susc_periodicity" id="susc_periodicity" class="form-control" style="min-width:200px;">
                                 <option value="7">{l s='7 days (weekly)' mod='paytpv'}</option>
                                 <option value="30" selected>{l s='30 days (monthly)' mod='paytpv'}</option>
                                 <option value="90">{l s='90 days (quarterly)' mod='paytpv'}</option>
                                 <option value="180">{l s='180 days (biannual)' mod='paytpv'}</option>
-                                <option value="365">{l s='365 days (anual)' mod='paytpv'}</option>
+                                <option value="365">{l s='365 days (annual)' mod='paytpv'}</option>
                             </select>
                         </div>
                        
@@ -127,10 +127,10 @@
 
             <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>=1}hidden{/if}">
                
-                <h4>{l s='STREAMLLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
-                {l s='Link a card to your account to make all procedures easily and quickly.' mod='paytpv'}
+                <h4>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
+                {l s='Link a card to your account to perform all procedures easily and quickly' mod='paytpv'}
                 <br>
-                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" checked>{l s='Yes, remember my card accepting ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of service' mod='paytpv'}</a>.</label>
+                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
 
 
                 <a href="javascript:void(0);" onclick="addCardJQ('{$addcard_url}');" title="{l s='NEW CARD' mod='paytpv'}" class="button button-small btn btn-default">
@@ -159,7 +159,7 @@
                 <strong><span id="datos_tarjeta"></span></strong>
                 </p>
                 <p>
-                    {l s='For security, enter your user password Store' mod='paytpv'}
+                    {l s='For security, enter your store user password' mod='paytpv'}
                 </p>
                 <p>
                 {l s='Password' mod='paytpv'}: <input type="password" name="password" id="password" class="password">
@@ -176,42 +176,41 @@
         <div id="conditions" style="overflow:auto;">
             <h2 class="estilo-tit1">1.- {l s='Subscriptions' mod='paytpv'}</h2>
             <p>
-            {l s='This trade does not store or transmit data credit card or debit card. The data are sent via a secure, encrypted channel platform PayTPV.' mod='paytpv'}
+            {l s='This business does not store or transmit credit card or debit card data. Data is sent over an encrypted and secure channel to the PAYTPV platform.' mod='paytpv'}
             </p>
             <p>
-            {l s='At any time, the user can unsubscribe from the product from the "My cards and subscriptions". User subscriptions are displayed and may be canceled if desired.' mod='paytpv'}
+            {l s='The user may cancel their subscription to the product at any time from the Section "My Cards and Subscriptions".  The user subscriptions will be displayed and they can cancel them if they wish.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1">2.- {l s='Related Cards' mod='paytpv'}</h2>
+            <h2 class="estilo-tit1">2.- {l s='Linked cards' mod='paytpv'}</h2>
             <p>
-            {l s='This trade does not store or transmit data credit card or debit card. The data are sent via a secure, encrypted channel platform PayTPV.' mod='paytpv'}
+            {l s='This business does not store or transmit credit card or debit card data. Data is sent over an encrypted and secure channel to the PAYTPV platform.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Security Policy' mod='paytpv'}</h2>
             <p>
-            {l s='All transaction information is transmitted between this site and PayTPV systems is encrypted using 256-bit SSL certificates. All cardholder information is transmitted encrypted and all messages sent to your servers from PayTPV signed using SHA hashing to prevent tampering. The information is transmitted to servers PayTPV can not probe, scan, used or modified by any external to gain access to confidential information.' mod='paytpv'}
+            {l s='All transaction information transmitted between this site and PAYTPV systems is encrypted using 256-bit SSL certificates. All cardholder information is transmitted encrypted and all messages sent to your servers from PAYTPV are signed using SHA hashing to prevent tampering. The information that is transmitted to PAYTPV servers cannot be examined, scanned, used or modified by any external party that gains access to confidential information.' mod='paytpv'}
             </p>
-            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Encryption and Data Storage' mod='paytpv'}</h2>
+            <h2 class="estilo-tit1" id="politica_seguridad">{l s='Data encryption and storage' mod='paytpv'}</h2>
             <p>
-            {l s='Once PayTPV systems, confidential information is protected using standard 1024-bit encryption. Encryption keys are kept in high security systems with double authentication volatile and which precludes their extraction. Banks, security agents and banks perform regular audits to ensure data protection.' mod='paytpv'}
+            {l s='Once in the PAYTPV systems, confidential information is protected using standard 1024-bit encryption. Encryption keys are kept in volatile high security systems with double authentication, which makes their extraction impossible. Banks, security agents and banking institutions perform regular audits to ensure data protection.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='System Safety' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV systems are reviewed quarterly by specific tools ISO, a Qualified Qualified Security Assessor (QSA) and an independent approved scanning vendor (ASV) for the payment card brands.
-            PayTPV also subject to an annual audit by the standards of data security (PCI DSS) and Payment Card Industry is a provider of payment services fully approved Level 1, which is the highest level of compliance.' mod='paytpv'}
+            {l s='PAYTPV systems are reviewed quarterly by specific ISO tools, an independent Qualified Security Assessor (QSA) and a scanning vendor (ASV) approved by the payment card brands.' mod='paytpv'}
             </p>
             <p>
-            {l s='PayTPV also subject to an annual audit by the standards of data security (PCI DSS) and Payment Card Industry is a provider of payment services fully approved Level 1, which is the highest level of compliance.' mod='paytpv'}
+            {l s='PAYTPV is also subject to an annual audit according to the standards of data security of the Payment Card Industry (PCI DSS) and is a fully approved Level 1 provider of payment services, which is the highest level of compliance.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Links to banks' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV has multiple private links to banking networks that are completely independent of the Internet and which do not cross any public access network. Any cardholder information sent to the banks and all messages sent in response authorization are protected and can not be manipulated.' mod='paytpv'}
+            {l s='PAYTPV has multiple private links to banking networks that are completely independent of the Internet and which do not cross any public access network. All the information of the holder sent to banks and all the authorization messages sent in response are protected and cannot be manipulated.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Internal security' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV is audited access controls production environments. The CPD stay where systems operate according to the requirements for Tier III centers. This ensures that safety is not put at risk at any time. It has sophisticated alarm systems, surveillance and closed circuit TV security guards present 24 hours a day, 7 days a week on site, as well as monitoring and a rigorous maintenance. All transaction information and customer card is protected even our own employees.' mod='paytpv'}
+            {l s='PAYTPV is audited in access controls to production environments. The CPD where systems are hosted operate according to the requirements for Tier III centers. This ensures that safety is not put at risk at any time. It has sophisticated alarm systems, surveillance by means of closed circuit TV and security guards 24 hours a day, 7 days a week on site, as well as rigorous monitoring and maintenance. All the information about transactions and customer cards is protected even from our own employees.' mod='paytpv'}
             </p>
             <h2 class="estilo-tit1" id="politica_seguridad">{l s='Disaster Recovery' mod='paytpv'}</h2>
             <p>
-            {l s='PayTPV has hosted Backup systems in different countries to ensure optimal safety systems and high availability. It also has a policy of commercial below and complete disaster recovery.' mod='paytpv'}
+            {l s='PAYTPV has Backup systems hosted in different countries to ensure optimal safety of the systems and high availability. It also has a complete business continuity and disaster recovery policy.' mod='paytpv'}
             </p>
             <p>&nbsp;</p>
         </div>
