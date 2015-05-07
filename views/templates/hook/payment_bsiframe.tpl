@@ -103,18 +103,19 @@
                                 {/if}
                             {/section}
                         </select>
-                    </div>                  
-                    
+                    </div>
                 </form>
-                {if ($commerce_password)}
-                    <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">          
-                        <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                    </a>
-                {else}
-                    <a id="exec_directpay" href="#directpay" class="button button-small btn btn-default">          
-                        <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                        
-                    </a>
+
+                {if (sizeof($saved_card)>1)}
+                    {if ($commerce_password)}
+                        <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">          
+                            <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                        </a>
+                    {else}
+                        <a id="exec_directpay" href="#directpay" class="button button-small btn btn-default">          
+                            <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                        </a>
+                    {/if}
                 {/if}
                 
                 <div id="confirm" style="display:none">
@@ -125,7 +126,7 @@
             </div>
 
 
-            <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>=1}hidden{/if}">
+            <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>1}hidden{/if}">
                
                 <h4>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
                 {l s='Link a card to your account to perform all procedures easily and quickly' mod='paytpv'}
