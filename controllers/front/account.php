@@ -76,12 +76,21 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				    '3DSECURE' => $secure_pay
 				);
 
+				$query = http_build_query($fields);
+
+				if ($paytpv->environment!=1)
+					$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+				// Test Mode
+				else
+					$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
+
+
 				$paytpv_path = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$paytpv->name.'/';
 				
 				$this->context->controller->addCSS( $paytpv_path . 'css/account.css' , 'all' );
 			 	$this->context->controller->addJS( $paytpv_path . 'js/paytpv_account.js');
 
-				$this->context->smarty->assign('query',http_build_query($fields));
+				$this->context->smarty->assign('url_paytpv',$url_paytpv);
 				$this->context->smarty->assign('saved_card',$saved_card);
 				$this->context->smarty->assign('suscriptions',$suscriptions);
 				$this->context->smarty->assign('base_dir', __PS_BASE_URI__);

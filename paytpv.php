@@ -39,21 +39,19 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.0.6';
+		$this->version = '6.1.0';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
 		// Establishing properties from configuraction data
-		if (isset($config['PAYTPV_USERCODE']))
-			$this->usercode = $config['PAYTPV_USERCODE'];
 		if (isset($config['PAYTPV_PASS']))
 			$this->pass = $config['PAYTPV_PASS'];
 		if (isset($config['PAYTPV_TERM']))
 			$this->term = $config['PAYTPV_TERM'];
 		if (isset($config['PAYTPV_CLIENTCODE']))
 			$this->clientcode = $config['PAYTPV_CLIENTCODE'];
-		if (isset($config['PAYTPV_OPERATIVA']))
-			$this->operativa = $config['PAYTPV_OPERATIVA'];
+		if (isset($config['PAYTPV_ENVIRONMENT']))
+			$this->environment = $config['PAYTPV_ENVIRONMENT'];
 		if (isset($config['PAYTPV_3DFIRST']))
 			$this->tdfirst = $config['PAYTPV_3DFIRST'];
 		if (isset($config['PAYTPV_3DMIN']))
@@ -64,8 +62,6 @@ class Paytpv extends PaymentModule {
 			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
 		if (isset($config['PAYTPV_TERMINALES']))
 			$this->terminales = $config['PAYTPV_TERMINALES'];
-		if (isset($config['PAYTPV_IFRAME']))
-			$this->iframe = $config['PAYTPV_IFRAME'];
 		if (isset($config['PAYTPV_SUSCRIPTIONS']))
 			$this->suscriptions = $config['PAYTPV_SUSCRIPTIONS'];		
 		if (isset($config['PAYTPV_REG_ESTADO']))
@@ -80,10 +76,8 @@ class Paytpv extends PaymentModule {
 		
 		// Show message in module configuration page when missing data.
 		if (!isset($this->pass)
-				OR !isset($this->usercode)
 				OR !isset($this->clientcode)
-				OR !isset($this->term)
-				OR !isset($this->pass))
+				OR !isset($this->term))
 			$this->warning = $this->l('Missing data when configuring the module Paytpv');
 
 	}
@@ -127,14 +121,14 @@ class Paytpv extends PaymentModule {
 	    // Show error when required fields.
 		if (isset($_POST['btnSubmit']))
 		{
-			if ($_POST['operativa']==1 && empty($_POST['usercode']))
-				$this->_postErrors[] = $this->l('Paytpv.com User Code required.');
-			if (empty($_POST['pass']))
-				$this->_postErrors[] = $this->l('Paytpv.com Password required.');
-			if (empty($_POST['term']))
-				$this->_postErrors[] = $this->l('Paytpv.com Terminal number required.');
-			if (empty($_POST['clientcode']))
-				$this->_postErrors[] = $this->l('Paytpv.com Customer code required');
+			if ($_POST["environment"]!=1){
+				if (empty($_POST['pass']))
+					$this->_postErrors[] = $this->l('Paytpv.com Password required.');
+				if (empty($_POST['term']))
+					$this->_postErrors[] = $this->l('Paytpv.com Terminal number required.');
+				if (empty($_POST['clientcode']))
+					$this->_postErrors[] = $this->l('Paytpv.com Customer code required');
+			}
 		}
 
 	}
@@ -144,13 +138,11 @@ class Paytpv extends PaymentModule {
 		if (isset($_POST['btnSubmit'])){
 			Configuration::updateValue('PAYTPV_TERM', $_POST['term']);
 			Configuration::updateValue('PAYTPV_PASS', $_POST['pass']);
-			Configuration::updateValue('PAYTPV_USERCODE', $_POST['usercode']);
 			Configuration::updateValue('PAYTPV_CLIENTCODE', $_POST['clientcode']);
-			Configuration::updateValue('PAYTPV_OPERATIVA', $_POST['operativa']);
+			Configuration::updateValue('PAYTPV_ENVIRONMENT', $_POST['environment']);
 			Configuration::updateValue('PAYTPV_3DFIRST', $_POST['tdfirst']);
 			Configuration::updateValue('PAYTPV_3DMIN', $_POST['tdmin']);
 			Configuration::updateValue('PAYTPV_COMMERCEPASSWORD', $_POST['commerce_password']);
-			Configuration::updateValue('PAYTPV_IFRAME', $_POST['iframe']); 
 			Configuration::updateValue('PAYTPV_TERMINALES', $_POST['terminales']); 
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
 			return '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="'.$this->l('ok').'" /> '.$this->l('Configuration updated').'</div>';          
@@ -192,12 +184,10 @@ class Paytpv extends PaymentModule {
 		$this->context->smarty->assign('reg_estado', $conf_values['PAYTPV_REG_ESTADO']);
 		$this->context->smarty->assign('carritos', $carritos);
 		$this->context->smarty->assign('errorMessage',$errorMessage);
-		$this->context->smarty->assign('usercode', $conf_values['PAYTPV_USERCODE']);
 		$this->context->smarty->assign('clientcode', $conf_values['PAYTPV_CLIENTCODE']);
 		$this->context->smarty->assign('term', $conf_values['PAYTPV_TERM']);
 		$this->context->smarty->assign('pass', $conf_values['PAYTPV_PASS']);
-		$this->context->smarty->assign('iframe', $conf_values['PAYTPV_IFRAME']);
-		$this->context->smarty->assign('operativa', $conf_values['PAYTPV_OPERATIVA']);
+		$this->context->smarty->assign('environment', $conf_values['PAYTPV_ENVIRONMENT']);
 		$this->context->smarty->assign('tdfirst', $conf_values['PAYTPV_3DFIRST']);
 		$this->context->smarty->assign('tdmin', $conf_values['PAYTPV_3DMIN']);
 		$this->context->smarty->assign('commerce_password', $conf_values['PAYTPV_COMMERCEPASSWORD']);
@@ -250,96 +240,49 @@ class Paytpv extends PaymentModule {
 			'id_cart' => (int)$params['cart']->id,
 			'key' => Context::getContext()->customer->secure_key
 		);
-		$products = $params['cart']->getProducts();
-
-		$paytpv_clientconcept = '';
-		foreach ($products as $product) {
-			$paytpv_clientconcept .= $product['quantity'].' '.$product['name']."<br>";
-		}
-
-		$tmpl_vars = array();
-		
-		$URLOK=$URLKO=Context::getContext()->link->getModuleLink($this->name, 'url',$values,$ssl);
-		
-
-		$suscripcion = (isset($_POST["paytpv_suscripcion"]))?$_POST["paytpv_suscripcion"]:0;
 
 		$active_suscriptions = intval(Configuration::get('PAYTPV_SUSCRIPTIONS'));
 
-		if($this->operativa==0){ // BANKSTORE		
-
-			$saved_card = $this->getToken();
-			$index = 0;
-			foreach ($saved_card as $key=>$val){
-				$values_aux = array_merge($values,array("TOKEN_USER"=>$val["TOKEN_USER"]));
-				$saved_card[$key]['url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values_aux,$ssl);	
-				$index++;
-			}
-			$saved_card[$index]['url'] = 0;
-
-			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
-			$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
-			$this->context->smarty->assign('saved_card',$saved_card);
-			$this->context->smarty->assign('commerce_password',$this->commerce_password);
-			$this->context->smarty->assign('id_cart',$params['cart']->id);
-			
-			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
-
-		}else{  // TPV WEB
-			$OPERATION = 1;
-			$signature = md5($this->clientcode.$this->usercode.$this->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($this->pass));
-			$fields = array(
-				"ACCOUNT" => $this->clientcode,
-				"USERCODE" => $this->usercode,
-				"TERMINAL" => $this->term,
-				"OPERATION" => $OPERATION,
-				"REFERENCE" => $paytpv_order_ref,
-				"AMOUNT" => $importe,
-				"CURRENCY" => $currency->iso_code,
-				"SIGNATURE" => $signature,
-				"CONCEPT" => $paytpv_clientconcept.", ".($this->context->customer->isLogged() ? $cookie->customer_firstname.' '.$cookie->customer_lastname : ""),
-				'URLOK' => $URLOK,
-				'URLKO' => $URLKO
-			);
+		$saved_card = $this->getToken();
+		$index = 0;
+		foreach ($saved_card as $key=>$val){
+			$values_aux = array_merge($values,array("TOKEN_USER"=>$val["TOKEN_USER"]));
+			$saved_card[$key]['url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values_aux,$ssl);	
+			$index++;
 		}
+		$saved_card[$index]['url'] = 0;
 
+		$tmpl_vars = array();
+		$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
+		$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
+		$this->context->smarty->assign('saved_card',$saved_card);
+		$this->context->smarty->assign('commerce_password',$this->commerce_password);
+		$this->context->smarty->assign('id_cart',$params['cart']->id);
+		
+		$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
+
+		
 		$tmpl_vars = array_merge(
 			array(
 			'this_path' => $this->_path)
 		);
 		$this->context->smarty->assign($tmpl_vars);
 		
-
-		switch ($this->operativa){
-			// BANKSTORE
-			case 0:
-			 	$arrAddCard = array("process"=>"addCard");
-			    $arrSubscribe = array("process"=>"suscribe");
-			 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
-			 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
-				return $this->display(__FILE__, 'payment_bsiframe.tpl');
-				break;
-			// TPV-WEB
-
-			case 1:
-				if($this->iframe==1)
-					return $this->display(__FILE__, 'payment_iframe.tpl');
-				else
-					return $this->display(__FILE__, 'payment.tpl');
-				break;
-		}
+	 	$arrAddCard = array("process"=>"addCard");
+	    $arrSubscribe = array("process"=>"suscribe");
+	 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
+	 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
+		return $this->display(__FILE__, 'payment_bsiframe.tpl');
 
 	}
 
 	public function isSecureTransaction($importe,$card){
-        $op = $this->operativa;
         $terminales = $this->terminales;
         // Transaccion Segura:
-        // Si es TPVWEB
-        // Si es Bankstore y solo tiene Terminal Seguro
-        if (1 == $op || (0 == $op && $terminales==0))
+        
+        // Si solo tiene Terminal Seguro
+        if ($terminales==0)
             return true;   
-   
 
         // Si esta definido que el pago es 3d secure y no estamos usando una tarjeta tokenizada
         if ($this->tdfirst && $card==0)
@@ -487,17 +430,35 @@ class Paytpv extends PaymentModule {
 
 	}
 	private function getConfigValues(){
-		return Configuration::getMultiple(array('PAYTPV_USERCODE', 'PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE', 'PAYTPV_OPERATIVA', 'PAYTPV_3DFIRST', 'PAYTPV_3DMIN', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_TERMINALES', 'PAYTPV_IFRAME','PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
+		return Configuration::getMultiple(array('PAYTPV_PASS', 'PAYTPV_TERM', 'PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_3DFIRST', 'PAYTPV_3DMIN', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_TERMINALES', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
 	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
 
 		$paytpv_cc = '************' . substr($paytpv_cc, -4);
 
+		// Test Mode
+		// First 100.000 paytpv_iduser for Test_Mode
+		if ($this->environment==1){
+			$sql = 'select max(paytpv_iduser) as max_iduser from '. _DB_PREFIX_ .'paytpv_customer where paytpv_iduser<100000';
+			$result = Db::getInstance()->getRow($sql);
+			if (empty($result) === true){
+				$paytpv_iduser = 1;
+			}else{
+				$paytpv_iduser = $result["max_iduser"]+1;
+			}
+			$paytpv_tokenuser = "TESTTOKEN";
+		}
+
 		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'","'.pSQL($paytpv_cc).'","'.pSQL($paytpv_brand).'",'.pSQL($id_customer).',"'.pSQL(date('Y-m-d H:i:s')).'")';
 		Db::getInstance()->Execute($sql);
-		
+
+		$result["paytpv_iduser"] = $paytpv_iduser;
+		$result["paytpv_tokenuser"] = $paytpv_tokenuser;
+
+		return $result;
 	}
+
 
 	public function savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$id_customer,$id_order,$price){
 
@@ -688,7 +649,13 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$paytpv_iduser = $result["paytpv_iduser"];
 			$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
-			$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+			// Test Mode
+			if ($this->environment==1){
+				$result['DS_RESPONSE']=1;
+			}else{
+				$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+			}
+
 			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ) {
 				$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_suscription where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
 				Db::getInstance()->Execute($sql);
@@ -718,7 +685,12 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$paytpv_iduser = $result["paytpv_iduser"];
 			$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
-			$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+			// Test Mode
+			if ($this->environment==1){
+				$result['DS_RESPONSE']=1;
+			}else{
+				$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+			}
 			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ) {
 				$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_suscription set status=1 where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
 				Db::getInstance()->Execute($sql);
@@ -823,22 +795,38 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 				'pass' => $this->pass,
 			)
 		);
-		
-		// Refund amount of transaction
-		$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency, $authcode, $amount);
-		$refund_txt = $this->l('OK');
-		$response["error"] = 0;
-		$response["txt"] = $this->l('OK');
 
-		// If is a subscription and error y initial refund.
-		if ($result[ 'DS_ERROR_ID']==130){
-			$paytpv_order_ref .= "[" . $paytpv_iduser . "]" . $paytpv_date;
+		// Test Mode
+		// Se devuelven solo las operaciones realizadas en modo Test
+		if ($this->environment==1){
+			// Operacion realizada en Modo Test
+			if ($paytpv_tokenuser=="TESTTOKEN"){
+				$result[ 'DS_RESPONSE' ] = 1;
+				$response["error"] = 0;
+				$response["txt"] = $this->l('OK');
+			// Operacion real
+			}else{
+				$result[ 'DS_RESPONSE' ] = 1;
+				$response["error"] = 1;
+				$response["txt"] = $this->l('Test mode does not support returns orders placed in Real Mode');
+			}
+		}else{
 			// Refund amount of transaction
 			$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency, $authcode, $amount);
 			$refund_txt = $this->l('OK');
 			$response["error"] = 0;
 			$response["txt"] = $this->l('OK');
 
+			// If is a subscription and error y initial refund.
+			if ($result[ 'DS_ERROR_ID']==130){
+				$paytpv_order_ref .= "[" . $paytpv_iduser . "]" . $paytpv_date;
+				// Refund amount of transaction
+				$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency, $authcode, $amount);
+				$refund_txt = $this->l('OK');
+				$response["error"] = 0;
+				$response["txt"] = $this->l('OK');
+
+			}
 		}
 		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ) {
 			$response["txt"] = $this->l('ERROR') . " " . $result[ 'DS_ERROR_ID'];

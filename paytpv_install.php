@@ -113,7 +113,6 @@ class PayTpvInstall
 	public function updateConfiguration()
 	{
 		Configuration::updateValue('PAYTPV_CLIENTCODE', 'Escribe el código cliente');
-		Configuration::updateValue('PAYTPV_USERCODE', 'PayTPV');
 	}
 	/**
 	 * Delete PayTpv configuration
@@ -122,9 +121,7 @@ class PayTpvInstall
 	public function deleteConfiguration()
 	{
 		// Valores a quitar si desinstalamos el módulo
-		Configuration::deleteByName('PAYTPV_USERCODE');
 		Configuration::deleteByName('PAYTPV_CLIENTCODE');
-		Configuration::deleteByName('PAYTPV_OPERATIVA');
 		Configuration::deleteByName('PAYTPV_3DFIRST');
 		Configuration::deleteByName('PAYTPV_TERMINALES');
 		Configuration::deleteByName('PAYTPV_IFRAME');

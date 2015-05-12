@@ -46,8 +46,38 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		if (Tools::getValue('process') == 'suscribe')
 			$this->processSuscribe();
+
+		if (Tools::getValue('process') == 'checkCard')
+			$this->processCheckCard();
 		
 		exit;
+	}
+
+	/**
+	 * Check Test card
+	 */
+	public function processCheckCard()
+	{
+		$paytpv = $this->module;
+		$dsecure = ($paytpv->isSecureTransaction(Tools::getValue('mm')/100,0))?1:0;
+
+		$res["dsecure"] = $dsecure;
+		if ($dsecure==1) sleep(2);
+
+		// Test Mode
+		$res["checked"] = 0;
+
+		$arrTestCard = array(5325298401138208,5540568785541245,5407696658785988);
+
+		$mm = 5;
+		$yy = 20;
+		$merchan_cvc2 = 123;
+
+		if (in_array(Tools::getValue('merchan_pan'),$arrTestCard) && Tools::getValue('mm')==$mm && Tools::getValue('yy')==$yy && Tools::getValue('merchan_cvc2')==$merchan_cvc2)
+			$res["checked"] = 1;
+
+		print json_encode($res);
+		
 	}
 
 	/**
@@ -119,7 +149,6 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		);
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
-
 		
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
@@ -153,7 +182,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			);
 
 			$query = http_build_query($fields);
-			$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+
+			if ($paytpv->environment!=1)
+				$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+			// Test Mode
+			else
+				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
+
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
 		}
@@ -243,7 +278,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'3DSECURE' => $secure_pay
 			);
 			$query = http_build_query($fields);
-			$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+
+			if ($paytpv->environment!=1)
+				$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+			// Test Mode
+			else
+				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
+
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
 		}

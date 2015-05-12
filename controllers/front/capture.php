@@ -59,13 +59,12 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 	    }
 
 
-
         $data = $paytpv->getDataToken($_GET["TOKEN_USER"]);
 
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
 		$total_pedido = Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency);
-		$importe = number_format(Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency)*100, 0, '.', '');
+		$importe = number_format($total_pedido*100, 0, '.', '');
 		
 		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
 		
@@ -117,7 +116,11 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				
 			$query = http_build_query($fields);
 
-			$salida = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+			if ($paytpv->environment!=1)
+				$salida = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+			// Test Mode
+			else
+				$salida = Context::getContext()->link->getModuleLink($paytpv->name, 'url3dstest',$fields,$ssl);
 
 			header('Location: '.$salida);
 			exit;
@@ -132,7 +135,20 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			)
 		);
 		$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
-		$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$paytpv_order_ref);
+		// Test Mode
+		if ($paytpv->environment==1){
+			$transaction = array(
+				'transaction_id' => "Test_mode",
+				'result' => 0
+			);
+			$pagoRegistrado = $paytpv->validateOrder(Context::getContext()->cart->id, _PS_OS_PAYMENT_, $total_pedido, $paytpv->displayName, NULL, $transaction, NULL, false, Context::getContext()->customer->secure_key);
+			$id_order = Order::getOrderByCartId(intval(Context::getContext()->cart->id));
+			$paytpv->savePayTpvOrder($data["IDUSER"],$data['TOKEN_USER'],0,Context::getContext()->cart->id_customer,$id_order,$total_pedido);
+			$charge['DS_RESPONSE'] =1;
+
+		}else{
+			$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$paytpv_order_ref);
+		}
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
 			//Esperamos a que la notificación genere el pedido
 			sleep ( 3 );

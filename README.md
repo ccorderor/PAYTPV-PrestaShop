@@ -11,7 +11,13 @@ Pulsamos en Añadir nuevo modulo y seleccionamos el zip descargado.
 
 ## Configuración del Módulo
 
-Rellenaremos los datos según la configuracion disponible en Paytpv. https://paytpv.com/ → Mis productos → configurar productos y seleccionamos el producto que vayamos a configurar en nuestra tienda Prestashop.
+Rellenaremos los datos según la configuracion disponible en PayTPV. https://paytpv.com/ → Mis productos → configurar productos y seleccionamos el producto que vayamos a configurar en nuestra tienda Prestashop.
+
+### Entorno: 
+
+
+#### Modo Real: Para el uso normal del módulo con pagos reales.
+#### Modo Test: Para probar el funcionamiento del módulo sin necesidad de tener una cuenta en PayTPV.
 
 ### Tipo de Operativa: 
 
@@ -19,20 +25,14 @@ Rellenaremos los datos según la configuracion disponible en Paytpv. https://pay
 
 - Terminales disponibles: Seleccione el tipo de terminal contratado.
 - 3D Secure en la primera compra: Si la primera compra se realiza por terminal seguro. La opción NO sólo está disponible cuando el cliente tiene contratado un terminal no seguro. En el resto de casos la primera compra siempres se hará por 3D Secure.
-- Contraseña: La contraseña asignada al producto en Paytpv.
-- Numero de terminal: El terminal asignado al producto en Paytpv.
-- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
+- Usar 3D Secure en compras superiores a: Para solicitar la verificación 3DSecure en compras que superen el importe indicado.
+- Solicitar contraseña del comercio en compras con tarjetas almacenadas: Se pide la contraseña del usuario en el comercio.
+- Contraseña: La contraseña asignada al producto en PayTPV.
+- Numero de terminal: El terminal asignado al producto en PayTPV.
+- Codigo cliente: El codigo cliente asignado al producto en PayTPV.
 - Activar suscripciones: Si se desea que se muestre o no la opción de suscribirse en los carros de compra.
 
-#### Tpv Web: si solo se quiere dar las posibilidad de realizar el pago de los productos.
-- Tipo de integración: Tipo de integración deseada. (En Bankstores siempre es iframe)
-- Nombre de usuario: Nombre de usuario asignado al producto en Paytpv.
-- Contraseña: La contraseña asignada al producto en Paytpv.
-- Numero de terminal: El terminal asignado al producto en Paytpv.
-- Codigo cliente: El codigo cliente asignado al producto en Paytpv.
-
-
-IMPORTANTE: En la configuración del modulo se indica las URL OK, URL OK y URL de NOTIFICACION que deberán definirse en la configuración de Paytpv.
+IMPORTANTE: En la configuración del modulo se indican las URL OK, URL OK y URL de NOTIFICACION que deberán definirse en la configuración de PayTPV.
 
 
 ## Configuración del producto en PayTPV

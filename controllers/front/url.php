@@ -54,9 +54,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 		$suscripcion = 0;
 	
 		// Notify response
-		
 		// (execute_purchase)
-		if (Tools::getValue('TransactionType')==1
+		if (Tools::getValue('TransactionType')==="1"
 			AND Tools::getValue('Order')
 			AND Tools::getValue('Response')
 			AND Tools::getValue('ExtendedSignature'))
@@ -72,7 +71,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			if ($sign!=$local_sign)	die('Error 1');
 			
 		// (add_user)
-		}else if (Tools::getValue('TransactionType')==107){
+		}else if (Tools::getValue('TransactionType')==="107"){
 			$ref = Tools::getValue('Order');
 			$sign = Tools::getValue('Signature');
 			$esURLOK = false;
@@ -97,7 +96,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			die('Usuario Registrado');
 		
 		// (create_subscription)
-		}else if (Tools::getValue('TransactionType')==9){
+		}else if (Tools::getValue('TransactionType')==="9"){
 
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
@@ -123,25 +122,70 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			if ($id_order){
 				$suscripcion = 2;
 			}
-		}
-		
-		// TPV WEB Response
-		else if(Tools::getValue('i')
-			AND Tools::getValue('r')
-			AND Tools::getValue('ret')!=""
-			AND Tools::getValue('h'))
-		{
+		// (execute_purchase Modo Test)
+		}else if ((Tools::getValue('TransactionType')==="1_TEST" || Tools::getValue('TransactionType')==="109_TEST")
+			AND Tools::getValue('Order')
+			AND Tools::getValue('Response')){
+
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$ref = Tools::getValue('Order');
+			$result = Tools::getValue('Response')=='OK'?0:-1;
+			$sign = Tools::getValue('ExtendedSignature');
+			$esURLOK = false;
+
+			if (Tools::getValue('TransactionType')==="109_TEST")
+				$local_sign = md5($paytpv->clientcode.Tools::getValue('IdUser').Tools::getValue('TokenUser').$paytpv->term."109".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
+			else
+				$local_sign = md5($paytpv->clientcode.$paytpv->term."1".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
 			
-			$importe  = number_format(Tools::getValue('i')/ 100, 2);
-			$ref = Tools::getValue('r');	
-			$result = intval(Tools::getValue('ret'));	
-			$sign = Tools::getValue('h');
-			$esURLOK = true;
-			$local_sign = md5($paytpv->usercode.$ref.$paytpv->pass.$result);
+			// Check Signature
+			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 1 Test');
+		// (create_subscription Modo Test)
+		}else if (Tools::getValue('TransactionType')==="9_TEST"
+			AND Tools::getValue('Order')
+			AND Tools::getValue('Response')){
+
+			$suscripcion = 1;  // Inicio Suscripcion
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$ref = Tools::getValue('Order');	
+
+			$result = Tools::getValue('Response')=='OK'?0:-1;
+			$sign = Tools::getValue('ExtendedSignature');
+			$esURLOK = false;
+			$local_sign = md5($paytpv->clientcode.$paytpv->term."9".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
 
 			// Check Signature
-			if ($sign!=$local_sign)	die('Error 4');
+			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 9 Test');	
+
+		// (add_user TEST)
+		}else if (Tools::getValue('TransactionType')==="107_TEST"
+			AND Tools::getValue('Order')
+			AND Tools::getValue('Response')){
+
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$ref = Tools::getValue('Order');	
+
+			$result = Tools::getValue('Response')=='OK'?0:-1;
+			$sign = Tools::getValue('ExtendedSignature');
+			$esURLOK = false;
+			$local_sign = md5($paytpv->clientcode.$paytpv->term."107".$ref.md5($paytpv->pass));
+
+			// Check Signature
+			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 107 Test');
+			$paytpv_cc = '************' . substr(Tools::getValue('merchan_pan'), -4);
+			$result = array('DS_MERCHANT_PAN'=>$paytpv_cc,'DS_CARD_BRAND'=>'MASTERCARD');
+
+			$paytpv->saveCard(Context::getContext()->customer->id,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+			$ssl = Configuration::get('PS_SSL_ENABLED');
+			$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);
+
+			$res["urlok"] = $URLOK;
+
+			print json_encode($res);
+			exit;
+			//die('Usuario Registrado');		
 		}
+
 
 		if($result == 0){
 			$id_cart = (int)substr($ref,0,8);
@@ -172,7 +216,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 				// If a subscription payment
 				// SUSCRIPCION
-				if (Tools::getValue('TransactionType')==9 && $suscripcion==2){
+				if (Tools::getValue('TransactionType')==="9" && $suscripcion==2){
 					$cart_problem_txt = "";
 
 					$new_cart = $cart->duplicate();
@@ -253,8 +297,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 							'order_customer_comment',
 							sprintf(Mail::l('Subscription payment error in order %s', (int)$order->id_lang), $order->reference),
 							$params,
-							$to, 
-							$toName,
 							$to, $toName, $this->context->customer->email, $this->context->customer->firstname.' '.$this->context->customer->lastname);
 						// *********************************************************************************
 						die ("[Refund " . $refund . "] ".$cart_problem_txt);
@@ -274,9 +316,36 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
 				// BANKSTORE: Si hay notificacion
 				if(Tools::getValue('IdUser')){
+
+					$paytpv_iduser = Tools::getValue('IdUser');
+					$paytpv_tokenuser = Tools::getValue('TokenUser');
+					
+					// IF check agreement save token
+					if ($datos_order["paytpvagree"]){
+						// Live Mode
+						if ($paytpv->environment!=1){
+							include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+							$client = new WS_Client(
+								array(
+									'clientcode' => $paytpv->clientcode,
+									'term' => $paytpv->term,
+									'pass' => $paytpv->pass,
+								)
+							);
+							$result = $client->info_user( $paytpv_iduser,$paytpv_tokenuser );
+						// Test Mode
+						}else{
+							$paytpv_cc = '************' . substr(Tools::getValue('merchan_pan'), -4);
+							$result = array('DS_MERCHANT_PAN'=>$paytpv_cc,'DS_CARD_BRAND'=>'MASTERCARD');
+						}
+						$result = $paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+						$paytpv_iduser = $result["paytpv_iduser"];
+						$paytpv_tokenuser = $result["paytpv_tokenuser"];
+					}
+
 					// SUSCRIPCION
 					if ($suscripcion==1){
-						$paytpv->saveSuscription($cart->id_customer,$id_order,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$datos_order["periodicity"],$datos_order["cycles"],$importe);
+						$paytpv->saveSuscription($cart->id_customer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$datos_order["periodicity"],$datos_order["cycles"],$importe);
 
 						$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
 						$id_suscription = $data_suscription["id_suscription"];
@@ -307,34 +376,14 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 							'order_customer_comment',
 							sprintf(Mail::l('New Subscription to order %s', (int)$order->id_lang), $order->reference),
 							$params,
-							$to, 
-							$toName,
 							$to, $toName, $this->context->customer->email, $this->context->customer->firstname.' '.$this->context->customer->lastname);
 
 						// **************************************************************************************************
 					}
 
-					$paytpv_iduser = Tools::getValue('IdUser');
-					$paytpv_tokenuser = Tools::getValue('TokenUser');
-
 					if ($suscripcion AND $reg_estado == 1)
 						class_registro::removeByCartID($id_cart);
 
-					
-					// IF check agreement save token
-					if ($datos_order["paytpvagree"]){
-						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
-						$client = new WS_Client(
-							array(
-								'clientcode' => $paytpv->clientcode,
-								'term' => $paytpv->term,
-								'pass' => $paytpv->pass,
-							)
-						);
-						$result = $client->info_user( Tools::getValue('IdUser'),Tools::getValue('TokenUser') );
-						$id_order = Order::getOrderByCartId(intval($id_cart));
-						$paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
-					}
 				// Token Payment
 				}else{
 					$result = $paytpv->getDataTokenPaytpv_iduser($datos_order["paytpv_iduser"]);
@@ -357,7 +406,20 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				return;
 			}
 			else if($pagoRegistrado){
-				die('Pago registrado');
+				// Entorno Real
+				if ($paytpv->environment!=1){
+					die('Pago registrado');
+				// Modo Test
+				}else{
+					$values = array(
+						'id_cart' => $id_cart,
+						'key' => Context::getContext()->customer->secure_key
+					);
+					$ssl = Configuration::get('PS_SSL_ENABLED');
+					$res["urlok"] = Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
+					print json_encode($res);
+					exit;
+				}
 			}
 		}else{
 			//se anota el pedido como no pagado

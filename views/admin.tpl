@@ -38,21 +38,18 @@
     	<fieldset>
     		<legend>{l s='Paytpv.com Product Configuration' mod='paytpv'}</legend>
     		<p>{l s='Please complete the information requested. You can obtain information on the PayTPV product.' mod='paytpv'}</p>
-            <label for="operativa" id="lbloperativa">{l s='Type of Operation' mod='paytpv'}</label>
-            <div class="margin-form">
-                <select name="operativa" onchange="checkoperativa();" id="operativa">
-                    <option value="0" {if $operativa==0}selected="1"{/if}>BANKSTORE</option>
-                    <option value="1" {if $operativa==1}selected="1"{/if}>TPV WEB</option>
-                </select>
-            </div>
 
-            <div id="iframe_container">
-                <label>{l s='Integration Method' mod='paytpv'}</label>
-                <div class="margin-form">
-                    <select name="iframe">
-                            <option value="0" {if $iframe==0}selected="1"{/if}>Full screen</option>
-                            <option value="1" {if $iframe==1}selected="1"{/if}>Iframe</option>
-                    </select>
+            <label for="environment" id="lblenvironment">{l s='Environment' mod='paytpv'}</label>
+            <div class="margin-form">
+                <select name="environment" id="environment" onchange="checkenvironment();">
+                    <option value="0" {if $environment==0}selected="1"{/if}>{l s='Live Mode' mod='paytpv'}</option>
+                    <option value="1" {if $environment==1}selected="1"{/if}>{l s='Test Mode' mod='paytpv'}</option>
+                </select>
+                <div id="test_mode">
+                    {l s='Test PayTPV module without PayTPV account.' mod='paytpv'}<br/>
+                    {l s='Test Cards: 5325298401138208 / 5540568785541245 / 5407696658785988.' mod='paytpv'}<br/>
+                    {l s='Expiration Date: Month: 5 / Year: 2020' mod='paytpv'}<br/>
+                    {l s='CVC2: 123 / 3DSecure: 1234' mod='paytpv'}
                 </div>
             </div>
 
@@ -94,21 +91,19 @@
             </div>
 
             <br/>
-            <div id="usercode_container">
-                <label for="usercode">{l s='User Name' mod='paytpv'}</label>
-                <div class="margin-form"><input type="text" size="60" name="usercode" id="usercode" value="{$usercode}" /></div>
+            
+            <div id="real_mode">
+        		<label>{l s='User Password' mod='paytpv'}</label>
+        		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
+
+        		<label>{l s='Terminal Number' mod='paytpv'}</label>
+        		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
+
+        		<label>{l s='Client Code' mod='paytpv'}</label>
+        		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
             </div>
 
-    		<label>{l s='User Password' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
-
-    		<label>{l s='Terminal Number' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
-
-    		<label>{l s='Client Code' mod='paytpv'}</label>
-    		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
-
-            <div id="suscriptions_container" style="display:none">
+            <div id="suscriptions_container">
                 <label>{l s='Activate Subscriptions' mod='paytpv'}</label>
                 <div class="margin-form">
                     <select name="suscriptions" id="suscriptions">
@@ -201,31 +196,7 @@
     </form>
 
     <script>
-        function checkoperativa(){
-            if(jQuery("#operativa").val() == 0){
-                jQuery("#usercode_container").hide();
-                jQuery("#iframe_container").hide();
-                jQuery("#tdfirst_container").show();
-                if(jQuery("#terminales").val() == 2)
-                    jQuery("#tdmin_container").show();
-                else
-                    jQuery("#tdmin_container").hide();
-                
-                jQuery("#terminales_container").show();
-                jQuery("#suscriptions_container").show();
-                jQuery("#commerce_password_container").show();
-                
-            }else{
-                jQuery("#usercode_container").show();
-                jQuery("#iframe_container").show();
-                jQuery("#tdfirst_container").hide();
-                jQuery("#tdmin_container").hide();
-                jQuery("#terminales_container").hide(); 
-                jQuery("#suscriptions_container").hide(); 
-                jQuery("#commerce_password_container").hide();
-              }
-        }
-
+        
         function checkterminales(){
             // Si solo tiene terminal seguro o tiene los dos la primera compra va por seguro
             // Seguro
@@ -241,7 +212,6 @@
                 case "2": // AMBOS
                     jQuery("#tdmin_container").show();
                     break;
-                
             }
         }
 
@@ -256,19 +226,19 @@
                 alert("{l s='If you only have a Non-Secure terminal, payments always go via Non-Secure' mod='paytpv'}");
                 jQuery("#tdfirst").val(0);
             }
-
-            /*
-            if(jQuery("#terminales").val() == 2){
-                if (jQuery("#tdfirst").val()==0)
-                    jQuery("#tdmin_container").show();
-                else
-                    jQuery("#tdmin_container").hide();
-            }
-            */
-
         }
 
-        checkoperativa();
+        function checkenvironment(){
+            if (jQuery("#environment").val()==1){
+                jQuery("#test_mode").show();
+                jQuery("#real_mode").hide();
+            }else{
+                jQuery("#test_mode").hide();
+                jQuery("#real_mode").show();
+            }
+        }
+        
+        checkenvironment();
         checkterminales();
 
     </script>
