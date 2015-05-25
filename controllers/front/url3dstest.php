@@ -42,7 +42,7 @@ class PaytpvUrl3dstestModuleFrontController extends ModuleFrontController
 	public function initContent()
 
 	{
-
+		$this->context->controller->addJquery();
 		parent::initContent();
 
 		$paytpv = $this->module;

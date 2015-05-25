@@ -75,10 +75,12 @@ class Paytpv extends PaymentModule {
 		$this->description = $this->l('This module allows you to accept card payments via paytpv.com');
 		
 		// Show message in module configuration page when missing data.
-		if (!isset($this->pass)
-				OR !isset($this->clientcode)
-				OR !isset($this->term))
-			$this->warning = $this->l('Missing data when configuring the module Paytpv');
+		if ($this->environment!=1){
+			if (!isset($this->pass)
+					OR !isset($this->clientcode)
+					OR !isset($this->term))
+				$this->warning = $this->l('Missing data when configuring the module Paytpv');
+		}
 
 	}
 	public function install() {

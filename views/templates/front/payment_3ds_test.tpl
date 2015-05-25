@@ -30,7 +30,7 @@
 	<meta http-equiv="Pragma" content="no-cache" />
 	<meta http-equiv="Cache-Control" content="no-cache" />
 	<link media="screen" href="{$this_path}/css/2100.css" type="text/css" rel="StyleSheet" />
-	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+	
 
 	<script type="text/javascript">
 	function checkform() {

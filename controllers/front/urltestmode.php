@@ -42,7 +42,7 @@ class PaytpvUrltestmodeModuleFrontController extends ModuleFrontController
 	public function initContent()
 
 	{
-
+		$this->context->controller->addJquery();
 		parent::initContent();
 
 		$paytpv = $this->module;
@@ -96,6 +96,7 @@ class PaytpvUrltestmodeModuleFrontController extends ModuleFrontController
 
 		));
 
+		
 
 		$this->setTemplate('payment_test_mode.tpl');
 
