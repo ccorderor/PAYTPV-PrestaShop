@@ -63,7 +63,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
-		$total_pedido = Tools::convertPrice($this->context->cart->getOrderTotal(true, 3), $currency);
+		$total_pedido = $this->context->cart->getOrderTotal(true, Cart::BOTH);
 		$importe = number_format($total_pedido*100, 0, '.', '');
 		
 		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
@@ -95,7 +95,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		
 			$OPERATION = "109"; //exec_purchase_token
-			$signature = md5($paytpv->clientcode.$data["IDUSER"].$data['TOKEN_USER'].$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($paytpv->pass));
+			$signature = md5($paytpv->clientcode.$data["IDUSER"].$data['TOKEN_USER'].$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$this->context->currency->iso_code.md5($paytpv->pass));
 	
 			$fields = array
 				(
@@ -106,7 +106,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,
 					'MERCHANT_ORDER' => $paytpv_order_ref,
 					'MERCHANT_AMOUNT' => $importe,
-					'MERCHANT_CURRENCY' => $currency->iso_code,
+					'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
 					'IDUSER' => $data["IDUSER"],
 					'TOKEN_USER' => $data['TOKEN_USER'],
 					'3DSECURE' => $secure_pay,

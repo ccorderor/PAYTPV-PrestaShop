@@ -39,7 +39,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.1.0';
+		$this->version = '6.1.1';
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
@@ -234,7 +234,7 @@ class Paytpv extends PaymentModule {
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
 		$currency = new Currency(intval($id_currency));		
-		$importe = number_format(Tools::convertPrice($params['cart']->getOrderTotal(true, 3), $currency)*100, 0, '.', '');		
+		$importe = number_format($params['cart']->getOrderTotal(true, Cart::BOTH)*100, 0, '.', '');		
 
 		$paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT);
 		$ssl = Configuration::get('PS_SSL_ENABLED');

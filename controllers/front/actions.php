@@ -140,13 +140,14 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		if( !is_object(Context::getContext()->currency) )
    			Context::getContext()->currency = new Currency($id_currency);
 
-		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
+		$total_pedido = $cart->getOrderTotal(true, Cart::BOTH);
 		$importe = number_format($total_pedido * 100, 0, '.', '');
 
 		$values = array(
 			'id_cart' => $cart->id,
 			'key' => Context::getContext()->customer->secure_key
 		);
+
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 		
@@ -165,7 +166,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
-			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($paytpv->pass));
+			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$this->context->currency->iso_code.md5($paytpv->pass));
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
@@ -175,7 +176,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
-				'MERCHANT_CURRENCY' => $currency->iso_code,
+				'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO,
 				'3DSECURE' => $secure_pay
@@ -223,7 +224,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$currency = new Currency(intval($id_currency));		
 
-		$total_pedido = Tools::convertPrice($cart->getOrderTotal(true, 3), $currency);
+		$total_pedido = $cart->getOrderTotal(true, Cart::BOTH);
 		$importe = number_format($total_pedido * 100, 0, '.', '');
 
 		$values = array(
@@ -269,7 +270,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
-				'MERCHANT_CURRENCY' => $currency->iso_code,
+				'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
 				'SUBSCRIPTION_STARTDATE' => $subscription_stratdate, 
 				'SUBSCRIPTION_ENDDATE' => $subscription_enddate,
 				'SUBSCRIPTION_PERIODICITY' => $susc_periodicity,
