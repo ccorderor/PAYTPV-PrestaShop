@@ -57,6 +57,9 @@ class PaytpvUrl3dstestModuleFrontController extends ModuleFrontController
 
 	    $TRANSACTION_TYPE = Tools::getValue('OPERATION')."_TEST";
 
+	    $currency = new Currency((int)Currency::getIdByIsoCode(Tools::getValue('MERCHANT_CURRENCY')));
+
+
 	    $URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 	    $URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
 	    if (Tools::getValue('OPERATION')==107)
@@ -76,6 +79,7 @@ class PaytpvUrl3dstestModuleFrontController extends ModuleFrontController
 			'TOKEN_USER' => "TESTTOKEN",
 			'TRANSACTION_TYPE' => $TRANSACTION_TYPE,
 			'CURRENCY' => Tools::getValue('MERCHANT_CURRENCY'),
+			'CURRENCY_SIGN' => $currency->sign,
 			'MERCHAN_PAN' => Tools::getValue('MERCHAN_PAN'),
 			'CHECK_CARD'=> Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrCheckCard, true),
 			'FECHA' => date("d/m/Y"),

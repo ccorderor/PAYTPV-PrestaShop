@@ -169,11 +169,15 @@ $(document).ready(function() {
             },
             success: function(result)
             {
-                if (result == '0')
+                if (result["error"] == '0')
                 {
                     $("#suscription_"+id_suscription).find(".button_del").html("<span class=\"canceled_suscription\">"+status_canceled+"</span>");
+                }else if (result["txt"]!=""){
+                    alert(result["txt"]);
+
                 }
-            }
+            },
+            dataType:"json"
         });
         
     };

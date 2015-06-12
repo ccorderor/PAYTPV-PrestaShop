@@ -29,8 +29,8 @@
 <h2>{l s='Payment not completed' mod='paytpv'}</h2>
 
 
-	{if isset($msg_paytpv_contrasena) && ($msg_paytpv_contrasena!="")}
-	<img src="{$base_dir}img/admin/icon-cancel.png"/> &nbsp;&nbsp; {$msg_paytpv_contrasena}
+	{if ($password_fail)}
+	<img src="{$base_dir}img/admin/icon-cancel.png"/> &nbsp;&nbsp; {l s='Incorrect Password'  mod='paytpv'}  
 	</tr>
 	{else}
 	<img src="{$base_dir}img/admin/icon-cancel.png"/>&nbsp;&nbsp;   

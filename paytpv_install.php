@@ -104,6 +104,19 @@ class PayTpvInstall
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
 
+		if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_terminal` (
+				`id` INT(2) UNSIGNED NOT NULL,
+				`idterminal` INT(4) UNSIGNED NOT NULL,
+				`password` VARCHAR(30) NOT NULL,
+				`currency_iso_code` VARCHAR(3) NOT NULL,
+				`terminales` SMALLINT(1) NOT NULL DEFAULT 0,
+				`tdfirst` SMALLINT(1) NOT NULL DEFAULT 1,
+				`tdmin` DECIMAL(17,2),
+				PRIMARY KEY (`id`)
+			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
+		return false;
+
 		return true;
 	}
 	/**
@@ -122,7 +135,9 @@ class PayTpvInstall
 	{
 		// Valores a quitar si desinstalamos el módulo
 		Configuration::deleteByName('PAYTPV_CLIENTCODE');
+		Configuration::deleteByName('PAYTPV_COMMERCEPASSWORD');
 		Configuration::deleteByName('PAYTPV_3DFIRST');
+		Configuration::deleteByName('PAYTPV_3DMIN');
 		Configuration::deleteByName('PAYTPV_TERMINALES');
 		Configuration::deleteByName('PAYTPV_IFRAME');
 		Configuration::deleteByName('PAYTPV_TERM');

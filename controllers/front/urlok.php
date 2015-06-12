@@ -56,7 +56,8 @@ class PaytpvUrlokModuleFrontController extends ModuleFrontController
 			Tools::redirect(Context::getContext()->link->getPageLink('order-confirmation',$this->ssl,null,$values));
 		// No vienen los parametros
 		}else{
-			$id_customer = Context::getContext()->customer->id;
+			
+			$id_customer = (Context::getContext()->customer->id>0)?Context::getContext()->customer->id:0;
 
 			$result = Db::getInstance()->getRow('
 			SELECT now() as fechaactual,paytpv_order.* FROM `'._DB_PREFIX_.'paytpv_order` as paytpv_order WHERE `id_customer` = '.$id_customer.' ORDER BY `date` DESC');

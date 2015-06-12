@@ -62,11 +62,11 @@ class WS_Client {
 		$this->client->setUseCurl( $useCURL );
 
 	}
-	function execute_purchase( $DS_IDUSER,$DS_TOKEN_USER,$DS_MERCHANT_CURRENCY='EUR',$amount,$ref='' ) {
+	function execute_purchase( $DS_IDUSER,$DS_TOKEN_USER,$TERMINAL,$DS_MERCHANT_CURRENCY='EUR',$amount,$ref='' ) {
 
 		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
 
-		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
+		$DS_MERCHANT_TERMINAL = $TERMINAL;
 
 		$DS_MERCHANT_AMOUNT = $amount;
 
@@ -330,7 +330,7 @@ class WS_Client {
 			'DS_MERCHANT_AMOUNT' => $DS_MERCHANT_AMOUNT
 
 		);
-
+		
 
 		$this->write_log("Petición execute_refund:\n".print_r($p,true));
 

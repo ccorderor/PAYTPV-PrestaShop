@@ -47,13 +47,14 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		$paytpv = $this->module;
 
-		$msg_paytpv_contrasena = "";
+		$password_fail = 0;
 		// Verificar contraseña usuario.
 		if ($paytpv->commerce_password){
 	        if (!$paytpv->validPassword($this->context->cart->id_customer,Tools::getValue('password'))){
+	        	$password_fail = 1;
+	        	$this->context->smarty->assign('password_fail',$password_fail);
 	        	$this->setTemplate('payment_fail.tpl');
-	        	$msg_paytpv_contrasena = $paytpv->l('Incorrect password');
-	        	$this->context->smarty->assign('msg_paytpv_contrasena',$msg_paytpv_contrasena);
+	        	
 	        	return;
 	        }
 	    }
@@ -64,11 +65,14 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
 		$total_pedido = $this->context->cart->getOrderTotal(true, Cart::BOTH);
-		$importe = number_format($total_pedido*100, 0, '.', '');
 		
+		$datos_pedido = $paytpv->TerminalCurrency($this->context->cart);
+		$importe = $datos_pedido["importe"];
+		$currency_iso_code = $datos_pedido["currency_iso_code"];
+		$idterminal = $datos_pedido["idterminal"];
+		$pass = $datos_pedido["password"];
+
 		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
-		
-		$terminales = Configuration::get('PAYTPV_TERMINALES');
 		
 		// Si el cliente solo tiene un terminal seguro, el segundo pago va siempre por seguro.
 		// Si tiene un terminal NO Seguro ó ambos, el segundo pago siempre lo mandamos por NO Seguro
@@ -76,11 +80,10 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		// PAGO SEGURO
 
-		$secure_pay = $paytpv->isSecureTransaction($total_pedido,$data["IDUSER"])?1:0;
+		$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,$data["IDUSER"])?1:0;
 
 		if ($secure_pay){
 
-				
 			$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
 
 			$values = array(
@@ -95,18 +98,18 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 		
 			$OPERATION = "109"; //exec_purchase_token
-			$signature = md5($paytpv->clientcode.$data["IDUSER"].$data['TOKEN_USER'].$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$this->context->currency->iso_code.md5($paytpv->pass));
+			$signature = md5($paytpv->clientcode.$data["IDUSER"].$data['TOKEN_USER'].$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
 	
 			$fields = array
 				(
 					'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-					'MERCHANT_TERMINAL' => $paytpv->term,
+					'MERCHANT_TERMINAL' => $idterminal,
 					'OPERATION' => $OPERATION,
 					'LANGUAGE' => $this->context->language->iso_code,
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,
 					'MERCHANT_ORDER' => $paytpv_order_ref,
 					'MERCHANT_AMOUNT' => $importe,
-					'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
+					'MERCHANT_CURRENCY' => $currency_iso_code,
 					'IDUSER' => $data["IDUSER"],
 					'TOKEN_USER' => $data['TOKEN_USER'],
 					'3DSECURE' => $secure_pay,
@@ -130,8 +133,8 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		$client = new WS_Client(
 			array(
 				'clientcode' => $paytpv->clientcode,
-				'term' => $paytpv->term,
-				'pass' => $paytpv->pass,
+				'term' => $idterminal,
+				'pass' => $pass,
 			)
 		);
 		$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
@@ -147,7 +150,8 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			$charge['DS_RESPONSE'] =1;
 
 		}else{
-			$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$this->context->currency->iso_code,$importe,$paytpv_order_ref);
+
+			$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$idterminal,$currency_iso_code,$importe,$paytpv_order_ref);
 		}
 		if ( ( int ) $charge[ 'DS_RESPONSE' ] == 1 ) {
 			//Esperamos a que la notificación genere el pedido

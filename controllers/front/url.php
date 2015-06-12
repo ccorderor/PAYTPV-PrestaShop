@@ -65,7 +65,11 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+
+			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$pass = $arrTerminal["password"];
+
+			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 			
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 1');
@@ -75,7 +79,11 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$ref = Tools::getValue('Order');
 			$sign = Tools::getValue('Signature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($paytpv->pass));
+
+			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$pass = $arrTerminal["password"];
+
+			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($pass));
 
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 2');
@@ -84,8 +92,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$client = new WS_Client(
 				array(
 					'clientcode' => $paytpv->clientcode,
-					'term' => $paytpv->term,
-					'pass' => $paytpv->pass,
+					'term' => Tools::getValue('TpvID'),
+					'pass' => $pass,
 				)
 			);
 
@@ -101,7 +109,11 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term.Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+
+			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$pass = $arrTerminal["password"];
+
+			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 			
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 3');
@@ -133,13 +145,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
 
-			if (Tools::getValue('TransactionType')==="109_TEST")
-				$local_sign = md5($paytpv->clientcode.Tools::getValue('IdUser').Tools::getValue('TokenUser').$paytpv->term."109".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
-			else
-				$local_sign = md5($paytpv->clientcode.$paytpv->term."1".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
-			
 			// Check Signature
-			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 1 Test');
+			if ($paytpv->environment!=1) 		die('Error 1 Test');
 		// (create_subscription Modo Test)
 		}else if (Tools::getValue('TransactionType')==="9_TEST"
 			AND Tools::getValue('Order')
@@ -152,10 +159,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term."9".$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($paytpv->pass));
 
 			// Check Signature
-			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 9 Test');	
+			if ($paytpv->environment!=1) 		die('Error 9 Test');
 
 		// (add_user TEST)
 		}else if (Tools::getValue('TransactionType')==="107_TEST"
@@ -168,10 +174,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
-			$local_sign = md5($paytpv->clientcode.$paytpv->term."107".$ref.md5($paytpv->pass));
 
 			// Check Signature
-			if ($paytpv->environment!=1 || $local_sign!=$sign) 		die('Error 107 Test');
+			if ($paytpv->environment!=1) 		die('Error 107 Test');
 			$paytpv_cc = '************' . substr(Tools::getValue('merchan_pan'), -4);
 			$result = array('DS_MERCHANT_PAN'=>$paytpv_cc,'DS_CARD_BRAND'=>'MASTERCARD');
 
@@ -228,13 +233,17 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					if (!$new_cart || !Validate::isLoadedObject($new_cart['cart'])){
 						exit;
 					}else if (!$new_cart['success']){
+
+						$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+						$pass = $arrTerminal["password"];
+
 						// Refund amount
 						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 						$client = new WS_Client(
 							array(
 								'clientcode' => $paytpv->clientcode,
-								'term' => $paytpv->term,
-								'pass' => $paytpv->pass,
+								'term' => Tools::getValue('TpvID'),
+								'pass' => $pass,
 							)
 						);
 
@@ -324,12 +333,15 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					if ($datos_order["paytpvagree"]){
 						// Live Mode
 						if ($paytpv->environment!=1){
+							$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+							$pass = $arrTerminal["password"];
+
 							include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 							$client = new WS_Client(
 								array(
 									'clientcode' => $paytpv->clientcode,
-									'term' => $paytpv->term,
-									'pass' => $paytpv->pass,
+									'term' => Tools::getValue('TpvID'),
+									'pass' => $pass,
 								)
 							);
 							$result = $client->info_user( $paytpv_iduser,$paytpv_tokenuser );

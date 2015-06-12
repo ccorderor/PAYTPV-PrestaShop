@@ -59,7 +59,13 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	public function processCheckCard()
 	{
 		$paytpv = $this->module;
-		$dsecure = ($paytpv->isSecureTransaction(Tools::getValue('mm')/100,0))?1:0;
+
+		$datos_pedido = $paytpv->TerminalCurrency($this->context->cart);
+		$importe = $datos_pedido["importe"];
+		$currency_iso_code = $datos_pedido["currency_iso_code"];
+		$idterminal = $datos_pedido["idterminal"];
+
+		$dsecure = ($paytpv->isSecureTransaction($idterminal,Tools::getValue('mm')/100,0))?1:0;
 
 		$res["dsecure"] = $dsecure;
 		if ($dsecure==1) sleep(2);
@@ -110,9 +116,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	public function processCancelSuscription()
 	{
 		$paytpv = $this->module;
-		if ($paytpv->cancelSuscription(Tools::getValue('id_suscription')))
-			die('0');
-		die('1');
+		$res = $paytpv->cancelSuscription(Tools::getValue('id_suscription'));
+		print json_encode($res);
 	}
 
 	/**
@@ -134,14 +139,19 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		// Valor de compra				
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
-
 		$currency = new Currency(intval($id_currency));
 
 		if( !is_object(Context::getContext()->currency) )
    			Context::getContext()->currency = new Currency($id_currency);
-
+   		
 		$total_pedido = $cart->getOrderTotal(true, Cart::BOTH);
-		$importe = number_format($total_pedido * 100, 0, '.', '');
+	
+		$datos_pedido = $paytpv->TerminalCurrency($cart);
+		$importe = $datos_pedido["importe"];
+		$currency_iso_code = $datos_pedido["currency_iso_code"];
+		$idterminal = $datos_pedido["idterminal"];
+		$pass = $datos_pedido["password"];
+
 
 		$values = array(
 			'id_cart' => $cart->id,
@@ -156,9 +166,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
-		$tdfirst = $paytpv->tdfirst;
-
-		$secure_pay = $paytpv->isSecureTransaction($total_pedido,0)?1:0;
+		$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
 
 		
 		$arrReturn = array();
@@ -166,17 +174,17 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
-			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$this->context->currency->iso_code.md5($paytpv->pass));
+			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-				'MERCHANT_TERMINAL' => $paytpv->term,
+				'MERCHANT_TERMINAL' => $idterminal,
 				'OPERATION' => $OPERATION,
 				'LANGUAGE' => $this->context->language->iso_code,
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
-				'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
+				'MERCHANT_CURRENCY' => $currency_iso_code,
 				'URLOK' => $URLOK,
 				'URLKO' => $URLKO,
 				'3DSECURE' => $secure_pay
@@ -196,6 +204,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		
 		print json_encode($arrReturn);
 	}
+
+	
 
 
 	/**
@@ -223,9 +233,14 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 
 		$currency = new Currency(intval($id_currency));		
-
+		
 		$total_pedido = $cart->getOrderTotal(true, Cart::BOTH);
-		$importe = number_format($total_pedido * 100, 0, '.', '');
+	
+		$datos_pedido = $paytpv->TerminalCurrency($cart);
+		$importe = $datos_pedido["importe"];
+		$currency_iso_code = $datos_pedido["currency_iso_code"];
+		$idterminal = $datos_pedido["idterminal"];
+		$pass = $datos_pedido["password"];
 
 		$values = array(
 			'id_cart' => $cart->id,
@@ -240,7 +255,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
-		$secure_pay = $paytpv->isSecureTransaction($total_pedido,0)?1:0;
+		$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
@@ -260,17 +275,17 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			}
 			// Cálculo Firma
 			
-			$signature = md5($paytpv->clientcode.$paytpv->term.$OPERATION.$paytpv_order_ref.$importe.$currency->iso_code.md5($paytpv->pass));
+			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-				'MERCHANT_TERMINAL' => $paytpv->term,
+				'MERCHANT_TERMINAL' => $idterminal,
 				'OPERATION' => $OPERATION,
 				'LANGUAGE' => $this->context->language->iso_code,
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
-				'MERCHANT_CURRENCY' => $this->context->currency->iso_code,
+				'MERCHANT_CURRENCY' => $currency_iso_code,
 				'SUBSCRIPTION_STARTDATE' => $subscription_stratdate, 
 				'SUBSCRIPTION_ENDDATE' => $subscription_enddate,
 				'SUBSCRIPTION_PERIODICITY' => $susc_periodicity,

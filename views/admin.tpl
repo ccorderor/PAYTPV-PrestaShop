@@ -22,10 +22,13 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
 
-    {$errorMessage}
+    
 
     <img src="{$base_dir}modules/paytpv/views/img/paytpv.png" style="float:left; margin-right:15px;"><b>{l s='This module allows you to accept card payments via paytpv.com.' mod='paytpv'}</b><br /><br />
-            {l s='If the customer chooses this payment method, they will be able to make payments automatically.' mod='paytpv'}<br /><br /><br />
+            {l s='If the customer chooses this payment method, they will be able to make payments automatically.' mod='paytpv'}<br /><br />
+
+    {$errorMessage}
+
     <div>
         <p><H1>{l s='PRERREQUISTES' mod='paytpv'}</H1></p>
             <ul>
@@ -39,85 +42,124 @@
     		<legend>{l s='Paytpv.com Product Configuration' mod='paytpv'}</legend>
     		<p>{l s='Please complete the information requested. You can obtain information on the PayTPV product.' mod='paytpv'}</p>
 
-            <label for="environment" id="lblenvironment">{l s='Environment' mod='paytpv'}</label>
-            <div class="margin-form">
-                <select name="environment" id="environment" onchange="checkenvironment();">
-                    <option value="0" {if $environment==0}selected="1"{/if}>{l s='Live Mode' mod='paytpv'}</option>
-                    <option value="1" {if $environment==1}selected="1"{/if}>{l s='Test Mode' mod='paytpv'}</option>
-                </select>
-                <div id="test_mode">
-                    {l s='Test PayTPV module without PayTPV account.' mod='paytpv'}<br/>
-                    {l s='Test Cards: 5325298401138208 / 5540568785541245 / 5407696658785988.' mod='paytpv'}<br/>
-                    {l s='Expiration Date: Month: 5 / Year: 2020' mod='paytpv'}<br/>
-                    {l s='CVC2: 123 / 3DSecure: 1234' mod='paytpv'}
-                </div>
-            </div>
-
-            <div id="terminales_container">
-                <label for="terminales" id="lblterminales">{l s='Terminals available' mod='paytpv'}</label>
-                <div class="margin-form">
-                    <select name="terminales" onchange="checkterminales();" id="terminales" >
-                        <option value="0" {if $terminales==0} selected="1"{/if}>{l s='Secure' mod='paytpv'}</option>
-                        <option value="1" {if $terminales==1} selected="1"{/if}>{l s='Non-Secure' mod='paytpv'}</option>
-                        <option value="2" {if $terminales==2} selected="1"{/if}>{l s='Both' mod='paytpv'}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="tdfirst_container">
-                <label for="tdfirst" id="lbltdfirst">{l s='Use 3D Secure' mod='paytpv'}</label>
-                <div class="margin-form">
-                    <select name="tdfirst" onchange="checktdfirst();" id="tdfirst">
-                        <option value="0" {if $tdfirst==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
-                        <option value="1" {if $tdfirst==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="tdmin_container">
-                <label for="tdmin" id="lbltdmin">{l s='Use 3D Secure on purchases over' mod='paytpv'}</label>
-                <div class="margin-form"><input type="number" step="0.01" size="60" name="tdmin" id="tdmin" value="{$tdmin}" style="width:120px;text-align:right"/>&euro;</div>
-            </div>
-
-            <br/>
-            <div id="commerce_password_container">
-                <label for="commerce_password_container" id="lblcommerce_password_container">{l s='Request business password on purchases with stored cards' mod='paytpv'}</label>
-                <div class="margin-form">
-                    <select name="commerce_password" id="commerce_password">
-                        <option value="0" {if $commerce_password==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
-                        <option value="1" {if $commerce_password==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
-                    </select>
-                </div>
-            </div>
-
-            <br/>
             
-            <div id="real_mode">
-        		<label>{l s='User Password' mod='paytpv'}</label>
-        		<div class="margin-form"><input type="text" size="60" name="pass" value="{$pass}" /></div>
-
-        		<label>{l s='Terminal Number' mod='paytpv'}</label>
-        		<div class="margin-form"><input type="text" size="60" name="term" value="{$term}" /></div>
-
-        		<label>{l s='Client Code' mod='paytpv'}</label>
-        		<div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
-            </div>
-
-            <div id="suscriptions_container">
-                <label>{l s='Activate Subscriptions' mod='paytpv'}</label>
+            <fieldset id="">
+                <legend>{l s='PayTPV' mod='paytpv'}</legend>
+                <label for="environment" id="lblenvironment">{l s='Environment' mod='paytpv'}</label>
                 <div class="margin-form">
-                    <select name="suscriptions" id="suscriptions">
-                        <option value="0" {if $suscriptions==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
-                        <option value="1" {if $suscriptions==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                    <select name="environment" id="environment" onchange="checkenvironment();">
+                        <option value="0" {if $environment==0}selected="1"{/if}>{l s='Live Mode' mod='paytpv'}</option>
+                        <option value="1" {if $environment==1}selected="1"{/if}>{l s='Test Mode' mod='paytpv'}</option>
                     </select>
-                </div>	
-            </div>
+                    <div id="test_mode">
+                        {l s='Test PayTPV module without PayTPV account.' mod='paytpv'}<br/>
+                        {l s='Terminal Number' mod='paytpv'}: ({l s='1,2,3,... One for each type of currency' mod='paytpv'})
+                        <br/>
+                        {l s='User Password' mod='paytpv'}: paytpvtest
+                        <br/>
+                        {l s='Test Cards: 5325298401138208 / 5540568785541245 / 5407696658785988.' mod='paytpv'}<br/>
+                        {l s='Expiration Date: Month: 5 / Year: 2020' mod='paytpv'}<br/>
+                        {l s='CVC2: 123 / 3DSecure: 1234' mod='paytpv'}
+                    </div>
+                </div>
+
+               
+                <div id="real_mode">                 
+                    
+                    <label>{l s='Client Code' mod='paytpv'}</label>
+                    <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
+            		
+                </div>
+              
+            </fieldset>
+
+            <br/>
+                
+            <fieldset>
+                <legend>{l s='Terminals' mod='paytpv'}&nbsp;<a id="addterminal" href="javascript:void(0)"><img onClick='addTerminal()' src="../img/admin/add.gif" title="{l s='Add Terminal' mod='paytpv'}" /></a></legend>
+                {$cont=0}
+                <ol id="terminales_disponibles">
+                {foreach $terminales_paytpv as $terminal}
+                <li id="terminal" class="terminal">
+                    <fieldset>
+                        <legend><a style="{if $cont==0}display:none{/if}"  href="javascript:void(0)" onclick="removeTerminal(this)"><img src="../img/admin/cross.png" title="{l s='Remove Terminal' mod='paytpv'}" /></a>
+                        
+                        {if $cont==0}
+                        <img id="img_term_{$cont}" src="../img/admin/bullet_green.png" title="" />
+                        {/if}</legend>
+
+                        <label>{l s='Terminal Number' mod='paytpv'}</label>
+                        <div class="margin-form"><input type="text" size="8" class="term" name="term[]" value="{$terminal['idterminal']}" /></div>
+
+                        <label>{l s='User Password' mod='paytpv'}</label>
+                        <div class="margin-form"><input type="text" size="22" name="pass[]" value="{$terminal['password']}" /></div>
+                        
+                        <label>{l s='Terminals available' mod='paytpv'}</label>
+                        <div class="margin-form"><select name="terminales[]" onchange="checkterminales(this);" id="terminales_{$cont}" >
+                            <option value="0" {if $terminal['terminales']==0} selected="1"{/if}>{l s='Secure' mod='paytpv'}</option>
+                            <option value="1" {if $terminal['terminales']==1} selected="1"{/if}>{l s='Non-Secure' mod='paytpv'}</option>
+                            <option value="2" {if $terminal['terminales']==2} selected="1"{/if}>{l s='Both' mod='paytpv'}</option>
+                        </select></div>
+
+                        <label>{l s='Use 3D Secure' mod='paytpv'}</label>
+                        <div class="margin-form"><select name="tdfirst[]" onchange="checktdfirst(this);" id="tdfirst_{$cont}">
+                            <option value="0" {if $terminal['tdfirst']==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
+                            <option value="1" {if $terminal['tdfirst']==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                        </select></div>
+
+                        <label>{l s='Currency' mod='paytpv'}</label>
+                        <div class="margin-form"><select name="moneda[]" id="moneda_{$cont}">
+                            {foreach from=$currency_array item=currency}
+                            <option value="{$currency['iso_code']}" {if $currency['iso_code']==$terminal['currency_iso_code']}selected="1"{/if}>{$currency['name']} {if $currency['id_currency']==$default_currency} [{l s='Default Currency' mod='paytpv'}]{/if}</option>
+                            {/foreach}
+                        </select></div>
+
+                        <div class="min3d" id="tdmin_container_{$cont}">
+                            <label>{l s='Use 3D Secure on purchases over' mod='paytpv'}</label>
+                            <div class="margin-form"><input type="text" size="10" name="tdmin[]" width="10" id="tdmin_{$cont}" value="{$terminal['tdmin']}" style="text-align:right"/> [{l s='0 for Not use' mod='paytpv'}]</div>
+                        </div>
+                    </fieldset>
+                </li>
+
+                {$cont = $cont+1}
+
+                {/foreach}
+                
+                
+            </fieldset>
+            
+
+            <br/>
+            <fieldset id="paytpv_options">
+                <legend>{l s='Options' mod='paytpv'}</legend>
+                <div id="commerce_password_container">
+                    <label for="commerce_password_container" id="lblcommerce_password_container">{l s='Request business password on purchases with stored cards' mod='paytpv'}</label>
+                    <div class="margin-form">
+                        <select name="commerce_password" id="commerce_password">
+                            <option value="0" {if $commerce_password==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
+                            <option value="1" {if $commerce_password==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <br/>
+
+                <div id="suscriptions_container">
+                    <label>{l s='Activate Subscriptions' mod='paytpv'}</label>
+                    <div class="margin-form">
+                        <select name="suscriptions" id="suscriptions">
+                            <option value="0" {if $suscriptions==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
+                            <option value="1" {if $suscriptions==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
     	</fieldset>	
 
         <br/>
 
         <fieldset style="display:none">
-            <legend><img src="../img/t/AdminPreferences.gif" />{l s='Customization' mod='paytpv'}</legend>  
+            <legend><img src="../img/admin/AdminPreferences.gif" />{l s='Customization' mod='paytpv'}</legend>  
             {l s='Please complete the additional data.' mod='paytpv'}
             <div class="margin-form"><p class="clear"></p></div>
             <label>{l s='Enable logging of failed / incomplete transactions' mod='paytpv'}</label>
@@ -197,34 +239,46 @@
 
     <script>
         
-        function checkterminales(){
+        function checkAllTerminales(){
+           
+            // Real Mode
+            for(i=0;i<jQuery(".term").length;i++){
+                checkterminales($("#terminales_"+i));
+            }
+        }
+        
+        function checkterminales(element){
+            cont = $(element).attr('id').replace('terminales_','');
+
             // Si solo tiene terminal seguro o tiene los dos la primera compra va por seguro
             // Seguro
-            switch (jQuery("#terminales").val()){
+            switch (jQuery("#terminales_"+cont).val()){
                 case "0": // SEGURO
-                    jQuery("#tdfirst").val(1);
-                    jQuery("#tdmin_container").hide();
+                    jQuery("#tdfirst_"+cont).val(1);
+                    jQuery("#tdmin_container_"+cont).hide();
                     break;
                 case "1": // NO SEGURO
-                    jQuery("#tdfirst").val(0);
-                    jQuery("#tdmin_container").hide();
+                    jQuery("#tdfirst_"+cont).val(0);
+                    jQuery("#tdmin_container_"+cont).hide();
                     break;
                 case "2": // AMBOS
-                    jQuery("#tdmin_container").show();
+                    jQuery("#tdmin_container_"+cont).show();
                     break;
             }
         }
 
-        function checktdfirst(){
+        function checktdfirst(element){
+            cont = $(element).attr('id').replace('tdfirst_','');
+            
             // Si solo tiene terminal seguro la primera compra va por seguro
-            if(jQuery("#terminales").val() == 0 && jQuery("#tdfirst").val()==0){
+            if(jQuery("#terminales_"+cont).val() == 0 && jQuery("#tdfirst_"+cont).val()==0){
                 alert("{l s='If you only have a Secure terminal, payments always go via Secure' mod='paytpv'}");
-                jQuery("#tdfirst").val(1);
+                jQuery("#tdfirst_"+cont).val(1);
             }
             // Si solo tiene terminal no seguro la primera compra va por seguro
-            if(jQuery("#terminales").val() == 1 && jQuery("#tdfirst").val()==1){
+            if(jQuery("#terminales_"+cont).val() == 1 && jQuery("#tdfirst_"+cont).val()==1){
                 alert("{l s='If you only have a Non-Secure terminal, payments always go via Non-Secure' mod='paytpv'}");
-                jQuery("#tdfirst").val(0);
+                jQuery("#tdfirst_"+cont).val(0);
             }
         }
 
@@ -232,14 +286,58 @@
             if (jQuery("#environment").val()==1){
                 jQuery("#test_mode").show();
                 jQuery("#real_mode").hide();
+                //jQuery("#modo_test_container").show();
             }else{
                 jQuery("#test_mode").hide();
                 jQuery("#real_mode").show();
+                //jQuery("#modo_test_container").hide();
             }
         }
         
         checkenvironment();
-        checkterminales();
+        checkAllTerminales();
+        checkaddTerminal();
+
+
+        function addTerminal(){
+
+            cont = jQuery(".term").length;
+
+            var $term = jQuery("#terminal").clone()
+                    .find("input").val("").end()
+                    .find("select").val("").end()
+                    .find("#img_term_0").remove().end()
+                    .find("#moneda_0").attr("id","moneda_"+cont).end()
+                    .find("#terminales_0").attr("id","terminales_"+cont).end()
+                    .find("#tdfirst_0").attr("id","tdfirst_"+cont).end()
+                    .find("#tdmin_container_0").attr("id","tdmin_container_"+cont).end()
+                    .find("#tdmin_0").attr("id","tdmin_"+cont).end()
+                    .find("a").show().end()
+                    .appendTo("#terminales_disponibles");
+
+            checkterminales($("#terminales_"+cont));
+            checkaddTerminal();
+
+        }
+
+        function removeTerminal(el){
+            if (confirm("{l s='Are you sure?' mod='paytpv'}")){
+                
+                jQuery(el).closest('li').remove();
+
+                checkaddTerminal();
+               
+            }
+        }
+
+        function checkaddTerminal(){
+            if (jQuery(".term").length<jQuery("#moneda_0").find("option").size())
+                jQuery("#addterminal").show()
+            else
+                jQuery("#addterminal").hide()
+
+    }
+
 
     </script>
 

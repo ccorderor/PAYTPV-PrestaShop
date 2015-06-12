@@ -36,3 +36,24 @@ ul.paytpv{
     color: #FF0000;
     font-weight: bold;
 }
+
+label {font-size: 12px;}
+fieldset{font-size:13px}
+legend{background:#EBEDF4;border:1px solid #CCCED7;font-weight:700;margin:0;padding:.2em .5em;text-align:left}
+
+fieldset img {
+	vertical-align: middle!important;
+}
+
+.error{color:red;font-weight: bold;background-color: rgb(235, 237, 244);font-size:110%;}
+
+.min3d{
+	padding-top:5px;
+}
+
+ol#terminales_disponibles {
+	list-style: inherit;
+	list-style-type: decimal;
+	margin: 10px;
+	padding-left: 10px;
+}

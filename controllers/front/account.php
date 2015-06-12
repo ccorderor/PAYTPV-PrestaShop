@@ -58,15 +58,19 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$operation = 107;
 				$ssl = Configuration::get('PS_SSL_ENABLED');
 
-				$secure_pay = $paytpv->isSecureTransaction(0,0)?1:0;
+				$arrTerminal = $paytpv->getTerminalByCurrency($this->context->currency->iso_code);
+				$idterminal = $arrTerminal["idterminal"];
+				$pass = $arrTerminal["password"];
+				
+				$secure_pay = $paytpv->isSecureTransaction($idterminal,0,0)?1:0;
 		
 				$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);  
 				// Cálculo Firma
-				$signature = md5($paytpv->clientcode.$paytpv->term.$operation.$order.md5($paytpv->pass));
+				$signature = md5($paytpv->clientcode.$idterminal.$operation.$order.md5($pass));
 				$fields = array
 				(
 					'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-					'MERCHANT_TERMINAL' => $paytpv->term,
+					'MERCHANT_TERMINAL' => $idterminal,
 					'OPERATION' => $operation,
 					'LANGUAGE' => $this->context->language->iso_code,
 					'MERCHANT_MERCHANTSIGNATURE' => $signature,

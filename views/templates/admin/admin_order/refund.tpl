@@ -38,12 +38,14 @@
 					</li>
 				</ul>
 				<p><b>{l s='Outstanding amount:' mod='paytpv'}</b> {$amount}</p>
+				{if $amount>0}
 				<p class="center">
 					<button type="submit" class="btn btn-default" name="submitPayTpvRefund" onclick="if (!confirm('{l s='Are you sure?' mod='paytpv'}'))return false;">
 						<i class="icon-undo"></i>
 						{l s='Total Refund of the Payment' mod='paytpv'}
 					</button>
 				</p>
+				{/if}
 			</form>	
 		</div>
 	</div>
@@ -61,12 +63,14 @@
 		</li>
 	</ul>
 	<p><b>{l s='Outstanding amount:' mod='paytpv'}</b> {$amount}</p>
+	{if $amount>0}
 	<form method="post" action="{$smarty.server.REQUEST_URI|escape:'htmlall':'UTF-8'}">
 		<input type="hidden" name="id_order" value="{$params.id_order|intval}" />
 		<p class="center">
 			<input type="submit" class="button" name="submitPayTpvRefund" value="{l s='Refund total transaction' mod='paytpv'}" onclick="if (!confirm('{l s='Are you sure?' mod='paytpv'}'))return false;" />
 		</p>
 	</form>
+	{/if}
 </fieldset>
 
 {/if}
