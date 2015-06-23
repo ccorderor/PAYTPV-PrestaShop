@@ -26,7 +26,13 @@
 if (!defined('_PS_VERSION_'))
 	exit;
 
-include_once(_PS_MODULE_DIR_.'/paytpv/class_registro.php');
+include_once dirname(__FILE__).'/class_registro.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Terminal.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Order.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Order_Info.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Customer.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Suscription.php';
+include_once dirname(__FILE__).'/classes/Paytpv_Refund.php';
 
 class Paytpv extends PaymentModule {
 
@@ -39,7 +45,10 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.1.2';
+		$this->version = '6.2.0';
+
+		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
+		
 		//$this->bootstrap = true;
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
@@ -59,6 +68,8 @@ class Paytpv extends PaymentModule {
 
 		if (isset($config['PAYTPV_COMMERCEPASSWORD']))
 			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
+		if (isset($config['PAYTPV_NEWPAGEPAYMENT']))
+			$this->newpage_payment = $config['PAYTPV_NEWPAGEPAYMENT'];
 		if (isset($config['PAYTPV_SUSCRIPTIONS']))
 			$this->suscriptions = $config['PAYTPV_SUSCRIPTIONS'];		
 		if (isset($config['PAYTPV_REG_ESTADO']))
@@ -73,18 +84,34 @@ class Paytpv extends PaymentModule {
 		$this->description = $this->l('This module allows you to accept card payments via paytpv.com');
 		
 		try{
-			// Show message in module configuration page when missing data.
-			$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal order by id';
-			$result2 = Db::getInstance()->getRow($sql);
-
 			if ($this->environment!=1){
-				if (!isset($this->clientcode)
-						OR empty($result2) === true)
+				if (!isset($this->clientcode) OR !Paytpv_Terminal::exist_Terminal())
 					$this->warning = $this->l('Missing data when configuring the module Paytpv');
 			}
 		}catch (exception $e){}
 
 	}
+
+	protected function write_log(){
+
+		if (Tools::usingSecureMode())
+ 			$domain = Tools::getShopDomainSsl(true);
+ 		else
+ 			$domain = Tools::getShopDomain(true);
+		try{
+			$url_log = "http://prestashop.paytpv.com/log_paytpv.php?dominio=".$domain."&version_modulo=".$this->version."&tienda=Prestashop&version_tienda="._PS_VERSION_;
+			@file_get_contents($url_log);
+		}catch (exception $e){}
+	}
+
+	
+	public function runUpgradeModule(){
+		$this->write_log();
+		parent::runUpgradeModule();
+	}
+
+
+
 	public function install() {
 
 		include_once(_PS_MODULE_DIR_.'/'.$this->name.'/paytpv_install.php');
@@ -96,6 +123,7 @@ class Paytpv extends PaymentModule {
 		}
 
 		$paypal_install->updateConfiguration();
+		
 		// Valores por defecto al instalar el módulo
 		if (!parent::install() ||
 			!$this->registerHook('displayPayment') ||
@@ -108,6 +136,9 @@ class Paytpv extends PaymentModule {
 			!$this->registerHook('displayShoppingCart')
 			) 
 			return false;
+		$this->write_log();
+
+		
 		return true;
 	}
 	public function uninstall() {
@@ -117,6 +148,9 @@ class Paytpv extends PaymentModule {
 		return parent::uninstall();
 	}
 
+	public function getPath(){
+		return $this->_path;
+	}
 
 	private function _postValidation(){
 
@@ -169,16 +203,18 @@ class Paytpv extends PaymentModule {
 		if (isset($_POST['btnSubmit'])){
 			Configuration::updateValue('PAYTPV_ENVIRONMENT', $_POST['environment']);
 			Configuration::updateValue('PAYTPV_CLIENTCODE', $_POST['clientcode']);
-			
+
 			Configuration::updateValue('PAYTPV_COMMERCEPASSWORD', $_POST['commerce_password']);
+			Configuration::updateValue('PAYTPV_NEWPAGEPAYMENT', $_POST['newpage_payment']);
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
 			
 			// Save Paytpv Terminals
-			Db::getInstance()->Execute('DELETE FROM '. _DB_PREFIX_ .'paytpv_terminal');
+			Paytpv_Terminal::remove_Terminals();
+			
 			foreach ($_POST["term"] as $key=>$terminal){
 				$_POST['tdmin'][$key] = ($_POST['tdmin'][$key]=='' || $_POST["terminales"][$key]!=2)?0:$_POST['tdmin'][$key];
-				$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_terminal (id,idterminal,password,currency_iso_code,terminales,tdfirst,tdmin) VALUES('.($key+1).','.$terminal.',"'.$_POST["pass"][$key].'","'.$_POST["moneda"][$key].'",'.$_POST["terminales"][$key].','.$_POST["tdfirst"][$key].','.$_POST["tdmin"][$key].')';
-				Db::getInstance()->Execute($sql);
+				Paytpv_Terminal::add_Terminal($key+1,$terminal,$_POST["pass"][$key],$_POST["moneda"][$key],$_POST["terminales"][$key],$_POST["tdfirst"][$key],$_POST["tdmin"][$key]);
+				
 			}
 			return '<div class="bootstrap"><div class="alert alert-success">'.$this->l('Configuration updated').'</div></div>';          
 		}
@@ -231,6 +267,7 @@ class Paytpv extends PaymentModule {
 		$this->context->smarty->assign('terminales_paytpv', $this->obtenerTerminalesConfigurados($_POST));
 	
 		$this->context->smarty->assign('commerce_password', (isset($_POST["commerce_password"]))?$_POST["commerce_password"]:$conf_values['PAYTPV_COMMERCEPASSWORD']);
+		$this->context->smarty->assign('newpage_payment', (isset($_POST["newpage_payment"]))?$_POST["newpage_payment"]:$conf_values['PAYTPV_NEWPAGEPAYMENT']);
 		$this->context->smarty->assign('suscriptions', (isset($_POST["suscriptions"]))?$_POST["suscriptions"]:$conf_values['PAYTPV_SUSCRIPTIONS']);
 		$this->context->smarty->assign('currency_array', $currency_array);
 		$this->context->smarty->assign('default_currency', $id_currency);
@@ -257,9 +294,8 @@ class Paytpv extends PaymentModule {
     		}
     		
     	}else{
-    		$terminales = Db::getInstance()->executeS("SELECT idterminal, password, currency_iso_code, terminales, tdfirst, tdmin FROM " . _DB_PREFIX_ . "paytpv_terminal");
+    		$terminales = Paytpv_Terminal::get_Terminals();
     		if (sizeof($terminales)==0){
-
     			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 				$currency = new Currency(intval($id_currency));	
 
@@ -290,60 +326,68 @@ class Paytpv extends PaymentModule {
 
 	public function hookDisplayPayment($params) {
 
-		// Eliminar Tarjeta
+		// Check New Page payment
+		$newpage_payment = intval(Configuration::get('PAYTPV_NEWPAGEPAYMENT'));
+		if ($newpage_payment){
+			$this->context->smarty->assign('this_path',$this->_path);
+			return $this->display(__FILE__, 'payment_newpage.tpl');
+		}else{
 
-		$this->context->smarty->assign('msg_paytpv',"");
-		$showcard = false;
-		$msg_paytpv = "";
+			$this->context->smarty->assign('msg_paytpv',"");
+			$showcard = false;
+			$msg_paytpv = "";
 
-		$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
-		$this->context->smarty->assign('showcard',$showcard);
+			$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
+			$this->context->smarty->assign('showcard',$showcard);
 
-	    // Valor de compra				
-		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
+		    // Valor de compra				
+			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
-		$currency = new Currency(intval($id_currency));		
-		$importe = number_format($params['cart']->getOrderTotal(true, Cart::BOTH)*100, 0, '.', '');		
+			$currency = new Currency(intval($id_currency));		
+			$importe = number_format($params['cart']->getOrderTotal(true, Cart::BOTH)*100, 0, '.', '');		
 
-		$paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT);
-		$ssl = Configuration::get('PS_SSL_ENABLED');
-		$values = array(
-			'id_cart' => (int)$params['cart']->id,
-			'key' => Context::getContext()->customer->secure_key
-		);
+			$paytpv_order_ref = str_pad($params['cart']->id, 8, "0", STR_PAD_LEFT);
+			$ssl = Configuration::get('PS_SSL_ENABLED');
+			$values = array(
+				'id_cart' => (int)$params['cart']->id,
+				'key' => Context::getContext()->customer->secure_key
+			);
 
-		$active_suscriptions = intval(Configuration::get('PAYTPV_SUSCRIPTIONS'));
+			$active_suscriptions = intval(Configuration::get('PAYTPV_SUSCRIPTIONS'));
 
-		$saved_card = $this->getToken();
-		$index = 0;
-		foreach ($saved_card as $key=>$val){
-			$values_aux = array_merge($values,array("TOKEN_USER"=>$val["TOKEN_USER"]));
-			$saved_card[$key]['url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values_aux,$ssl);	
-			$index++;
+			$saved_card = Paytpv_Customer::get_Cards_Customer((int)$this->context->customer->id);
+			$index = 0;
+			foreach ($saved_card as $key=>$val){
+				$values_aux = array_merge($values,array("TOKEN_USER"=>$val["TOKEN_USER"]));
+				$saved_card[$key]['url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values_aux,$ssl);	
+				$index++;
+			}
+			$saved_card[$index]['url'] = 0;
+
+			$tmpl_vars = array();
+			$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
+			$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
+			$this->context->smarty->assign('saved_card',$saved_card);
+			$this->context->smarty->assign('commerce_password',$this->commerce_password);
+			$this->context->smarty->assign('id_cart',$params['cart']->id);
+			
+			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
+
+			
+			$tmpl_vars = array_merge(
+				array(
+				'this_path' => $this->_path)
+			);
+			$this->context->smarty->assign($tmpl_vars);
+			
+		 	$arrAddCard = array("process"=>"addCard");
+		    $arrSubscribe = array("process"=>"suscribe");
+		 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
+		 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
+		 	
+
+			return $this->display(__FILE__, 'payment_bsiframe.tpl');
 		}
-		$saved_card[$index]['url'] = 0;
-
-		$tmpl_vars = array();
-		$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->name, 'capture',$values,$ssl);
-		$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
-		$this->context->smarty->assign('saved_card',$saved_card);
-		$this->context->smarty->assign('commerce_password',$this->commerce_password);
-		$this->context->smarty->assign('id_cart',$params['cart']->id);
-		
-		$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
-
-		
-		$tmpl_vars = array_merge(
-			array(
-			'this_path' => $this->_path)
-		);
-		$this->context->smarty->assign($tmpl_vars);
-		
-	 	$arrAddCard = array("process"=>"addCard");
-	    $arrSubscribe = array("process"=>"suscribe");
-	 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
-	 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
-		return $this->display(__FILE__, 'payment_bsiframe.tpl');
 
 	}
 
@@ -353,21 +397,17 @@ class Paytpv extends PaymentModule {
 	public function TerminalCurrency($cart){
 
 		// Si hay un terminal definido para la moneda del usuario devolvemos ese.
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where currency_iso_code="'.$this->context->currency->iso_code. '"';
-		$result = Db::getInstance()->getRow($sql);
+		$result = Paytpv_Terminal::get_Terminal_Currency($this->context->currency->iso_code);
 		// Not exists terminal in user currency
 		if (empty($result) === true){
 			// Search for terminal in merchant default currency
 			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 			$currency = new Currency($id_currency);
-
-			$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where currency_iso_code="'.$currency->iso_code. '"';
-			$result = Db::getInstance()->getRow($sql);
+			$result = Paytpv_Terminal::get_Terminal_Currency($currency->iso_code);
 
 			// If not exists terminal in default currency. Select first terminal defined
 			if (empty($result) === true){
-				$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal order by id';
-				$result = Db::getInstance()->getRow($sql);
+				$result = Paytpv_Terminal::get_First_Terminal();
 			}
 		}
 
@@ -377,55 +417,15 @@ class Paytpv extends PaymentModule {
 		$arrDatos["importe"] = number_format($cart->getOrderTotal(true, Cart::BOTH) * 100, 0, '.', '');
 		
         return $arrDatos;
-
-	}
-
-
-	public function getTerminalByCurrency($currency_iso_code){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where currency_iso_code="'.$currency_iso_code. '"';
-		$result2 = Db::getInstance()->getRow($sql);
-
-		// Select first termnial defined
-		if (empty($result2) === true){
-			// Search for terminal in merchant default currency
-			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
-			$currency = new Currency($id_currency);
-
-			$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where currency_iso_code="'.$currency->iso_code. '"';
-			$result2 = Db::getInstance()->getRow($sql);
-
-			// If not exists terminal in default currency. Select first terminal defined
-			if (empty($result2) === true){
-
-				$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal order by id';
-				$result2 = Db::getInstance()->getRow($sql);
-			}
-		}
-
-		$arrDatos["idterminal"] = $result2["idterminal"];
-		$arrDatos["password"] = $result2["password"];
-
-		return $arrDatos;
-	}
-
-	public function getTerminalByIdTerminal($idterminal){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where idterminal='.$idterminal;
-		$result2 = Db::getInstance()->getRow($sql);
-
-		$arrDatos["idterminal"] = $result2["idterminal"];
-		$arrDatos["password"] = $result2["password"];
-
-		return $arrDatos;
 	}
 
 
 	public function isSecureTransaction($idterminal,$importe,$card){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_terminal where idterminal='.$idterminal;
-		$result = Db::getInstance()->getRow($sql);
+		$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal($idterminal);
 
-        $terminales = $result["terminales"];
-        $tdfirst = $result["tdfirst"];
-        $tdmin = $result["tdmin"];
+        $terminales = $arrTerminal["terminales"];
+        $tdfirst = $arrTerminal["tdfirst"];
+        $tdmin = $arrTerminal["tdmin"];
         // Transaccion Segura:
         
         // Si solo tiene Terminal Seguro
@@ -441,22 +441,13 @@ class Paytpv extends PaymentModule {
             return true;
 
          // Si esta definido como que la primera compra es Segura y es la primera compra aunque este tokenizada
-        if ($terminales==2 && $tdfirst && $card>0 && $this->isFirstPurchaseToken($card))
+        if ($terminales==2 && $tdfirst && $card>0 && Paytpv_Order::isFirstPurchaseToken($this->context->customer->id,$card))
             return true;
         
         
         return false;
     }
 
-    function isFirstPurchaseToken($IDUSER)
-    {
-        $sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_customer='.(int)$this->context->customer->id. ' and paytpv_iduser='.pSQL($IDUSER);
-		$result = Db::getInstance()->getRow($sql);
-		if (empty($result) === true){
-        	return true;
-        }
-        return false;
-    }
 
 	public function isSecurePay($importe){
 		// Terminal NO Seguro
@@ -466,52 +457,6 @@ class Paytpv extends PaymentModule {
 		if ($this->terminales==2 && $this->tdfirst==0 && ($this->tdmin==0 || $importe<=$this->tdmin))
 			return false;
 		return true;
-	}
-
-
-	public function getToken(){
-
-		$res = array();
-		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc,paytpv_brand,card_desc FROM '._DB_PREFIX_.'paytpv_customer WHERE not paytpv_cc="" and id_customer = '.(int)$this->context->customer->id . ' order by date desc';
-
-		$assoc = Db::getInstance()->executeS($sql);
-
-		foreach ($assoc as $key=>$row) {
-
-			$res[$key]['IDUSER']= $row['paytpv_iduser'];
-			$res[$key]['TOKEN_USER']= $row['paytpv_tokenuser'];
-			$res[$key]['CC'] = $row['paytpv_cc'];
-			$res[$key]['BRAND'] = $row['paytpv_brand'];
-			$res[$key]['CARD_DESC'] = $row['card_desc'];
-		}
-
-		return  $res;
-
-	}
-
-	public function getDataToken($token){
-
-		$res = array();
-
-		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc FROM '._DB_PREFIX_.'paytpv_customer WHERE paytpv_tokenuser="'.pSQL($token).'"';
-
-		$assoc = Db::getInstance()->executeS($sql);
-
-		foreach ($assoc as $key=>$row) {
-			$res['IDUSER']= $row['paytpv_iduser'];
-			$res['TOKEN_USER']= $row['paytpv_tokenuser'];
-			$res['CC'] = $row['paytpv_cc'];
-		}
-
-		return  $res;
-
-	}
-
-	public function getDataTokenPaytpv_iduser($paytpv_iduser){
-
-		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc FROM '._DB_PREFIX_.'paytpv_customer WHERE paytpv_iduser="'.pSQL($paytpv_iduser).'"';
-		$result = Db::getInstance()->getRow($sql);
-		return $result;
 	}
 
 
@@ -532,7 +477,7 @@ class Paytpv extends PaymentModule {
 		$this->_html .= $this->display(__FILE__, 'payment_return.tpl');
 
 		
-		$result = $this->getSuscriptionOrder($id_order);
+		$result = Paytpv_Suscription::get_Suscription_Order_Payments($id_order);
 		if ($order->module == $this->name && !empty($result)){
 
 			$id_currency = $order->id_currency;
@@ -577,7 +522,7 @@ class Paytpv extends PaymentModule {
 
 	}
 	private function getConfigValues(){
-		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
+		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_NEWPAGEPAYMENT', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
 	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
@@ -587,18 +532,11 @@ class Paytpv extends PaymentModule {
 		// Test Mode
 		// First 100.000 paytpv_iduser for Test_Mode
 		if ($this->environment==1){
-			$sql = 'select max(paytpv_iduser) as max_iduser from '. _DB_PREFIX_ .'paytpv_customer where paytpv_iduser<100000';
-			$result = Db::getInstance()->getRow($sql);
-			if (empty($result) === true){
-				$paytpv_iduser = 1;
-			}else{
-				$paytpv_iduser = $result["max_iduser"]+1;
-			}
+			$paytpv_iduser = Paytpv_Customer::get_Customer();
 			$paytpv_tokenuser = "TESTTOKEN";
 		}
 
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_customer (`paytpv_iduser`, `paytpv_tokenuser`, `paytpv_cc`,`paytpv_brand`,`id_customer`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'","'.pSQL($paytpv_cc).'","'.pSQL($paytpv_brand).'",'.pSQL($id_customer).',"'.pSQL(date('Y-m-d H:i:s')).'")';
-		Db::getInstance()->Execute($sql);
+		Paytpv_Customer::add_Customer($paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand,$id_customer);
 
 		$result["paytpv_iduser"] = $paytpv_iduser;
 		$result["paytpv_tokenuser"] = $paytpv_tokenuser;
@@ -606,130 +544,9 @@ class Paytpv extends PaymentModule {
 		return $result;
 	}
 
-
-	public function savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$id_customer,$id_order,$price){
-
-		/*
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order='.pSQL($id_order). ' and paytpv_iduser='.pSQL($paytpv_iduser);
-		$result = Db::getInstance()->getRow($sql);
-		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`paytpv_iduser`,`paytpv_tokenuser`,`id_suscription`, `id_customer`, `id_order`,`price`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'",'.pSQL($id_suscription).','.pSQL($id_customer).','.pSQL($id_order).',"'.pSQL($price).'","'.pSQL(date('Y-m-d H:i:s')).'")';
-			Db::getInstance()->Execute($sql);
-		}
-		*/
-		
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order (`paytpv_iduser`,`paytpv_tokenuser`,`id_suscription`, `id_customer`, `id_order`,`price`,`date`) VALUES('.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'",'.pSQL($id_suscription).','.pSQL($id_customer).','.pSQL($id_order).',"'.pSQL($price).'","'.pSQL(date('Y-m-d H:i:s')).'")';
-		Db::getInstance()->Execute($sql);
-	}
-
-
-	public function saveSuscription($id_customer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$periodicity,$cycles,$importe){
-		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . pSQL($id_customer) .' AND id_order="'.pSQL($id_order).'"';	
-		$result = Db::getInstance()->getRow($sql);
-
-		// Si no existe la suscripcion la creamos
-		if (empty($result) === true){
-			$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_suscription(`id_customer`, `id_order`, `paytpv_iduser`,`paytpv_tokenuser`,`periodicity`,`cycles`,`price`,`date`) VALUES('.pSQL($id_customer).','.pSQL($id_order).','.pSQL($paytpv_iduser).',"'.pSQL($paytpv_tokenuser).'",'.pSQL($periodicity).','.pSQL($cycles).','.pSQL($importe).',"'.pSQL(date('Y-m-d H:i:s')).'")';
-			Db::getInstance()->Execute($sql);
-		}
-	}
-
-	public function subcriptionFromOrder($id_customer,$id_order){
-		// Datos usuario
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = ' . pSQL($id_customer) .' AND id_order="'. pSQL($id_order).'"';	
-		$result = Db::getInstance()->getRow($sql);
-		return $result;
-	}
-
-
-	public function getSuscriptionOrder($id_order){
-		// Check if is a subscription order
-		$sql = 'select ps.*,count(po.id_order) as pagos,1 as suscription FROM '._DB_PREFIX_.'paytpv_suscription ps
-LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription and po.id_order!='. pSQL($id_order) . '
-where ps.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps.date desc';
-		$result = Db::getInstance()->getRow($sql);
-
-		if (empty($result)){
-			// Check if is a suscription payment
-			$sql = 'select ps.*,count(po.id_order) as pagos, 0 as suscription FROM '._DB_PREFIX_.'paytpv_suscription ps
-LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription 
-where po.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps.date desc';
-			$result = Db::getInstance()->getRow($sql);
-
-		}
-		return $result;
-	}
 	
-	
-	/* Obtener las suscripciones del usuario */
-	public function getSuscriptions(){
-
-		$res = array();
-		$sql = 'select ps.*,count(po.id_order) as pagos FROM '._DB_PREFIX_.'paytpv_suscription ps
-LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription and ps.id_order!=po.id_order
-where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_suscription order by ps.date desc';
-		
-		$assoc = Db::getInstance()->executeS($sql);
-
-		foreach ($assoc as $key=>$row) {
-			$res[$key]['ID_SUSCRIPTION']= $row['id_suscription'];
-			$res[$key]['SUSCRIPTION_PAY'] = $this->getSuscriptionPay($row['id_suscription']);
-			$order = new Order($row['id_order']);
-
-			
-			$id_currency = $order->id_currency;
-			$currency = new Currency(intval($id_currency));
-
-			$res[$key]['ORDER_REFERENCE']= $order->reference;
-			$res[$key]['ID_ORDER']= $row['id_order'];
-			$res[$key]['PERIODICITY'] = $row['periodicity'];
-			$res[$key]['CYCLES'] = ($row['cycles']!=0)?$row['cycles']:$this->l('Permanent');
-			$res[$key]['PRICE'] = number_format($row['price'], 2, '.', '')  . " " . $currency->sign;		
-			$res[$key]['DATE'] = $row['date'];
-			$res[$key]['DATE_YYYYMMDD'] = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
-
-			$num_pagos = $row['pagos'];
-			
-			$status = $row['status'];
-			if ($row['status']==1)
-				$status = $row['status'];  // CANCELADA
-			else if ($num_pagos==$row['cycles'] && $row['cycles']>0)	
-				$status = 2; // FINALIZADO
-							
-
-			$res[$key]['STATUS'] = $status;
-		}
-		
-		return  $res;
-	}
-
-	
-	/* Obtener los pagos de una suscripcion */
-	public function getSuscriptionPay($id_suscription){
-		
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_suscription = ' . pSQL($id_suscription) . ' LIMIT 1,100';	
-		$assoc = Db::getInstance()->executeS($sql);
-		$res = array();	
-		foreach ($assoc as $key=>$row) {
-			$res[$key]["ID"] = $row["id"];
-			$order = new Order($row['id_order']);
-
-			$currency = new Currency(intval($order->id_currency));
-
-			$res[$key]['ID_ORDER']= $row['id_order'];
-			$res[$key]['ORDER_REFERENCE']= $order->reference;
-			$res[$key]["PRICE"] = number_format($row['price'], 2, '.', '')  . " " . $currency->sign;
-			$res[$key]['DATE'] = $row['date'];
-			$res[$key]['DATE_YYYYMMDD'] = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));
-		}
-
-		return $res;
-
-	}
-
 	public function remove_user($paytpv_iduser,$paytpv_tokenuser){
-		$arrTerminal = $this->getTerminalByCurrency($this->context->currency->iso_code);
+		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 		
 		$client = new WS_Client(
 			array(
@@ -746,7 +563,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 	public function removeCard($paytpv_iduser){
 
-		$arrTerminal = $this->getTerminalByCurrency($this->context->currency->iso_code);
+		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
@@ -759,8 +576,8 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		);
 		// Datos usuario
 
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and paytpv_iduser="'.pSQL($paytpv_iduser) .'"';
-		$result = Db::getInstance()->getRow($sql);
+		
+		$result = Paytpv_Customer::get_Customer_Iduser($paytpv_iduser);
 		if (empty($result) === true){
 			return false;
 		}else{
@@ -768,24 +585,17 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
 			$result = $client->remove_user( $paytpv_iduser, $paytpv_tokenuser);
+			Paytpv_Customer::remove_Customer_Iduser((int)$this->context->customer->id,$paytpv_iduser);
 			
-			$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_customer where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_iduser`="'.pSQL($paytpv_iduser).'"';
-			Db::getInstance()->Execute($sql);
+			
 			return true;
 		}
 	}
 
-	public function saveDescriptionCard($paytpv_iduser,$card_desc){
-		$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_customer set card_desc = "' .pSQL($card_desc) .'" where id_customer = '.(int)$this->context->customer->id . ' and `paytpv_iduser`="'.pSQL($paytpv_iduser).'"';
-		Db::getInstance()->Execute($sql);
-		return true;
-	}
-
-
-
+	
 	public function removeSuscription($id_suscription){
 
-		$arrTerminal = $this->getTerminalByCurrency($this->context->currency->iso_code);
+		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 		
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
@@ -798,8 +608,8 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		);
 		// Datos usuario
 
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
-		$result = Db::getInstance()->getRow($sql);
+		$result = Paytpv_Suscription::get_Suscription_Id((int)$this->context->customer->id,$id_suscription);
+		
 		if (empty($result) === true){
 			return false;
 		}else{
@@ -814,8 +624,8 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			}
 
 			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ) {
-				$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_suscription where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
-				Db::getInstance()->Execute($sql);
+				Paytpv_Suscription::remove_Suscription((int)$this->context->customer->id,$id_suscription);
+				
 				return true;
 			}
 			return false;
@@ -823,7 +633,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 	}
 
 	public function cancelSuscription($id_suscription){
-		$arrTerminal = $this->getTerminalByCurrency($this->context->currency->iso_code);
+		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
@@ -835,9 +645,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			)
 		);
 		// Datos usuario
-
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_suscription where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
-		$result = Db::getInstance()->getRow($sql);
+		$result = Paytpv_Suscription::get_Suscription_Id((int)$this->context->customer->id,$id_suscription);
 		if (empty($result) === true){
 			return false;
 		}else{
@@ -858,11 +666,15 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 					$response["txt"] = $this->l('Test mode does not support returns orders placed in Real Mode');
 				}
 			}else{
-				$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+				if ($paytpv_tokenuser=="TESTTOKEN"){
+					$result[ 'DS_RESPONSE' ] = 1;
+				// Operacion real
+				}else{
+					$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+				}	
 			}
 			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ) {
-				$sql = 'UPDATE '. _DB_PREFIX_ .'paytpv_suscription set status=1 where id_customer = '.(int)$this->context->customer->id . ' and id_suscription = '.pSQL($id_suscription);
-				Db::getInstance()->Execute($sql);
+				Paytpv_Suscription::cancel_Suscription((int)$this->context->customer->id,$id_suscription);
 				$response["error"] = 0;
 			}else{
 				$response["error"] = 1;
@@ -870,34 +682,6 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 			return $response;
 		}
 	}
-
-
-	public function save_paytpv_order_info($id_customer,$id_cart,$paytpvagree,$suscription,$peridicity,$cycles,$paytpv_iduser){
-		// Eliminamos la orden si existe.
-		$sql = 'DELETE FROM '. _DB_PREFIX_ .'paytpv_order_info where id_customer = '.pSQL($id_customer) .' and id_cart= "'. pSQL($id_cart) .'"';
-		Db::getInstance()->Execute($sql);
-
-		// Insertamos los datos de la orden
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_order_info (`id_customer`,`id_cart`,`paytpvagree`,`suscription`,`periodicity`,`cycles`,`date`,`paytpv_iduser`) VALUES('.pSQL($id_customer).',"'.pSQL($id_cart).'",'.pSQL($paytpvagree).','.pSQL($suscription).','.pSQL($peridicity).','.pSQL($cycles).',"'.pSQL(date('Y-m-d H:i:s')).'",'.pSQL($paytpv_iduser).')';
-		Db::getInstance()->Execute($sql);
-		
-		return true;
-
-	}
-
-	public function get_paytpv_order($id_order){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order where id_order="'.pSQL($id_order).'"';
-		$result = Db::getInstance()->getRow($sql);
-		return $result;
-	}
-
-
-	public function get_paytpv_order_info($id_customer,$id_cart){
-		$sql = 'select * from ' . _DB_PREFIX_ .'paytpv_order_info where id_customer = '.pSQL($id_customer) . ' and id_cart="'.pSQL($id_cart).'"';
-		$result = Db::getInstance()->getRow($sql);
-		return $result;
-	}
-
 
 	public function validPassword($id_customer,$passwd){
 		$sql = 'select * from ' . _DB_PREFIX_ .'customer where id_customer = '.pSQL($id_customer) . ' and passwd="'. md5(pSQL(_COOKIE_KEY_.$passwd)) . '"';
@@ -924,7 +708,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		if (!$order_detail || !Validate::isLoadedObject($order_detail))
 			return false;
 
-		$paytpv_order = $this->get_paytpv_order((int)$order->id);
+		$paytpv_order = Paytpv_Order::get_Order((int)$order->id);
 		if (empty($paytpv_order)){
 			die('error');
 			return false;
@@ -948,7 +732,7 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
 
-		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount);
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$order->id,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount,1);
 		$refund_txt = $response["txt"];
 
 		$message = $this->l('PayTPV Refund ').  ", " . $amt . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
@@ -956,9 +740,9 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 	}
 
-	private function _makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency_iso_code,$authcode,$amount){
+	private function _makeRefund($paytpv_iduser,$paytpv_tokenuser,$order_id,$paytpv_order_ref,$paytpv_date,$currency_iso_code,$authcode,$amount,$type){
 		
-		$arrTerminal = $this->getTerminalByCurrency($currency_iso_code);
+		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($currency_iso_code);
 
 		// Refund amount
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
@@ -968,15 +752,13 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 				'term' => $arrTerminal["idterminal"],
 				'pass' => $arrTerminal["password"]
 			)
-
 		);
-
 	
 		// Test Mode
 		// Se devuelven solo las operaciones realizadas en modo Test
 		if ($this->environment==1){
 			// Operacion realizada en Modo Test
-			if ($paytpv_tokenuser=="TESTTOKEN"){
+			if ($authcode=="Test_mode"){
 				$result[ 'DS_RESPONSE' ] = 1;
 				$response["error"] = 0;
 				$response["txt"] = $this->l('OK');
@@ -1001,12 +783,14 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 				$refund_txt = $this->l('OK');
 				$response["error"] = 0;
 				$response["txt"] = $this->l('OK');
-
 			}
 		}
-		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ) {
+		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ){
 			$response["txt"] = $this->l('ERROR') . " " . $result[ 'DS_ERROR_ID'];
 			$response["error"] = 1;
+		}else{
+			$amount = number_format($amount/100, 2, '.', '');
+			Paytpv_Refund::add_Refund($order_id,$amount,$type);
 		}
 		return $response;
 
@@ -1053,8 +837,11 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		if (Tools::isSubmit('submitPayTpvRefund'))
 			$this->_doTotalRefund($params['id_order']);
 
+		if (Tools::isSubmit('submitPayTpvPartialRefund'))
+			$this->_doPartialRefund($params['id_order']);
+
 		$order = new Order((int)$params['id_order']);
-		$result = $this->getSuscriptionOrder($params["id_order"]);
+		$result = Paytpv_Suscription::get_Suscription_Order_Payments($params["id_order"]);
 		if ($order->module == $this->name && !empty($result)){
 			
 			$id_currency = $order->id_currency;
@@ -1098,22 +885,42 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		}
 
 		// Total Refund Template
-		if ($order->module == $this->name && $this->_canRefund((int)$params['id_order'])){
+		if ($order->module == $this->name && $this->_canRefund($order->id)){
 
 			if (version_compare(_PS_VERSION_, '1.5', '>='))
 					$order_state = $order->current_state;
 				else
 					$order_state = OrderHistory::getLastOrderState($order->id);
 
-			$products = $order->getProducts();
-			$amt = 0.00;
-			foreach ($products as $product)
-				$amt += (float)($product['product_price_wt']) * ($product['product_quantity'] - $product['product_quantity_refunded']);
-			$amt += (float)($order->total_shipping) + (float)($order->total_wrapping) - (float)($order->total_discounts);
+			$total_amount = $order->total_paid;
+
+			$amount_returned =  Paytpv_Refund::get_TotalRefund($order->id);
+			$amount_returned = number_format($amount_returned, 2, '.', '');
+
+
+			$total_pending = $total_amount - $amount_returned;
+			$total_pending =  number_format($total_pending, 2, '.', '');
 
 			$currency = new Currency((int)$order->id_currency);
 
-			$amt .= " " . $currency->sign;
+			$amt_sign = $total_pending . " " . $currency->sign;
+
+			$error_msg = "";
+			if (Tools::getValue('paytpPartialRefundAmount')){
+				$amt_refund = str_replace(",",".",Tools::getValue('paytpPartialRefundAmount'));
+				if (is_numeric($amt_refund))
+					$amt_refund = number_format($amt_refund, 2, '.', '');
+
+				if (Tools::getValue('paytpPartialRefundAmount') && ($amt_refund>$total_pending || $amt_refund=="" || !is_numeric($amt_refund))){
+					$error_msg = Tools::displayError($this->l('The partial amount should be less than the outstanding amount'));
+				}
+			}
+
+			$arrRefunds = array();
+			if ($amount_returned>0){
+				$arrRefunds = Paytpv_Refund::get_Refund($order->id);
+			}
+			
 
 			$this->context->smarty->assign(
 					array(
@@ -1121,7 +928,12 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 						'module_name' => $this->name,
 						'order_state' => $order_state,
 						'params' => $params,
-						'amount' => $amt,
+						'total_amount' => $total_amount,
+						'amount_returned' => $amount_returned,
+						'arrRefunds' => $arrRefunds,
+						'amount' => $amt_sign,
+						'sign'	 => $currency->sign,
+						'error_msg' => $error_msg,
 						'ps_version' => _PS_VERSION_
 					)
 				);
@@ -1136,11 +948,10 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		return $this->_html;	
 	}
 
-
-	private function _doTotalRefund($id_order)
+	private function _doPartialRefund($id_order)
 	{
 
-		$paytpv_order = $this->get_paytpv_order((int)$id_order);
+		$paytpv_order = Paytpv_Order::get_Order((int)$id_order);
 		if (empty($paytpv_order)){
 			return false;
 		}
@@ -1159,12 +970,72 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 
 		$decimals = (is_array($currency) ? (int)$currency['decimals'] : (int)$currency->decimals) * _PS_PRICE_DISPLAY_PRECISION_;
 
-		// Amount for refund
-		$amt = 0.00;
+		$total_amount = $order->total_paid;
 
-		foreach ($products as $product)
-			$amt += (float)($product['product_price_wt']) * ($product['product_quantity'] - $product['product_quantity_refunded']);
-		$amt += (float)($order->total_shipping) + (float)($order->total_wrapping) - (float)($order->total_discounts);
+		$total_pending = $total_amount - Paytpv_Refund::get_TotalRefund($order->id);
+		$total_pending =  number_format($total_pending, 2, '.', '');
+
+		$amt_refund  = str_replace(",",".",Tools::getValue('paytpPartialRefundAmount'));
+		if (is_numeric($amt_refund))
+			$amt_refund = number_format($amt_refund, 2, '.', '');
+		
+		if ($amt_refund>$total_pending || $amt_refund=="" || !is_numeric($amt_refund)){
+			$this->errors[] = Tools::displayError($this->l('The partial amount should be less than the outstanding amount'));
+			
+		}else{
+
+			$amt = $amt_refund;
+
+			$paytpv_date = date("Ymd",strtotime($paytpv_order['date']));
+			$paytpv_iduser = $paytpv_order["paytpv_iduser"];
+			$paytpv_tokenuser = $paytpv_order["paytpv_tokenuser"];
+
+			$id_currency = $order->id_currency;
+			$currency = new Currency(intval($id_currency));
+
+			$orderPayment = $order->getOrderPaymentCollection()->getFirst();
+			$authcode = $orderPayment->transaction_id;
+
+			$amount = number_format($amt * 100, 0, '.', '');
+
+			$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
+
+			$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$order->id,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount,1);
+			$refund_txt = $response["txt"];
+			$message = $this->l('PayTPV Refund ').  ", " . $amt . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
+			
+			$this->_addNewPrivateMessage((int)$id_order, $message);
+
+			Tools::redirect($_SERVER['HTTP_REFERER']);
+		}
+	}
+
+	private function _doTotalRefund($id_order)
+	{
+
+		$paytpv_order = Paytpv_Order::get_Order((int)$id_order);
+		if (empty($paytpv_order)){
+			return false;
+		}
+
+		$order = new Order((int)$id_order);
+		if (!Validate::isLoadedObject($order))
+			return false;
+
+		$products = $order->getProducts();
+		$currency = new Currency((int)$order->id_currency);
+		if (!Validate::isLoadedObject($currency))
+			$this->_errors[] = $this->l('Invalid Currency');
+
+		if (count($this->_errors))
+			return false;
+
+		$decimals = (is_array($currency) ? (int)$currency['decimals'] : (int)$currency->decimals) * _PS_PRICE_DISPLAY_PRECISION_;
+
+		$total_amount = $order->total_paid;
+
+		$total_pending = $total_amount - Paytpv_Refund::get_TotalRefund($order->id);
+		$total_pending =  number_format($total_pending, 2, '.', '');
 
 		$paytpv_date = date("Ymd",strtotime($paytpv_order['date']));
 		$paytpv_iduser = $paytpv_order["paytpv_iduser"];
@@ -1179,16 +1050,16 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		$products = $order->getProducts();
 		$cancel_quantity = Tools::getValue('cancelQuantity');
 
-		$amount = number_format($amt * 100, 0, '.', '');
+		$amount = number_format($total_pending * 100, 0, '.', '');
 
 		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
 
-		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount);
+		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$order->id,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount,0);
 		$refund_txt = $response["txt"];
-		$message = $this->l('PayTPV Total Refund ').  ", " . $amt . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
+		$message = $this->l('PayTPV Total Refund ').  ", " . $total_pending . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
 		if ($response['error'] == 0)
 		{
-			if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paytpv_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int)$id_order))
+			if (!Paytpv_Order::set_Order_Refunded($id_order))
 				die(Tools::displayError('Error when updating PayTPV database'));
 
 			$history = new OrderHistory();
@@ -1209,12 +1080,9 @@ where ps.id_customer = '.(int)$this->context->customer->id . ' group by ps.id_su
 		if (!(bool)$id_order)
 			return false;
 
-		$paytpv_order = Db::getInstance()->getRow('
-			SELECT *
-			FROM `'._DB_PREFIX_.'paytpv_order`
-			WHERE `id_order` = '.(int)$id_order);
+		$paytpv_order = Paytpv_Order::get_Order((int)$id_order);
 
-		return $paytpv_order && $paytpv_order['payment_status'] != 'Refunded';
+		return $paytpv_order;//&& $paytpv_order['payment_status'] != 'Refunded';
 	}
 }
 

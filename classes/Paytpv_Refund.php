@@ -1,5 +1,4 @@
 <?php
-
 /*
 * 2007-2015 PrestaShop
 *
@@ -23,34 +22,35 @@
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
-/**
- * @since 1.5.0
- */
 
-class PaytpvUrlkoModuleFrontController extends ModuleFrontController
+class Paytpv_Refund extends ObjectModel
 {
-	public $display_column_left = false;
+	public $id;
+	public $id_order;
+	public $amount;
+	public $date;
+		
 
-	public $ssl = true;
-	/**
-	 * @see FrontController::initContent()
-	 */
+	public static function add_Refund($id_order,$amount,$type)
+    {
+        $sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_refund (`id_order`,`amount`,`type`,`date`) VALUES('.pSQL($id_order).',"'.pSQL($amount).'","'.pSQL($type).'","'.pSQL(date('Y-m-d H:i:s')).'")';
+		Db::getInstance()->Execute($sql);
+    }
 
-	public function initContent()
 
-	{
+    public static function get_TotalRefund($id_order)
+    {
+        $sql = 'select sum(amount) as "total_amount" FROM '. _DB_PREFIX_ .'paytpv_refund where id_order = '. pSQL($id_order);
+		$result = Db::getInstance()->getRow($sql);
+		return $result["total_amount"]; 
+    }
 
-		parent::initContent();
+    public static function get_Refund($id_order)
+    {
+        $sql = 'select * FROM '. _DB_PREFIX_ .'paytpv_refund where id_order = '. pSQL($id_order);
+		$refunds = Db::getInstance()->executeS($sql);
+		return $refunds; 
+    }
 
-		$password_fail = 0;
-		$this->context->smarty->assign('password_fail',$password_fail);
-		$this->context->smarty->assign(array(
-			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
-		));
-
-		$this->setTemplate('payment_fail.tpl');
-
-	}
-
+    	
 }
-

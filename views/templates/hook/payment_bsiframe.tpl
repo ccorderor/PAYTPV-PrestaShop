@@ -22,10 +22,17 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
 
+{capture name=path}
+    <a href="{$link->getPageLink('order', true)|escape:'html'}">{l s='Cart' mod='paytpv'}</a>
+    <span class="navigation-pipe">{$navigationPipe}</span>
+        {l s='Pay with Card' mod='paytpv'}</a>
+{/capture}
+
 <div class="row">
     <div class="col-xs-12 col-md-6">
         <div class="paytpv">            
             <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}views/img/paytpv.png"></a>
+            <img src="{$this_path}views/img/tarjetas.png">
             <br>
             {if ($msg_paytpv!="")}
                 <p>

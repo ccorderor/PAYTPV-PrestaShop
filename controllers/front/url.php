@@ -66,7 +66,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
 
-			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
 			$pass = $arrTerminal["password"];
 
 			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
@@ -80,7 +80,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$sign = Tools::getValue('Signature');
 			$esURLOK = false;
 
-			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
 			$pass = $arrTerminal["password"];
 
 			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($pass));
@@ -110,7 +110,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$sign = Tools::getValue('ExtendedSignature');
 			$esURLOK = false;
 
-			$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
 			$pass = $arrTerminal["password"];
 
 			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
@@ -225,7 +225,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					$cart_problem_txt = "";
 
 					$new_cart = $cart->duplicate();
-					$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
+					$data_suscription = Paytpv_Suscription::get_Suscription_Order($cart->id_customer,$id_order);
 					$id_suscription = $data_suscription["id_suscription"];
 					$paytpv_iduser = $data_suscription["paytpv_iduser"];
 					$paytpv_tokenuser = $data_suscription["paytpv_tokenuser"];
@@ -234,7 +234,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						exit;
 					}else if (!$new_cart['success']){
 
-						$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+						$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
 						$pass = $arrTerminal["password"];
 
 						// Refund amount
@@ -314,7 +314,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					$pagoRegistrado = $paytpv->validateOrder($new_cart['cart']->id, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, true, $customer->secure_key);
 					$id_order = Order::getOrderByCartId(intval($new_cart['cart']->id));
 
-					$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
+					Order::save_Order($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
 				}
 			// NO ORDER
 			}else{
@@ -322,7 +322,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
 				$id_order = Order::getOrderByCartId(intval($id_cart));
 				$id_suscription = 0;
-				$datos_order = $paytpv->get_paytpv_order_info($cart->id_customer,$id_cart);
+				$datos_order = Paytpv_Order_Info::get_Order_Info($cart->id_customer,$id_cart);
 				// BANKSTORE: Si hay notificacion
 				if(Tools::getValue('IdUser')){
 
@@ -333,7 +333,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					if ($datos_order["paytpvagree"]){
 						// Live Mode
 						if ($paytpv->environment!=1){
-							$arrTerminal = $paytpv->getTerminalByIdTerminal(Tools::getValue('TpvID'));
+							$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
 							$pass = $arrTerminal["password"];
 
 							include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
@@ -357,9 +357,9 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 					// SUSCRIPCION
 					if ($suscripcion==1){
-						$paytpv->saveSuscription($cart->id_customer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$datos_order["periodicity"],$datos_order["cycles"],$importe);
+						Paytpv_Suscription::save_Suscription($cart->id_customer,$id_order,$paytpv_iduser,$paytpv_tokenuser,$datos_order["periodicity"],$datos_order["cycles"],$importe);
 
-						$data_suscription = $paytpv->subcriptionFromOrder($cart->id_customer,$id_order);
+						$data_suscription = Paytpv_Suscription::get_Suscription_Order($cart->id_customer,$id_order);
 						$id_suscription = $data_suscription["id_suscription"];
 
 						// Mailing to Merchant: Subscription order info **********************************************
@@ -398,12 +398,12 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 
 				// Token Payment
 				}else{
-					$result = $paytpv->getDataTokenPaytpv_iduser($datos_order["paytpv_iduser"]);
+					$result = Paytpv_Customer::get_Customer_Iduser($datos_order["paytpv_iduser"]);
 					$paytpv_iduser = $result["paytpv_iduser"];
 					$paytpv_tokenuser = $result["paytpv_tokenuser"];
 				}
 				// Save paytpv order
-				$paytpv->savePayTpvOrder($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
+				Paytpv_Order::add_Order($paytpv_iduser,$paytpv_tokenuser,$id_suscription,$cart->id_customer,$id_order,$importe);
 				
 			}
 			// if URLOK and registered payemnt go to order confirmation

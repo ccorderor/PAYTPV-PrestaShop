@@ -33,8 +33,6 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 	public function init()
 	{
 		parent::init();
-
-		
 	}
 
 	public function initContent()
@@ -50,15 +48,15 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 		{
 
 			$paytpv = $this->module;
-			$saved_card = $paytpv->getToken();
-			$suscriptions = $paytpv->getSuscriptions();
+			$saved_card = Paytpv_Customer::get_Cards_Customer((int)$this->context->customer->id);
+			$suscriptions = Paytpv_Suscription::get_Suscriptions_Customer($this->context->language->iso_code,(int)$this->context->customer->id);
 
 			if (Context::getContext()->customer->id){
 				$order = Context::getContext()->customer->id;
 				$operation = 107;
 				$ssl = Configuration::get('PS_SSL_ENABLED');
 
-				$arrTerminal = $paytpv->getTerminalByCurrency($this->context->currency->iso_code);
+				$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 				$idterminal = $arrTerminal["idterminal"];
 				$pass = $arrTerminal["password"];
 				
@@ -83,7 +81,7 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 				$query = http_build_query($fields);
 
 				if ($paytpv->environment!=1)
-					$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+					$url_paytpv = $paytpv->url_paytpv . "?".$query;
 				// Test Mode
 				else
 					$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);

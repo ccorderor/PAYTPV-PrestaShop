@@ -117,6 +117,17 @@ class PayTpvInstall
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
 
+		if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_refund` (
+				`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+				`id_order` INT(10) UNSIGNED NOT NULL,
+				`amount` decimal(13,2) unsigned NOT NULL,
+				`type` SMALLINT(1) NOT NULL DEFAULT 0,
+				`date` DATETIME NOT NULL,
+				PRIMARY KEY (`id`)
+			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
+		return false;
+
 		return true;
 	}
 	/**
@@ -144,6 +155,7 @@ class PayTpvInstall
 		Configuration::deleteByName('PAYTPV_REG_ESTADO');
 		Configuration::deleteByName('PAYTPV_PASS');
 		Configuration::deleteByName('PAYTPV_SUSCRIPTIONS');
+		Configuration::deleteByName('PAYTPV_NEWPAGEPAYMENT');
 		
 	}
 }

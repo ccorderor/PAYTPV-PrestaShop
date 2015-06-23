@@ -59,9 +59,7 @@ class PaytpvUrlokModuleFrontController extends ModuleFrontController
 			
 			$id_customer = (Context::getContext()->customer->id>0)?Context::getContext()->customer->id:0;
 
-			$result = Db::getInstance()->getRow('
-			SELECT now() as fechaactual,paytpv_order.* FROM `'._DB_PREFIX_.'paytpv_order` as paytpv_order WHERE `id_customer` = '.$id_customer.' ORDER BY `date` DESC');
-
+			$result = Paytpv_Order::get_Order_Customer($id_customer);
 			if (empty($result) === false){
 				$id_order = $result["id_order"];
 				$fecha_order = strtotime($result['date']);

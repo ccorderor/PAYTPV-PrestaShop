@@ -144,6 +144,19 @@
 
                 <br/>
 
+                <div id="newpage_payment_container">
+                    <label>{l s='Payment in new Page' mod='paytpv'}</label>
+                    <div class="margin-form">
+                        <select name="newpage_payment" id="newpage_payment">
+                            <option value="0" {if $newpage_payment==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
+                            <option value="1" {if $newpage_payment==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                        </select>
+                        [{l s='Yes for incompatible checkout modules' mod='paytpv'}]
+                    </div>
+                </div>
+
+                <br/>
+
                 <div id="suscriptions_container">
                     <label>{l s='Activate Subscriptions' mod='paytpv'}</label>
                     <div class="margin-form">
@@ -153,6 +166,8 @@
                         </select>
                     </div>
                 </div>
+
+                
             </fieldset>
     	</fieldset>	
 

@@ -121,6 +121,7 @@ function CheckForm(){
 	<input type="hidden" name="IdUser" value="{$ID_USER}">
 	<input type="hidden" name="TokenUser" value="{$TOKEN_USER}">
 	<input type="hidden" name="Currency" value="{$MERCHANT_CURRENCY}">
+	<input type="hidden" name="AuthCode" value="Test_mode">
 
 </div>
 

@@ -22,23 +22,13 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
 
-<p class="payment_module">
-
-	<a href="javascript:$('#paytpv_form').submit();" title="{l s='Connect with TPV' mod='paytpv'}">
-
-		<img src="{$module_dir}/views/img/tarjetas.png" alt="{l s='Connect with TPV' mod='paytpv'}" />
-
-		{l s='Secure payment by credit card' mod='paytpv'}
-
-	</a>
-
-</p>
-<form action="https://www.paytpv.com/gateway/fsgateway.php" method="post" id="paytpv_form" class="hidden">
-
-{foreach from=$fields key=k item=v}
-
-    <input type="hidden" name="{$k}" value="{$v}" />
-
-{/foreach}
-
-</form>
+<div class="row">
+    <div class="col-xs-12 col-md-6">
+        <p class="payment_module">      
+            <a class="bankwire" href="{$link->getModuleLink('paytpv', 'payment')|escape:'htmlall':'UTF-8'}" title="{l s='Pay with Card' mod='paytpv'}"rel="nofollow">
+                <img src="{$this_path}views/img/paytpv.png">
+                {l s='Pay with Card' mod='paytpv'}
+            </a>
+        </p>
+    </div>
+</div>

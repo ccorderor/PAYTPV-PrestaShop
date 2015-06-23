@@ -56,7 +56,7 @@
 			</tr>
 			<tr>
 				<td width="185px" align="center">
-					<img border="0" alt="VISA" src="https://secure.paytpv.com/gateway/3dsas/VerifiedByVisa.jpg"></td>
+					<img border="0" alt="VISA" src="{$this_path}views/img/VerifiedByVisa.jpg"></td>
 				<td width="185px" align="center"></td>
 			</tr>
 			<tr>
@@ -126,7 +126,7 @@
 									<td width="60%" align="left">
 										<input type="text" size="6" maxlength="6" id="demopin" name="pin" class="formulario">
 										&nbsp;
-										<img border="0" align="middle" alt="CaixaProtect" src="https://secure.paytpv.com/gateway/3dsas/2100candau256.png"></td>
+										<img border="0" align="middle" alt="CaixaProtect" src="{$this_path}views/img/2100candau256.png"></td>
 								</tr>
 								<tr>
 									<td width="100%" align="center" colspan="2">
@@ -163,6 +163,7 @@
 				<input type="hidden" name="TokenUser" value="{$TOKEN_USER}">
 				<input type="hidden" name="Currency" value="{$CURRENCY}">
 				<input type="hidden" name="merchan_pan" value="{$MERCHAN_PAN}">
+				<input type="hidden" name="AuthCode" value="Test_mode">
 			</tbody>
 		</table>
 		</form>

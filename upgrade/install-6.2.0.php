@@ -23,34 +23,24 @@
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
-/**
- * @since 1.5.0
- */
 
-class PaytpvUrlkoModuleFrontController extends ModuleFrontController
+if (!defined('_PS_VERSION_'))
+	exit;
+
+function upgrade_module_6_2_0($object)
 {
-	public $display_column_left = false;
+	try{
+		Db::getInstance()->Execute('
+		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_refund` (
+			`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+			`id_order` INT(10) UNSIGNED NOT NULL,
+			`amount` decimal(13,2) unsigned NOT NULL,
+			`type` SMALLINT(1) NOT NULL DEFAULT 0,
+			`date` DATETIME NOT NULL,
+			PRIMARY KEY (`id`)
+		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8');
 
-	public $ssl = true;
-	/**
-	 * @see FrontController::initContent()
-	 */
+	}catch (exception $e){}
 
-	public function initContent()
-
-	{
-
-		parent::initContent();
-
-		$password_fail = 0;
-		$this->context->smarty->assign('password_fail',$password_fail);
-		$this->context->smarty->assign(array(
-			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
-		));
-
-		$this->setTemplate('payment_fail.tpl');
-
-	}
-
+	return true;
 }
-

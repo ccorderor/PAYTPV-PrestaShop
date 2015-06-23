@@ -60,7 +60,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 	    }
 
 
-        $data = $paytpv->getDataToken($_GET["TOKEN_USER"]);
+        $data = Paytpv_Customer::get_Cards_Token($_GET["TOKEN_USER"]);
 
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 		$currency = new Currency(intval($id_currency));
@@ -72,7 +72,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		$idterminal = $datos_pedido["idterminal"];
 		$pass = $datos_pedido["password"];
 
-		$paytpv->save_paytpv_order_info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
+		Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
 		
 		// Si el cliente solo tiene un terminal seguro, el segundo pago va siempre por seguro.
 		// Si tiene un terminal NO Seguro ó ambos, el segundo pago siempre lo mandamos por NO Seguro
@@ -120,7 +120,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			$query = http_build_query($fields);
 
 			if ($paytpv->environment!=1)
-				$salida = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+				$salida = $paytpv->url_paytpv . "?".$query;
 			// Test Mode
 			else
 				$salida = Context::getContext()->link->getModuleLink($paytpv->name, 'url3dstest',$fields,$ssl);
@@ -146,7 +146,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			);
 			$pagoRegistrado = $paytpv->validateOrder(Context::getContext()->cart->id, _PS_OS_PAYMENT_, $total_pedido, $paytpv->displayName, NULL, $transaction, NULL, false, Context::getContext()->customer->secure_key);
 			$id_order = Order::getOrderByCartId(intval(Context::getContext()->cart->id));
-			$paytpv->savePayTpvOrder($data["IDUSER"],$data['TOKEN_USER'],0,Context::getContext()->cart->id_customer,$id_order,$total_pedido);
+			Paytpv_Order::add_Order($data["IDUSER"],$data['TOKEN_USER'],0,Context::getContext()->cart->id_customer,$id_order,$total_pedido);
 			$charge['DS_RESPONSE'] =1;
 
 		}else{

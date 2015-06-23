@@ -105,7 +105,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 	{
 		$paytpv = $this->module;
 
-		if ($paytpv->saveDescriptionCard(Tools::getValue('paytpv_iduser'),Tools::getValue('card_desc')))
+		if (Paytpv_Customer::save_Customer_CarDesc((int)$this->context->customer->id,Tools::getValue('paytpv_iduser'),Tools::getValue('card_desc')))
 			die('0');
 		die('1');
 	}
@@ -171,7 +171,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
+		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
 			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
@@ -193,7 +193,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			$query = http_build_query($fields);
 
 			if ($paytpv->environment!=1)
-				$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+				$url_paytpv = $paytpv->url_paytpv . "?".$query;
 			// Test Mode
 			else
 				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
@@ -259,7 +259,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if ($paytpv->save_paytpv_order_info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles,0)){
+		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles,0)){
 			$OPERATION = "9";
 			$subscription_stratdate = date("Ymd");
 			$susc_periodicity = $periodicity;
@@ -296,7 +296,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			$query = http_build_query($fields);
 
 			if ($paytpv->environment!=1)
-				$url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php?".$query;
+				$url_paytpv = $paytpv->url_paytpv . "?".$query;
 			// Test Mode
 			else
 				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
