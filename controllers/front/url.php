@@ -60,7 +60,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			AND Tools::getValue('Response')
 			AND Tools::getValue('ExtendedSignature'))
 		{
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
 			$ref = Tools::getValue('Order');
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
@@ -119,7 +119,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			if ($sign!=$local_sign)	die('Error 3');
 
 			$suscripcion = 1;  // Inicio Suscripcion
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
 			$ref = Tools::getValue('Order');
 
 			// Look if is initial order or a subscription payment (orden[Iduser]Fecha)
@@ -139,7 +139,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			AND Tools::getValue('Order')
 			AND Tools::getValue('Response')){
 
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
 			$ref = Tools::getValue('Order');
 			$result = Tools::getValue('Response')=='OK'?0:-1;
 			$sign = Tools::getValue('ExtendedSignature');
@@ -153,7 +153,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			AND Tools::getValue('Response')){
 
 			$suscripcion = 1;  // Inicio Suscripcion
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
 			$ref = Tools::getValue('Order');	
 
 			$result = Tools::getValue('Response')=='OK'?0:-1;
@@ -168,7 +168,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			AND Tools::getValue('Order')
 			AND Tools::getValue('Response')){
 
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2);
+			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
 			$ref = Tools::getValue('Order');	
 
 			$result = Tools::getValue('Response')=='OK'?0:-1;

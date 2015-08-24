@@ -45,7 +45,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.2.0';
+		$this->version = '6.2.1';
 
 		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
 		
