@@ -87,7 +87,7 @@ where po.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps
 	/* Obtener las suscripciones del usuario */
 	public static function get_Suscriptions_Customer($iso_code,$customer_id){
 
-
+		$paytpv = new Paytpv();
 		$res = array();
 		$sql = 'select ps.*,count(po.id_order) as "pagos" FROM '._DB_PREFIX_.'paytpv_suscription ps LEFT OUTER JOIN '._DB_PREFIX_.'paytpv_order po on ps.id_suscription = po.id_suscription and ps.id_order!=po.id_order where ps.id_customer = '.(int)$customer_id . ' group by ps.id_suscription order by ps.date desc';
 		
@@ -105,7 +105,7 @@ where po.id_order = '. pSQL($id_order). ' group by ps.id_suscription order by ps
 			$res[$key]['ORDER_REFERENCE']= $order->reference;
 			$res[$key]['ID_ORDER']= $row['id_order'];
 			$res[$key]['PERIODICITY'] = $row['periodicity'];
-			$res[$key]['CYCLES'] = ($row['cycles']!=0)?$row['cycles']:$this->l('Permanent');
+			$res[$key]['CYCLES'] = ($row['cycles']!=0)?$row['cycles']:$paytpv->l('Permanent');
 			$res[$key]['PRICE'] = number_format($row['price'], 2, '.', '')  . " " . $currency->sign;		
 			$res[$key]['DATE'] = $row['date'];
 			$res[$key]['DATE_YYYYMMDD'] = ($iso_code=="es")?date("d-m-Y",strtotime($row['date'])):date("Y-m-d",strtotime($row['date']));

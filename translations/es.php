@@ -209,9 +209,8 @@ $_MODULE['<{paytpv}prestashop>payment_bsiframe_99938b17c91170dfb0c2f3f8bc9f2a85'
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_c4408d335012a56ff58937d78050efad'] = 'Aceptar';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_ea4788705e6873b424c65e91c2846b19'] = 'Cancelar';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_96b0faaf4b5d17d162019257cb8c1df3'] = '¡AGILICE SUS FUTURAS COMPRAS!';
-$_MODULE['<{paytpv}prestashop>payment_bsiframe_3f7bbb21863955997e8439d2f37058a6'] = 'Vincule una tarjeta a su cuenta para poder hacer todos los trámites de forma ágil y rápida.';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_63d62ec68a78766af560fde77e363262'] = 'Si, recordar mi tarjeta aceptando los ';
-$_MODULE['<{paytpv}prestashop>payment_bsiframe_10ac3d04253ef7e1ddc73e6091c0cd55'] = 'Siguiente';
+$_MODULE['<{paytpv}prestashop>payment_bsiframe_0df6dc54d8913c70ff40a8ffcce9c5f6'] = 'Cargando formulario de pago...';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_0e8201e2f7723ad82d152b8dc254b7a9'] = 'Usar Tarjeta';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_9645c0ed4d3e15b4492e238c65145ecc'] = 'Para mayor seguridad, indique su contraseña de usuario de la tienda';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_dc647eb65e6711e155375218212b3964'] = 'Contraseña';

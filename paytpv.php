@@ -46,7 +46,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.2.1';
+		$this->version = '6.2.2';
 
 		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
 		
@@ -67,6 +67,7 @@ class Paytpv extends PaymentModule {
 				$this->clientcode = $config['PAYTPV_CLIENTCODE'];
 		}
 
+		
 		if (isset($config['PAYTPV_COMMERCEPASSWORD']))
 			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
 		if (isset($config['PAYTPV_NEWPAGEPAYMENT']))
@@ -205,6 +206,7 @@ class Paytpv extends PaymentModule {
 			Configuration::updateValue('PAYTPV_ENVIRONMENT', $_POST['environment']);
 			Configuration::updateValue('PAYTPV_CLIENTCODE', $_POST['clientcode']);
 
+			
 			Configuration::updateValue('PAYTPV_COMMERCEPASSWORD', $_POST['commerce_password']);
 			Configuration::updateValue('PAYTPV_NEWPAGEPAYMENT', $_POST['newpage_payment']);
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
@@ -335,11 +337,11 @@ class Paytpv extends PaymentModule {
 		}else{
 
 			$this->context->smarty->assign('msg_paytpv',"");
-			$showcard = false;
+			
 			$msg_paytpv = "";
 
 			$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
-			$this->context->smarty->assign('showcard',$showcard);
+			
 
 		    // Valor de compra				
 			$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
@@ -372,6 +374,8 @@ class Paytpv extends PaymentModule {
 			$this->context->smarty->assign('commerce_password',$this->commerce_password);
 			$this->context->smarty->assign('id_cart',$params['cart']->id);
 			
+			$this->context->smarty->assign('paytpv_iframe',$this->paytpv_iframe_URL());
+
 			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 
 			
@@ -380,16 +384,67 @@ class Paytpv extends PaymentModule {
 				'this_path' => $this->_path)
 			);
 			$this->context->smarty->assign($tmpl_vars);
-			
-		 	$arrAddCard = array("process"=>"addCard");
-		    $arrSubscribe = array("process"=>"suscribe");
-		 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
-		 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
-		 	
 
 			return $this->display(__FILE__, 'payment_bsiframe.tpl');
 		}
 
+	}
+
+
+	public function paytpv_iframe_URL(){	
+		$cart = Context::getContext()->cart;
+
+		$total_pedido = $cart->getOrderTotal(true, Cart::BOTH);
+	
+		$datos_pedido = $this->TerminalCurrency($cart);
+		$importe = $datos_pedido["importe"];
+		$currency_iso_code = $datos_pedido["currency_iso_code"];
+		$idterminal = $datos_pedido["idterminal"];
+		$pass = $datos_pedido["password"];
+
+
+		$values = array(
+			'id_cart' => $cart->id,
+			'key' => Context::getContext()->customer->secure_key
+		);
+
+
+		$ssl = Configuration::get('PS_SSL_ENABLED');
+		
+		$URLOK=Context::getContext()->link->getModuleLink($this->name, 'urlok',$values,$ssl);
+		$URLKO=Context::getContext()->link->getModuleLink($this->name, 'urlko',$values,$ssl);
+
+		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
+
+		$secure_pay = $this->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+
+		$OPERATION = "1";
+		// Cálculo Firma
+		$signature = md5($this->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
+		$fields = array
+		(
+			'MERCHANT_MERCHANTCODE' => $this->clientcode,
+			'MERCHANT_TERMINAL' => $idterminal,
+			'OPERATION' => $OPERATION,
+			'LANGUAGE' => $this->context->language->iso_code,
+			'MERCHANT_MERCHANTSIGNATURE' => $signature,
+			'MERCHANT_ORDER' => $paytpv_order_ref,
+			'MERCHANT_AMOUNT' => $importe,
+			'MERCHANT_CURRENCY' => $currency_iso_code,
+			'URLOK' => $URLOK,
+			'URLKO' => $URLKO,
+			'3DSECURE' => $secure_pay
+		);
+
+		$query = http_build_query($fields);
+
+		if ($this->environment!=1)
+			$url_paytpv = $this->url_paytpv . "?".$query;
+		// Test Mode
+		else
+			$url_paytpv = Context::getContext()->link->getModuleLink($this->name, 'urltestmode',$fields,$ssl);
+
+		return $url_paytpv;
 	}
 
 	/**

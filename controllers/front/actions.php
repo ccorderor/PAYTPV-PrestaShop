@@ -44,6 +44,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		if (Tools::getValue('process') == 'addCard')
 			$this->processAddCard();
 
+		if (Tools::getValue('process') == 'saveOrderInfo')
+			$this->processSaverOrderInfo();
+
 		if (Tools::getValue('process') == 'suscribe')
 			$this->processSuscribe();
 
@@ -171,7 +174,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,0,0,0,0)){
+		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
 			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
@@ -200,6 +203,33 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
+		}
+		
+		print json_encode($arrReturn);
+	}
+
+
+	/**
+	 * save Card
+	 */ 
+	public function processSaverOrderInfo()
+	{
+		
+		$paytpv = $this->module;
+
+		$id_cart = Tools::getValue('id_cart');
+
+		$cart = new Cart($id_cart);
+
+		$paytpv_agree = Tools::getValue('paytpv_agree');
+		$suscripcion = Tools::getValue('paytpv_suscripcion');
+		$periodicity = Tools::getValue('paytpv_periodicity');
+		$cycles = Tools::getValue('paytpv_cycles');
+		
+		$arrReturn = array();
+		$arrReturn["error"] = 1;
+		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles,0)){
+			$arrReturn["error"] = 0;
 		}
 		
 		print json_encode($arrReturn);
@@ -248,7 +278,6 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		);
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
-
 		
 		$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
 		$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'urlko',$values,$ssl);
@@ -259,7 +288,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
-		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,0,$suscripcion,$periodicity,$cycles,0)){
+		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles,0)){
 			$OPERATION = "9";
 			$subscription_stratdate = date("Ymd");
 			$susc_periodicity = $periodicity;

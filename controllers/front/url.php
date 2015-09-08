@@ -330,7 +330,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					$paytpv_tokenuser = Tools::getValue('TokenUser');
 					
 					// IF check agreement save token
-					if ($datos_order["paytpvagree"]){
+					if ($suscripcion==0 && $datos_order["paytpvagree"]){
 						// Live Mode
 						if ($paytpv->environment!=1){
 							$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));

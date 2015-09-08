@@ -44,11 +44,11 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		parent::initContent();
 
 		$this->context->smarty->assign('msg_paytpv',"");
-		$showcard = false;
+		
 		$msg_paytpv = "";
 
 		$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
-		$this->context->smarty->assign('showcard',$showcard);
+		
 
 	    // Valor de compra				
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
@@ -90,14 +90,12 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		);
 		$this->context->smarty->assign($tmpl_vars);
 		
-	 	$arrAddCard = array("process"=>"addCard");
-	    $arrSubscribe = array("process"=>"suscribe");
-	 	$this->context->smarty->assign('addcard_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrAddCard, true));
-	 	$this->context->smarty->assign('subscribe_url',Context::getContext()->link->getModuleLink('paytpv', 'actions', $arrSubscribe, true));
-
+	 	
 	 	$this->context->controller->addJqueryPlugin('fancybox');
 	 	$this->context->controller->addCSS( $this->module->getPath() . 'css/payment.css' , 'all' );
 		$this->context->controller->addJS( $this->module->getPath() . 'js/paytpv.js');
+
+		$this->context->smarty->assign('paytpv_iframe',$this->module->paytpv_iframe_URL());
 	 	
 
 		$this->setTemplate('../hook/payment_bsiframe.tpl');

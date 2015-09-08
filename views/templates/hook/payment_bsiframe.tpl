@@ -39,11 +39,11 @@
                     <span class="message">{$msg_paytpv}</span>
                 </p>
             {/if}
-            {if (!$showcard && $active_suscriptions)}
+            {if ($active_suscriptions)}
             <div id="tipo-pago">
                 <p class="checkbox">
                    
-                    <span class="checked"><input type="checkbox" name="suscripcion" id="suscripcion" value="1"></span>
+                    <span class="checked"><input type="checkbox" name="suscripcion" id="suscripcion" onclick="check_suscription();" value="1"></span>
                     <label for="suscripcion">{l s='Would you like to subscribe to this order?' mod='paytpv'}</label>
                     
                 </p>
@@ -56,7 +56,7 @@
                     <form class="form-inline">
                         <div class="form-group">    
                             <label for="susc_periodicity" class="control-label">{l s='Frequency:' mod='paytpv'} </label>
-                            <select name="susc_periodicity" id="susc_periodicity" class="form-control" style="min-width:200px;">
+                            <select name="susc_periodicity" id="susc_periodicity" onChange="saveOrderInfoJQ(1)" class="form-control" style="min-width:200px;">
                                 <option value="7">{l s='7 days (weekly)' mod='paytpv'}</option>
                                 <option value="30" selected>{l s='30 days (monthly)' mod='paytpv'}</option>
                                 <option value="90">{l s='90 days (quarterly)' mod='paytpv'}</option>
@@ -67,7 +67,7 @@
                        
                         <div class="form-group">
                             <label for="susc_cycles">{l s='Payments:' mod='paytpv'}</label>
-                            <select name="susc_cycles" id="susc_cycles" class="form-control" style="min-width:200px;">
+                            <select name="susc_cycles" id="susc_cycles" class="form-control" onChange="saveOrderInfoJQ(1)" style="min-width:200px;">
                                 <option value="0" selected>{l s='Permanent' mod='paytpv'}</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -84,11 +84,10 @@
                             </select>
                         </div>
                     </form>
-                    
-                    
-                    <a href="javascript:void(0);" onclick="suscribeJQ('{$subscribe_url}');" title="{l s='Subscribe' mod='paytpv'}" class="button button-small btn btn-default">
+                                        
+                    <!--<a href="javascript:void(0);" onclick="suscribeJQ();" title="{l s='Subscribe' mod='paytpv'}" class="button button-small btn btn-default">
                         <span>{l s='Subscribe' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                    </a>
+                    </a>-->
                         
                     
                 </div>
@@ -97,7 +96,7 @@
             {/if}
             
            
-            <div id="saved_cards">
+            <div id="saved_cards" style="display:none">
                 <form class="form-inline">
                     <div class="form-group">
                         <label for="card">{l s='Card' mod='paytpv'}:</label>
@@ -135,24 +134,24 @@
 
             <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>1}hidden{/if}">
                
-                <h4>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
-                {l s='Link a card to your account to perform all procedures easily and quickly' mod='paytpv'}
-                <br>
-                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
+                <h6>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
+                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" onChange="saveOrderInfoJQ(0)" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
 
-
-                <a href="javascript:void(0);" onclick="addCardJQ('{$addcard_url}');" title="{l s='NEW CARD' mod='paytpv'}" class="button button-small btn btn-default">
-                    <span>{l s='Next' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                    
-                </a>
             </div>
                 
             
             <br class="clear"/>
+
             
-            <p class="payment_module paytpv_iframe" style="display:none">
-                <iframe id="paytpv_iframe" src="" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
-            </p>
+            <div class="payment_module paytpv_iframe" style="display:none">       
+
+                   <p id='ajax_loader' style="display:none">
+                        <img id='ajax_loader' src="{$this_path}views/img/clockpayblue.gif"></img>
+                        {l s='Loading payment form...' mod='paytpv'}
+                    </p>   
+                   
+                   <iframe id="paytpv_iframe" src="{$paytpv_iframe}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
+            </div>
            
         </div>
     </div>
@@ -163,7 +162,7 @@
             <form name="pago_directo" id="pago_directo" action="" method="post">
                 <h1 class="estilo-tit1">{l s='Use Card' mod='paytpv'}</h1>
                 <p>
-                {l s='Card' mod='paytpv'}:&nbsp
+                {l s='Card' mod='paytpv'}:&nbsp;
                 <strong><span id="datos_tarjeta"></span></strong>
                 </p>
                 <p>
@@ -224,6 +223,7 @@
         </div>
     </div>
 
+    <input type="hidden" name="paytpv_module" id="paytpv_module" value="{$link->getModuleLink('paytpv', 'actions',[], true)|escape:'htmlall':'UTF-8'}">
 
     <form id="form_paytpv" action="{$base_dir}index.php?controller=order" method="post">
         <input type="hidden" name="step" value="3">
@@ -240,6 +240,10 @@
         <input type="hidden" name="id_cart" id="id_cart"  value="{$id_cart}">
 
     </form>
+
+    <script>
+    paytpv_initialize();
+    </script>
 </div>
 
 
