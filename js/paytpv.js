@@ -33,8 +33,14 @@ $(document).ready(function() {
             'beforeShow': onOpenDirectPay
         });
 
-    $("body").on("click",".paytpv #exec_directpay",function() {
-        window.location.href = $("#card").val();
+    $("body").on("click",".exec_directpay",function(event) {
+        event.preventDefault();
+        $.fancybox.close();
+        $(".paytpv_pay").hide();
+        $("#clockwait").show();
+        $("#pago_directo").attr("action",$("#card").val());
+        $("#card option,#suscripcion").attr("disabled", true);
+        $("#pago_directo").submit();
     });
 
 

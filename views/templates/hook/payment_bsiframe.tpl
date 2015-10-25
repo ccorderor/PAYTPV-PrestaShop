@@ -114,14 +114,15 @@
 
                 {if (sizeof($saved_card)>1)}
                     {if ($commerce_password)}
-                        <a id="open_directpay" href="#directpay" class="button button-small btn btn-default">          
+                        <a id="open_directpay" href="#directpay" class="paytpv_pay button button-small btn btn-default">          
                             <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
                         </a>
                     {else}
-                        <a id="exec_directpay" href="#directpay" class="button button-small btn btn-default">          
+                        <a id="exec_directpay" href="#" class="exec_directpay paytpv_pay button button-small btn btn-default">          
                             <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
                         </a>
                     {/if}
+                    <img id='clockwait' style="display:none" src="{$this_path}views/img/clockpayblue.gif"></img>
                 {/if}
                 
                 <div id="confirm" style="display:none">
@@ -172,7 +173,8 @@
                 {l s='Password' mod='paytpv'}: <input type="password" name="password" id="password" class="password">
                 </p>
                 <p class="button_left">
-                    <input type="submit" title="{l s='Pay' mod='paytpv'}" class="button button-small btn btn-default" value="{l s='Pay' mod='paytpv'}">
+                    <a id="pago_directo" href="#" class="exec_directpay paytpv_pay button button-small btn btn-default">          
+                        <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
                     </a>
                 </p>
             </form>
