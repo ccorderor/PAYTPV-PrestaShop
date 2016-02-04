@@ -107,13 +107,14 @@ class PayTpvInstall
 		if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paytpv_terminal` (
 				`id` INT(2) UNSIGNED NOT NULL,
+				`id_shop` INT(2) UNSIGNED NOT NULL DEFAULT 1,
 				`idterminal` INT(4) UNSIGNED NOT NULL,
 				`password` VARCHAR(30) NOT NULL,
 				`currency_iso_code` VARCHAR(3) NOT NULL,
 				`terminales` SMALLINT(1) NOT NULL DEFAULT 0,
 				`tdfirst` SMALLINT(1) NOT NULL DEFAULT 1,
 				`tdmin` DECIMAL(17,2),
-				PRIMARY KEY (`id`)
+				PRIMARY KEY (`id`,`id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'))
 		return false;
 
