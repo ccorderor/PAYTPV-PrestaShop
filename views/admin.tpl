@@ -149,7 +149,8 @@
                     <div class="margin-form">
                         <select name="newpage_payment" id="newpage_payment">
                             <option value="0" {if $newpage_payment==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
-                            <option value="1" {if $newpage_payment==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
+                            <option value="1" {if $newpage_payment==1}selected="1"{/if}>{l s='Yes. IFRAME' mod='paytpv'}</option>
+                            <option value="2" {if $newpage_payment==2}selected="1"{/if}>{l s='Yes. PAYTPV page' mod='paytpv'}</option>
                         </select>
                         [{l s='Yes for incompatible checkout modules' mod='paytpv'}]
                     </div>

@@ -91,8 +91,12 @@ $(document).ready(function() {
     function vincularTarjeta(){
         if ($("#savecard").is(':checked')){
             $('#savecard').attr("disabled", true);
-            $('#close_vincular').show();
-            $('#nueva_tarjeta').show();
+            if ($('#newpage_payment').val()==2)
+                window.location = ($("#paytpv_iframe").attr('src'));
+            else{
+                $('#close_vincular').show();
+                $('#nueva_tarjeta').show();
+            }
         }else{
             alert(msg_accept);
         }

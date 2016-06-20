@@ -4,6 +4,10 @@
 Ofrece la posibilidad de cobrar a tus clientes con tarjeta en tiendas Prestashop 1.5+.
 
 
+## Video Tutorial de instalación del Módulo.
+
+En el siguiente enlace (https://vimeo.com/168159218) podrá ver el Tutorial de Instalación y Configuración del Módulo de PAYTPV para Prestashop.
+
 ## Instalación
 
 Accedemos a al administración de Prestashop menú Modulos.

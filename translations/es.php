@@ -85,6 +85,8 @@ $_MODULE['<{paytpv}prestashop>admin_74712135810ad903749dc97a14731030'] = '0 para
 $_MODULE['<{paytpv}prestashop>admin_dae8ace18bdcbcc6ae5aece263e14fe8'] = 'Opciones';
 $_MODULE['<{paytpv}prestashop>admin_331aa749110c369dd9204558fb003ac1'] = 'Solicitar contraseña del comercio en compras con tarjetas almacenadas ';
 $_MODULE['<{paytpv}prestashop>admin_b8eb427942eb73e0361757a21a24a6c9'] = 'Pago en nueva Página';
+$_MODULE['<{paytpv}prestashop>admin_01ee899141e6b3faf34cd0f05d574eba'] = 'Si. IFrame';
+$_MODULE['<{paytpv}prestashop>admin_ef235138d64abcf33aba9baeb9c72bcb'] = 'Si. Página PAYTPV';
 $_MODULE['<{paytpv}prestashop>admin_5d6c3a82aaf0907c8898bbaf11d29e59'] = 'Si, para procesos de pago incompatibles.';
 $_MODULE['<{paytpv}prestashop>admin_f180ebd824f30a0c68ab99169340cb99'] = 'Activar Suscripciones';
 $_MODULE['<{paytpv}prestashop>admin_da22c93ccb398c72070f4000cc7b59a1'] = 'Personalización';
@@ -186,8 +188,6 @@ $_MODULE['<{paytpv}prestashop>order_suscription_info_f2b798f672d4b42c0359ced11d4
 $_MODULE['<{paytpv}prestashop>order_suscription_info_b2f40690858b404ed10e62bdf422c704'] = 'Importe';
 $_MODULE['<{paytpv}prestashop>order_suscription_info_a6122a65eaa676f700ae68d393054a37'] = 'Comienzo';
 $_MODULE['<{paytpv}prestashop>order_suscription_info_ec53a8c4f07baed5d8825072c89799be'] = 'Estado';
-$_MODULE['<{paytpv}prestashop>payment_7248997d338f0d08b14485ab24b1abe7'] = 'Conectar con TPV';
-$_MODULE['<{paytpv}prestashop>payment_8a823f685774b54c04ddbdc18db1f188'] = 'Pago Seguro con tarjeta de crédito';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_a85eba4c6c699122b2bb1387ea4813ad'] = 'Carrito';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_b933f6b9b13a6706766fb18b75af4f45'] = 'Pagar con Tarjeta';
 $_MODULE['<{paytpv}prestashop>payment_bsiframe_4129706d4bfd26efe5f875f5195c2956'] = 'Desea suscribirse a este pedido?';

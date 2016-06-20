@@ -1,5 +1,4 @@
 <?php
-
 /*
 * 2007-2015 PrestaShop
 *
@@ -319,10 +318,14 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			// NO ORDER
 			}else{
 				 
+
 				$pagoRegistrado = $paytpv->validateOrder($id_cart, _PS_OS_PAYMENT_, $importe, $paytpv->displayName, NULL, $transaction, NULL, false, $customer->secure_key);
+			
 				$id_order = Order::getOrderByCartId(intval($id_cart));
 				$id_suscription = 0;
 				$datos_order = Paytpv_Order_Info::get_Order_Info($cart->id_customer,$id_cart);
+
+
 				// BANKSTORE: Si hay notificacion
 				if(Tools::getValue('IdUser')){
 

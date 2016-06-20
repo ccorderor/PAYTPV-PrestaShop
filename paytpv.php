@@ -46,7 +46,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.2.5';
+		$this->version = '6.2.6';
 
 		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
 		
@@ -331,7 +331,7 @@ class Paytpv extends PaymentModule {
 
 		// Check New Page payment
 		$newpage_payment = intval(Configuration::get('PAYTPV_NEWPAGEPAYMENT'));
-		if ($newpage_payment){
+		if ($newpage_payment==1){
 			$this->context->smarty->assign('this_path',$this->_path);
 			return $this->display(__FILE__, 'payment_newpage.tpl');
 		}else{
@@ -375,6 +375,8 @@ class Paytpv extends PaymentModule {
 			$this->context->smarty->assign('id_cart',$params['cart']->id);
 			
 			$this->context->smarty->assign('paytpv_iframe',$this->paytpv_iframe_URL());
+
+			$this->context->smarty->assign('newpage_payment',$newpage_payment);
 
 			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 

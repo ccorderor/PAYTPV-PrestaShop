@@ -44,8 +44,15 @@ $(document).ready(function() {
     });
 
 
-    $("body").on("change",".paytpv #susc_periodicity, .paytpv #susc_cycles",function() {
+    $("body").on("change",".paytpv #susc_periodicity, .paytpv #susc_cycles",function(){
         validateSuscription($(this));
+    });
+
+    $("body").on("change","#card",function(event){
+        
+        if ($("#payment_mode_paytpv")){
+            $("#payment_mode_paytpv").attr("data-payment-link",$(this).val());
+        }
     });
 
 });
@@ -69,7 +76,13 @@ function check_suscription(){
 
 function checkCard(){
     // Show Cards only if exists saved cards
-    if ($("#card option").length>1)    $("#saved_cards").show();
+    if ($("#card option").length>1){
+        $("#saved_cards").show();
+        if ($("#payment_mode_paytpv")){
+            $("#button_directpay").hide();
+            $("#payment_mode_paytpv").attr("data-payment-link",$("#card").val());
+        }
+    }
     
     if ($("#card").val()=="0"){
         $("#storingStep,.paytpv_iframe").removeClass("hidden").show();

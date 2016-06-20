@@ -30,7 +30,23 @@
 
 <div class="row">
     <div class="col-xs-12 col-md-6">
-        <div class="paytpv">            
+        <div class="paytpv">
+            {if ($newpage_payment==2)}
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <p style="padding-top: 10px;">
+                            <input type="radio" title="{l s='Pay with Card' mod='paytpv'}" 
+                                    name="payment_mode" 
+                                    class="payment_mode" 
+                                    id="payment_mode_paytpv" 
+                                    data-payment="paytpv"
+                                    data-payment-link="{$paytpv_iframe}">
+                            <label class="upletter" style="padding-left: 20px;" for="payment_mode_paytpv">{l s='Pay with Card' mod='paytpv'}</label>
+                        </p>
+                        <form action="{$link->getModuleLink('paytpv', 'validation')}" method="post" id="paytpv_form" class="hidden"></form>
+                    </div>
+                </div>
+            {/if}   
             <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}views/img/paytpv.png"></a>
             <img src="{$this_path}views/img/tarjetas.png">
             <br>
@@ -103,7 +119,11 @@
                         <select name="card" id="card" onChange="checkCard()" class="form-control">
                             {section name=card loop=$saved_card }
                                 {if ($saved_card[card].url=="0")}
-                                    <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
+                                    {if ($newpage_payment==2)}
+                                        <option value='{$paytpv_iframe}'>{l s='NEW CARD' mod='paytpv'}</option>
+                                    {else}
+                                        <option value='0'>{l s='NEW CARD' mod='paytpv'}</option>
+                                    {/if}
                                 {else}
                                     <option value='{$saved_card[card].url}'>{$saved_card[card].CC} ({$saved_card[card].BRAND}){if ($saved_card[card].CARD_DESC!="")} - {$saved_card[card].CARD_DESC}{/if}</option>
                                 {/if}
@@ -113,16 +133,18 @@
                 </form>
 
                 {if (sizeof($saved_card)>1)}
-                    {if ($commerce_password)}
-                        <a id="open_directpay" href="#directpay" class="paytpv_pay button button-small btn btn-default">          
-                            <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                        </a>
-                    {else}
-                        <a id="exec_directpay" href="#" class="exec_directpay paytpv_pay button button-small btn btn-default">          
-                            <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
-                        </a>
-                    {/if}
-                    <img id='clockwait' style="display:none" src="{$this_path}views/img/clockpayblue.gif"></img>
+                    <div id="button_directpay">
+                        {if ($commerce_password)}
+                            <a id="open_directpay" href="#directpay" class="paytpv_pay button button-small btn btn-default">          
+                                <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                            </a>
+                        {else}
+                            <a id="exec_directpay" href="#" class="exec_directpay paytpv_pay button button-small btn btn-default">          
+                                <span>{l s='Pay' mod='paytpv'}<i class="icon-chevron-right right"></i></span>
+                            </a>
+                        {/if}
+                        <img id='clockwait' style="display:none" src="{$this_path}views/img/clockpayblue.gif"></img>
+                    </div>
                 {/if}
                 
                 <div id="confirm" style="display:none">
@@ -149,9 +171,11 @@
                    <p id='ajax_loader' style="display:none">
                         <img id='ajax_loader' src="{$this_path}views/img/clockpayblue.gif"></img>
                         {l s='Loading payment form...' mod='paytpv'}
-                    </p>   
-                   
-                   <iframe id="paytpv_iframe" src="{$paytpv_iframe}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
+                    </p>
+
+                   {if ($newpage_payment==0)}
+                        <iframe id="paytpv_iframe" src="{$paytpv_iframe}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
+                   {/if}
             </div>
            
         </div>
