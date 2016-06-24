@@ -3,6 +3,9 @@
 
 Ofrece la posibilidad de cobrar a tus clientes con tarjeta en tiendas Prestashop 1.5+.
 
+## Documentación del Módulo.
+
+En el siguiente enlace [Modulo Prestashop PAYTPV](http://developers.paytpv.com/es/modulos-de-pago/prestashop)
 
 ## Instalación
 
