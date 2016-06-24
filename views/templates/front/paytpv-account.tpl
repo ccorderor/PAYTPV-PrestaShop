@@ -44,6 +44,10 @@
     
 </script>
 
+{if {$error}!=""}
+<div class="alert alert-danger">{$error}</div>
+{/if}
+
 <div id="paytpv_block_account">
     <h2>{l s='My Cards' mod='paytpv'}</h2>
     {if isset($saved_card[0])}
@@ -89,9 +93,51 @@
             </a>
         </p>
 
-        <p class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
-            <iframe src="{$url_paytpv}" id="paytpv_iframe" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
-        </p>
+        <div class="payment_module paytpv_iframe" id="nueva_tarjeta" style="display:none">
+            {if ($paytpv_integration==0)}
+                <iframe src="{$url_paytpv}" id="paytpv_iframe" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
+            {else}
+                <form action="{$paytpv_jetid_url}" method="POST" class="paytpv_jet" id="paytpvPaymentForm" onsubmit="return takingOff();">
+                <ul>
+                    <li>
+                        <label for="MERCHANT_PAN">{l s='Credit Card Number' mod='paytpv'}:</label>
+                        <input type="text" data-paytpv="paNumber" width="360" maxlength="16" id="MERCHANT_PAN" name="MERCHANT_PAN" value="" required="required" placeholder="1234 5678 9012 3456" pattern="{literal}[0-9]{15,16}{/literal}" onclick="this.value='';">
+                    </li>
+                    <li class="vertical">
+                        <ul>
+                            <li>
+                                <label for="expiry_date">{l s='Expiration' mod='paytpv'}</label>
+                                <input name="expiry_date" id="expiry_date" maxlength="5" placeholder="{l s='mm/yy' mod='paytpv'}" required="required" pattern="{literal}[0-9]{2}/+[0-9]{2}{/literal}" type="text" onChange="buildED();">
+                                <input type="hidden" data-paytpv="dateMonth" maxlength="2" id="mm" name="mm" value="">
+                                <input type="hidden" data-paytpv="dateYear" maxlength="2" id="yy" name="yy" value="">
+                            </li>
+                            <li>
+                                <label for="MERCHANT_CVC2">CVV</label>
+                                <input type="text" data-paytpv="cvc2" maxlength="4" id="MERCHANT_CVC2" name="MERCHANT_CVC2" value="" required="required" placeholder="123" pattern="{literal}[0-9]{3,4}{/literal}" onclick="this.value='';">
+                            </li>
+                            <small class="help">{l s='The CVV is a numerical code, usually 3 digits behind the card' mod='paytpv'}.</small>
+                        </ul>
+                    </li>
+                    <li>
+                        <label for="Nombre">{l s='Cardholder name' mod='paytpv'}</label>
+                        <input type="text" data-paytpv="cardHolderName" width="360" maxlength="50" id="cardHolderName" name="cardHolderName" value="" required="required" placeholder="{l s='Name surname' mod='paytpv'}" onclick="this.value='';">
+                    </li>
+                    <li>
+                        
+                        <input type="submit" class="button" value="{l s='Save Card' mod='paytpv'}" id="btnforg" style="display: inline-block;font-size: 21px;font-weight: 300;line-height: 46px;height:46px;padding: 0 0px;text-align: center;width: 100%;" onclick="buildED();">
+                        <div class="loader" id="clockwait" style="display:none;"><img src="../../gateway/img/fullscreen/loader.gif" title="Espere"></div>
+
+                        <span style="color:red;font-weight:bold;" id="paymentErrorMsg"></span>
+                    </li>
+                </ul>
+                </form>
+
+                <script type="text/javascript" src="https://secure.paytpv.com/gateway/jet_paytpv_js.php?id={$jet_id}&language={$jet_lang}"></script>
+                <script type="text/javascript">
+                {literal}(function(){(function(){var b,a=[].indexOf||function(e){for(var d=0,c=this.length;d<c;d++){if(d in this&&this[d]===e){return d}}return -1};b=jQuery;b.fn.validateCreditCard=function(p,q){var m,g,h,d,c,e,f,k,n,l,i,o,j;d=[{name:"amex",pattern:/^3[47]/,valid_length:[15]},{name:"diners_club_carte_blanche",pattern:/^30[0-5]/,valid_length:[14]},{name:"diners_club_international",pattern:/^36/,valid_length:[14]},{name:"jcb",pattern:/^35(2[89]|[3-8][0-9])/,valid_length:[16]},{name:"laser",pattern:/^(6304|670[69]|6771)/,valid_length:[16,17,18,19]},{name:"visa_electron",pattern:/^(4026|417500|4508|4844|491(3|7))/,valid_length:[16]},{name:"visa",pattern:/^4/,valid_length:[16]},{name:"mastercard",pattern:/^(5[1-5]|222|2[3-6]|27[0-1]|2720)/,valid_length:[16]},{name:"maestro",pattern:/^(5018|5020|5038|6304|6759|676[1-3])/,valid_length:[12,13,14,15,16,17,18,19]},{name:"discover",pattern:/^(6011|622(12[6-9]|1[3-9][0-9]|[2-8][0-9]{2}|9[0-1][0-9]|92[0-5]|64[4-9])|65)/,valid_length:[16]}];m=false;if(p){if(typeof p==="object"){q=p;m=false;p=null}else{if(typeof p==="function"){m=true}}}if(q===null){q={}}if(q.accept===null){q.accept=(function(){var t,s,r;r=[];for(t=0,s=d.length;t<s;t++){g=d[t];r.push(g.name)}return r})()}j=q.accept;for(i=0,o=j.length;i<o;i++){h=j[i];if(a.call((function(){var t,s,r;r=[];for(t=0,s=d.length;t<s;t++){g=d[t];r.push(g.name)}return r})(),h)<0){throw""}}c=function(u){var t,s,r;r=(function(){var y,x,v,w;w=[];for(y=0,x=d.length;y<x;y++){g=d[y];if(v=g.name,a.call(q.accept,v)>=0){w.push(g)}}return w})();for(t=0,s=r.length;t<s;t++){h=r[t];if(u.match(h.pattern)){return h}}return null};f=function(v){var x,w,t,u,s,r;t=0;r=v.split("").reverse();for(w=u=0,s=r.length;u<s;w=++u){x=r[w];x=+x;if(w%2){x*=2;if(x<10){t+=x}else{t+=x-9}}else{t+=x}}return t%10===0};e=function(t,s){var r;return r=t.length,a.call(s.valid_length,r)>=0};l=(function(r){return function(u){var t,s;h=c(u);s=false;t=false;if(h!==null){s=f(u);t=e(u,h)}return{card_type:h,valid:s&&t,luhn_valid:s,length_valid:t}}})(this);n=(function(r){return function(){var s;s=k(b(r).val());return l(s)}})(this);k=function(r){return r.replace(/[ -]/g,"")};if(!m){return n()}this.on("input.jccv",(function(r){return function(){b(r).off("keyup.jccv");return p.call(r,n())}})(this));this.on("keyup.jccv",(function(r){return function(){return p.call(r,n())}})(this));p.call(this,n());return this}}).call(this);$(function(){return $("#MERCHANT_PAN").validateCreditCard(function(a){$(this).removeClass();if(a.card_type===null){return}$(this).addClass(a.card_type.name);if(a.valid){return $(this).addClass("valid")}else{return $(this).removeClass("valid")}},{accept:["visa","visa_electron","mastercard","maestro","discover","amex"]})})}).call(this);function buildED(){var c=document.getElementById("expiry_date").value;var a=c.substr(0,2);var b=c.substr(3,2);document.getElementById("mm").value=a;document.getElementById("yy").value=b;return}$(document).ready(function(){$("#expiry_date").on("input",function(){var b=$(this).val().length;if(b===2){var a=$(this).val();a+="/";$(this).val(a)}})});{/literal}
+                </script>
+            {/if}
+        </div>
     </div>
     <hr>
     <h2>{l s='My Subscriptions' mod='paytpv'}</h2>

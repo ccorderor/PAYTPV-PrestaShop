@@ -4,10 +4,6 @@
 Ofrece la posibilidad de cobrar a tus clientes con tarjeta en tiendas Prestashop 1.5+.
 
 
-## Video Tutorial de instalación del Módulo.
-
-En el siguiente enlace (https://vimeo.com/168159218) podrá ver el Tutorial de Instalación y Configuración del Módulo de PAYTPV para Prestashop.
-
 ## Instalación
 
 Accedemos a al administración de Prestashop menú Modulos.
@@ -23,9 +19,9 @@ Rellenaremos los datos según la configuracion disponible en PayTPV. https://pay
 #### Modo Real: Para el uso normal del módulo con pagos reales.
 #### Modo Test: Para probar el funcionamiento del módulo sin necesidad de tener una cuenta en PayTPV.
 
-### Tipo de Operativa: 
+### Integración: 
 
-#### Bankstore: La mejor opción para integrar el módulo y poder almacenar datos de tarjetas para futuras compras, además de ofrecer la posibilidad de suscribirse a productos.
+#### Bankstore IFRAME/XML: La mejor opción para integrar el módulo y poder almacenar datos de tarjetas para futuras compras, además de ofrecer la posibilidad de suscribirse a productos.
 
 - Terminales disponibles: Seleccione el tipo de terminal contratado.
 - 3D Secure en la primera compra: Si la primera compra se realiza por terminal seguro. La opción NO sólo está disponible cuando el cliente tiene contratado un terminal no seguro. En el resto de casos la primera compra siempres se hará por 3D Secure.
@@ -37,6 +33,8 @@ Rellenaremos los datos según la configuracion disponible en PayTPV. https://pay
 - Activar suscripciones: Si se desea que se muestre o no la opción de suscribirse en los carros de compra.
 
 IMPORTANTE: En la configuración del modulo se indican las URL OK, URL OK y URL de NOTIFICACION que deberán definirse en la configuración de PayTPV.
+
+#### Bankstore JET/XML: Igual que la operativa Bankstore IFRAME, salvo que la captación de datos de tarjeta no se realiza mediante iframe. Es necesario generar el JET ID en la configuración del Producto dentro de PAYTPV. ¡¡El entorno sólo trabajará sobre protocolo seguro SSL!!
 
 
 ## Configuración del producto en PayTPV

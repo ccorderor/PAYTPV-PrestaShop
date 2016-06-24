@@ -52,6 +52,8 @@
                         <option value="1" {if $environment==1}selected="1"{/if}>{l s='Test Mode' mod='paytpv'}</option>
                     </select>
                     <div id="test_mode">
+                        <strong>{l s='IMPORTANT' mod='paytpv'}: {l s='This mode does not make calls to PAYTPV.' mod='paytpv'}<br/>
+                        {l s='Use Real Mode if you have a PAYTPV Sandbox Terminal or a Production Terminal.' mod='paytpv'}</strong><br/>
                         {l s='Test PayTPV module without PayTPV account.' mod='paytpv'}<br/>
                         {l s='Terminal Number' mod='paytpv'}: ({l s='1,2,3,... One for each type of currency' mod='paytpv'})
                         <br/>
@@ -66,6 +68,16 @@
                
                 <div id="real_mode">                 
                     
+                    <label>{l s='Integration' mod='paytpv'}</label>
+                    <div class="margin-form">
+                        <select name="integration" id="integration" onchange="checkmode();">
+                            <option value="0" {if $integration==0}selected="1"{/if}>Bankstore IFRAME/XML</option>
+                            <option value="1" {if $integration==1}selected="1"{/if}>Bankstore JET/XML</option>
+                        </select>
+                        <br/>Bankstore IFRAME/XML: {l s='PayTPV payment iframe' mod='paytpv'}
+                        <br/>Bankstore JET/XML: {l s='SSL mandatory' mod='paytpv'}<br/>
+                    </div>
+
                     <label>{l s='Client Code' mod='paytpv'}</label>
                     <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
             		
@@ -93,7 +105,12 @@
 
                         <label>{l s='User Password' mod='paytpv'}</label>
                         <div class="margin-form"><input type="text" size="22" name="pass[]" value="{$terminal['password']}" /></div>
-                        
+
+                        <div class="class_jetid">
+                            <label>JET ID</label>
+                            <div class="margin-form"><input type="text" size="40" name="jetid[]" value="{$terminal['jetid']}" /></div>
+                        </div>
+
                         <label>{l s='Terminals available' mod='paytpv'}</label>
                         <div class="margin-form"><select name="terminales[]" onchange="checkterminales(this);" id="terminales_{$cont}" >
                             <option value="0" {if $terminal['terminales']==0} selected="1"{/if}>{l s='Secure' mod='paytpv'}</option>
@@ -149,7 +166,7 @@
                     <div class="margin-form">
                         <select name="newpage_payment" id="newpage_payment">
                             <option value="0" {if $newpage_payment==0}selected="1"{/if}>{l s='No' mod='paytpv'}</option>
-                            <option value="1" {if $newpage_payment==1}selected="1"{/if}>{l s='Yes. IFRAME' mod='paytpv'}</option>
+                            <option value="1" {if $newpage_payment==1}selected="1"{/if}>{l s='Yes' mod='paytpv'}</option>
                             <option value="2" {if $newpage_payment==2}selected="1"{/if}>{l s='Yes. PAYTPV page' mod='paytpv'}</option>
                         </select>
                         [{l s='Yes for incompatible checkout modules' mod='paytpv'}]
@@ -210,7 +227,7 @@
 
         <div>
             <p class="important">{l s='USER DOCUMENTATION' mod='paytpv'}</p>
-            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="https://github.com/PayTpv/PAYTPV-PrestaShop/blob/master/PAYTPV_MODULO_PRESTASHOP.pdf?raw=true">{l s='USER DOCUMENTATION'  mod='paytpv'}</a></strong>
+            <p><strong>{l s='Link to documentation by clicking the following link' mod='paytpv'} <a class='link' target="_blank"  href="http://developers.paytpv.com/es/modulos-de-pago/prestashop">{l s='USER DOCUMENTATION'  mod='paytpv'}</a></strong>
         </div>
 
     </form>
@@ -313,6 +330,7 @@
         checkenvironment();
         checkAllTerminales();
         checkaddTerminal();
+        checkmode();
 
 
         function addTerminal(){
@@ -352,8 +370,17 @@
             else
                 jQuery("#addterminal").hide()
 
-    }
+        }
 
+        function checkmode(){
+            if (jQuery("#integration").val()==0){
+                jQuery(".class_jetid").hide();
+                
+            }else{
+                jQuery(".class_jetid").show();
+            }
+
+        }
 
     </script>
 

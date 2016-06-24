@@ -110,6 +110,7 @@ class PayTpvInstall
 				`id_shop` INT(2) UNSIGNED NOT NULL DEFAULT 1,
 				`idterminal` INT(4) UNSIGNED NOT NULL,
 				`password` VARCHAR(30) NOT NULL,
+				`jetid` VARCHAR(32),
 				`currency_iso_code` VARCHAR(3) NOT NULL,
 				`terminales` SMALLINT(1) NOT NULL DEFAULT 0,
 				`tdfirst` SMALLINT(1) NOT NULL DEFAULT 1,

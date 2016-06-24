@@ -46,7 +46,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.2.6';
+		$this->version = '6.3.0';
 
 		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
 		
@@ -57,6 +57,10 @@ class Paytpv extends PaymentModule {
 		// Establishing properties from configuraction data
 		if (isset($config['PAYTPV_ENVIRONMENT']))
 			$this->environment = $config['PAYTPV_ENVIRONMENT'];
+
+
+		if (isset($config['PAYTPV_INTEGRATION']))
+			$this->integration = $config['PAYTPV_INTEGRATION'];
 
 		// Test Mode
 		if ($this->environment==1){
@@ -184,6 +188,10 @@ class Paytpv extends PaymentModule {
 
 				if (empty($_POST['moneda'][$key]))
 					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('Currency required');
+
+				if ($_POST["jetid"][$key]=="" && $_POST["integration"]==1){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('JET ID number invalid');
+				}
 			}
 
 			// Check Duplicate Terms
@@ -210,13 +218,15 @@ class Paytpv extends PaymentModule {
 			Configuration::updateValue('PAYTPV_COMMERCEPASSWORD', $_POST['commerce_password']);
 			Configuration::updateValue('PAYTPV_NEWPAGEPAYMENT', $_POST['newpage_payment']);
 			Configuration::updateValue('PAYTPV_SUSCRIPTIONS', $_POST['suscriptions']); 
+
+			Configuration::updateValue('PAYTPV_INTEGRATION', $_POST['integration']); 
 			
 			// Save Paytpv Terminals
 			Paytpv_Terminal::remove_Terminals();
 			
 			foreach ($_POST["term"] as $key=>$terminal){
 				$_POST['tdmin'][$key] = ($_POST['tdmin'][$key]=='' || $_POST["terminales"][$key]!=2)?0:$_POST['tdmin'][$key];
-				Paytpv_Terminal::add_Terminal($key+1,$terminal,$_POST["pass"][$key],$_POST["moneda"][$key],$_POST["terminales"][$key],$_POST["tdfirst"][$key],$_POST["tdmin"][$key]);
+				Paytpv_Terminal::add_Terminal($key+1,$terminal,$_POST["pass"][$key],$_POST["jetid"][$key],$_POST["moneda"][$key],$_POST["terminales"][$key],$_POST["tdfirst"][$key],$_POST["tdmin"][$key]);
 				
 			}
 			return '<div class="bootstrap"><div class="alert alert-success">'.$this->l('Configuration updated').'</div></div>';          
@@ -265,6 +275,7 @@ class Paytpv extends PaymentModule {
 		$this->context->smarty->assign('errorMessage',$errorMessage);
 
 		$this->context->smarty->assign('environment', (isset($_POST["environment"]))?$_POST["environment"]:$conf_values['PAYTPV_ENVIRONMENT']);
+		$this->context->smarty->assign('integration', (isset($_POST["integration"]))?$_POST["integration"]:$conf_values['PAYTPV_INTEGRATION']);
 		$this->context->smarty->assign('clientcode', (isset($_POST["clientcode"]))?$_POST["clientcode"]:$conf_values['PAYTPV_CLIENTCODE']);
 
 		$this->context->smarty->assign('terminales_paytpv', $this->obtenerTerminalesConfigurados($_POST));
@@ -290,6 +301,7 @@ class Paytpv extends PaymentModule {
     		foreach ($params["term"] as $key=>$term){
     			$terminales[$key]["idterminal"] = $term;
     			$terminales[$key]["password"] = $params["pass"][$key];
+    			$terminales[$key]["jetid"] = $params["jetid"][$key];
     			$terminales[$key]["terminales"] = $params["terminales"][$key];
     			$terminales[$key]["tdfirst"] = $params["tdfirst"][$key];
     			$terminales[$key]["tdmin"] = $params["tdmin"][$key];
@@ -304,6 +316,7 @@ class Paytpv extends PaymentModule {
 
     			$terminales[0]["idterminal"] = "";
     			$terminales[0]["password"] = "";
+    			$terminales[0]["jetid"] = "";
     			$terminales[0]["terminales"] = 0;
     			$terminales[0]["tdfirst"] = 1;
     			$terminales[0]["tdmin"] = 0;
@@ -315,14 +328,18 @@ class Paytpv extends PaymentModule {
 
 	public function hookDisplayShoppingCart()
 	{
+
 		$this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
+		$this->context->controller->addCSS( $this->_path . 'css/fullscreen.css' , 'all' );
 		$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
 	}
 
 	
 
 	public function hookDisplayPaymentTop($params) {
+		
 		$this->context->controller->addCSS( $this->_path . 'css/payment.css' , 'all' );
+		$this->context->controller->addCSS( $this->_path . 'css/fullscreen.css' , 'all' );
 		$this->context->controller->addJS( $this->_path . 'js/paytpv.js');
 		
 	}
@@ -331,10 +348,15 @@ class Paytpv extends PaymentModule {
 
 		// Check New Page payment
 		$newpage_payment = intval(Configuration::get('PAYTPV_NEWPAGEPAYMENT'));
+		$paytpv_integration = intval(Configuration::get('PAYTPV_INTEGRATION'));
 		if ($newpage_payment==1){
 			$this->context->smarty->assign('this_path',$this->_path);
 			return $this->display(__FILE__, 'payment_newpage.tpl');
 		}else{
+
+			$cart = Context::getContext()->cart;
+			$datos_pedido = $this->TerminalCurrency($cart);
+			$jetid = $datos_pedido["jetid"];
 
 			$this->context->smarty->assign('msg_paytpv',"");
 			
@@ -377,6 +399,12 @@ class Paytpv extends PaymentModule {
 			$this->context->smarty->assign('paytpv_iframe',$this->paytpv_iframe_URL());
 
 			$this->context->smarty->assign('newpage_payment',$newpage_payment);
+			$this->context->smarty->assign('paytpv_integration',$paytpv_integration);
+
+			$this->context->smarty->assign('jet_id',$jetid);
+			$this->context->smarty->assign('jet_lang',$this->context->language->iso_code);
+
+			$this->context->smarty->assign('paytpv_jetid_url',Context::getContext()->link->getModuleLink($this->name, 'capture',array(),$ssl));
 
 			$this->context->smarty->assign('base_dir', __PS_BASE_URI__);
 
@@ -471,6 +499,7 @@ class Paytpv extends PaymentModule {
 
 		$arrDatos["idterminal"] = $result["idterminal"];
 		$arrDatos["password"] = $result["password"];
+		$arrDatos["jetid"] = $result["jetid"];
 		$arrDatos["currency_iso_code"] = $this->context->currency->iso_code;
 		$arrDatos["importe"] = number_format($cart->getOrderTotal(true, Cart::BOTH) * 100, 0, '.', '');
 		
@@ -580,7 +609,7 @@ class Paytpv extends PaymentModule {
 
 	}
 	private function getConfigValues(){
-		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_NEWPAGEPAYMENT', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
+		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_INTEGRATION', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_NEWPAGEPAYMENT', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
 	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){

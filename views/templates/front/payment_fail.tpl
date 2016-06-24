@@ -24,14 +24,16 @@
 
 {capture name=path}{l s='Payment not completed' mod='paytpv'}{/capture}
 
-{include file="$tpl_dir./breadcrumb.tpl"}
+
 
 <h2>{l s='Payment not completed' mod='paytpv'}</h2>
 
 
 	{if ($password_fail)}
 	<img src="{$base_dir}img/admin/icon-cancel.png"/> &nbsp;&nbsp; {l s='Incorrect Password'  mod='paytpv'}  
-	</tr>
+	
+	{else if ($error_msg)}
+	<img src="{$base_dir}img/admin/icon-cancel.png"/> &nbsp;&nbsp; {$error_msg}
 	{else}
 	<img src="{$base_dir}img/admin/icon-cancel.png"/>&nbsp;&nbsp;   
 	{l s='We are sorry. Your payment has not been completed. You can try again or choose another payment method. Remember that you can use cards adhered to the Visa secure payment system called "Verified by Visa", or MasterCard secure payment system, called "MasterCard SecureCode"'  mod='paytpv'}

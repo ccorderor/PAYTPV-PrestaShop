@@ -44,6 +44,7 @@ class PaytpvUrlkoModuleFrontController extends ModuleFrontController
 
 		$password_fail = 0;
 		$this->context->smarty->assign('password_fail',$password_fail);
+		$this->context->smarty->assign('error_msg',"");
 		$this->context->smarty->assign(array(
 			'this_path' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->module->name.'/'
 		));

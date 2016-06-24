@@ -341,6 +341,40 @@ class WS_Client {
 		return $res;
 
 	}
+
+	function add_user_token($token){
+
+		
+		$DS_MERCHANT_MERCHANTCODE = $this->config[ 'clientcode' ];
+		$DS_MERCHANT_TERMINAL = $this->config[ 'term' ];
+		$DS_JETID = $this->config[ 'jetid' ];
+		$DS_MERCHANT_MERCHANTSIGNATURE = sha1($DS_MERCHANT_MERCHANTCODE.$token.$DS_JETID.$DS_MERCHANT_TERMINAL.$this->config[ 'pass' ]);
+
+		$DS_ORIGINAL_IP = $_SERVER['REMOTE_ADDR'];
+		if ($DS_ORIGINAL_IP=="::1")	$DS_ORIGINAL_IP = "127.0.0.1";
+
+
+		$p = array(
+
+			'DS_MERCHANT_MERCHANTCODE' => $DS_MERCHANT_MERCHANTCODE,
+			'DS_MERCHANT_TERMINAL' => $DS_MERCHANT_TERMINAL,
+			'DS_MERCHANT_JETTOKEN' => $token,
+			'DS_MERCHANT_JETID' => $DS_JETID,
+			'DS_MERCHANT_MERCHANTSIGNATURE' => $DS_MERCHANT_MERCHANTSIGNATURE,
+			'DS_ORIGINAL_IP' => $DS_ORIGINAL_IP
+
+		);
+
+
+		$this->write_log("Petición add_user_token:\n".print_r($p,true));
+
+		$res = $this->client->call( 'add_user_token', $p, '', '', false, true );
+
+		$this->write_log("Respuesta add_user_token:\n".print_r($res,true));
+
+		return $res;
+
+	}
 }
 
 

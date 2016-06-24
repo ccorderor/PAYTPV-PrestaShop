@@ -1,4 +1,6 @@
-{*
+<?php
+
+/*
 * 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
@@ -20,25 +22,18 @@
 *  @author     Jose Ramon Garcia <jrgarcia@paytpv.com>
 *  @copyright  2015 PAYTPV ON LINE S.L.
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*}
+*/
 
-{capture name=path}{l s='Payment completed' mod='paytpv'}{/capture}
+if (!defined('_PS_VERSION_'))
+	exit;
 
-<h2>{l s='Payment completed' mod='paytpv'}</h2>
-	<img src="{$base_dir}img/admin/icon-valid.png"/>&nbsp;&nbsp;   
-	{l s='Thank you for trusting us. Your purchase has been formalized correctly and we will process your order soon.'  mod='paytpv'}
-	
+function upgrade_module_6_3_0($object)
+{
 
-<ul class="footer_links">    
-	<li>    	
-		<a href="{$link->getPageLink('my-account')}" title="{l s='Go to your account'  mod='paytpv'}">    		
-			<img src="{$base_dir}img/admin/nav-user.gif" alt="{l s='Go to your account' mod='paytpv'}" class="icon" />&nbsp;{l s='Go to your account'  mod='paytpv'}    	
-		</a>
-	</li>   
-	<li>&nbsp;&nbsp;</li>    
-	<li>    	
-		<a href="{$base_dir}">    		
-			<img src="{$base_dir}img/admin/home.gif" alt="{l s='Home' mod='paytpv'}" class="icon" />&nbsp;{l s='Home'  mod='paytpv'}    	
-		</a>    
-	</li>
-</ul>
+	try{
+		Db::getInstance()->Execute('ALTER TABLE `' . _DB_PREFIX_ . 'paytpv_terminal` ADD COLUMN `jetid` VARCHAR(32) AFTER password');
+		
+	}catch (exception $e){}
+
+	return true;
+}

@@ -43,7 +43,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		if (Tools::getValue('process') == 'addCard')
 			$this->processAddCard();
-
+		
 		if (Tools::getValue('process') == 'saveOrderInfo')
 			$this->processSaverOrderInfo();
 
@@ -207,6 +207,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		
 		print json_encode($arrReturn);
 	}
+
 
 
 	/**

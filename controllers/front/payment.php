@@ -74,6 +74,22 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		}
 		$saved_card[$index]['url'] = 0;
 
+		$cart = Context::getContext()->cart;
+		$datos_pedido = $this->module->TerminalCurrency($cart);
+		$jetid = $datos_pedido["jetid"];
+
+
+		$newpage_payment = intval(Configuration::get('PAYTPV_NEWPAGEPAYMENT'));
+		$paytpv_integration = intval(Configuration::get('PAYTPV_INTEGRATION'));
+
+		$this->context->smarty->assign('newpage_payment',$newpage_payment);
+		$this->context->smarty->assign('paytpv_integration',$paytpv_integration);
+
+		$this->context->smarty->assign('jet_id',$jetid);
+		$this->context->smarty->assign('jet_lang',$this->context->language->iso_code);
+
+		$this->context->smarty->assign('paytpv_jetid_url',Context::getContext()->link->getModuleLink($this->module->name, 'capture',array(),$ssl));
+
 		$tmpl_vars = array();
 		$tmpl_vars['capture_url'] = Context::getContext()->link->getModuleLink($this->module->name, 'capture',$values,$ssl);
 		$this->context->smarty->assign('active_suscriptions',$active_suscriptions);
@@ -93,7 +109,9 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 	 	
 	 	$this->context->controller->addJqueryPlugin('fancybox');
 	 	$this->context->controller->addCSS( $this->module->getPath() . 'css/payment.css' , 'all' );
+	 	$this->context->controller->addCSS( $this->module->getPath() . 'css/fullscreen.css' , 'all' );
 		$this->context->controller->addJS( $this->module->getPath() . 'js/paytpv.js');
+
 
 		$this->context->smarty->assign('paytpv_iframe',$this->module->paytpv_iframe_URL());
 	 	

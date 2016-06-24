@@ -78,7 +78,7 @@ function checkCard(){
     // Show Cards only if exists saved cards
     if ($("#card option").length>1){
         $("#saved_cards").show();
-        if ($("#payment_mode_paytpv")){
+        if ($("#payment_mode_paytpv")==2){
             $("#button_directpay").hide();
             $("#payment_mode_paytpv").attr("data-payment-link",$("#card").val());
         }
@@ -244,4 +244,68 @@ function suscribeJQ(){
         },
         dataType:"json"
     });
+}
+
+
+
+
+function takingOff() {
+    var x = new PAYTPV.Tokenizator();
+    x.getToken(document.forms["paytpvPaymentForm"], boarding);
+    return false;
+};
+
+function boarding(passenger) {
+    document.getElementById("paymentErrorMsg").innerHTML = "";
+    if (passenger.errorID !== 0 || passenger.paytpvToken === "") {
+        document.getElementById("paymentErrorMsg").innerHTML = passenger.errorText;
+    } else {
+        
+        var newInputField = document.createElement("input");
+
+        newInputField.type = "hidden";
+        newInputField.name = "paytpvToken";
+        newInputField.value = passenger.paytpvToken;
+
+        var paytpvPaymentForm = document.forms["paytpvPaymentForm"];
+        paytpvPaymentForm.appendChild(newInputField);
+
+
+        if ($("#suscription") && $("#suscripcion").is(':checked')){
+            var newInputField = document.createElement("input");
+
+            newInputField.type = "hidden";
+            newInputField.name = "suscription";
+            newInputField.value = 1;
+
+            var paytpvPaymentForm = document.forms["paytpvPaymentForm"];
+            paytpvPaymentForm.appendChild(newInputField);
+
+
+            var newInputField = document.createElement("input");
+
+            newInputField.type = "hidden";
+            newInputField.name = "periodicity";
+            newInputField.value = $("#susc_periodicity").val();
+
+            var paytpvPaymentForm = document.forms["paytpvPaymentForm"];
+            paytpvPaymentForm.appendChild(newInputField);
+
+
+            var newInputField = document.createElement("input");
+
+            newInputField.type = "hidden";
+            newInputField.name = "cycles";
+            newInputField.value = $("#susc_cycles").val();
+
+            var paytpvPaymentForm = document.forms["paytpvPaymentForm"];
+            paytpvPaymentForm.appendChild(newInputField);
+
+
+        }
+        paytpvPaymentForm.submit();
+        
+        
+
+    }
 }

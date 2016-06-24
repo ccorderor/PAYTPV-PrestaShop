@@ -29,6 +29,7 @@ class Paytpv_Terminal extends ObjectModel
 	public $id_shop;
 	public $idterminal;
 	public $password;
+	public $jetid;
 	public $currency_iso_code;
 	public $terminales;
 	public $tdfirst;
@@ -52,15 +53,15 @@ class Paytpv_Terminal extends ObjectModel
 		Db::getInstance()->Execute('DELETE FROM '. _DB_PREFIX_ .'paytpv_terminal where id_shop=' . $id_shop);
 	}
 
-	public static function add_Terminal($id,$idterminal,$password,$currency_iso_code,$terminales,$tdfirst,$tdmin){
+	public static function add_Terminal($id,$idterminal,$password,$jetid,$currency_iso_code,$terminales,$tdfirst,$tdmin){
 		$id_shop = Context::getContext()->shop->id;
-		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_terminal (id,id_shop,idterminal,password,currency_iso_code,terminales,tdfirst,tdmin) VALUES('.$id.','.$id_shop.','.$idterminal.',"'.$password.'","'.$currency_iso_code.'",'.$terminales.','.$tdfirst.','.$tdmin.')';
+		$sql = 'INSERT INTO '. _DB_PREFIX_ .'paytpv_terminal (id,id_shop,idterminal,password,jetid,currency_iso_code,terminales,tdfirst,tdmin) VALUES('.$id.','.$id_shop.','.$idterminal.',"'.$password.'","'.$jetid.'","'.$currency_iso_code.'",'.$terminales.','.$tdfirst.','.$tdmin.')';
 		Db::getInstance()->Execute($sql);
 	}
 
 	public static function get_Terminals(){
 		$id_shop = Context::getContext()->shop->id;
-		return Db::getInstance()->executeS("SELECT idterminal, password, currency_iso_code, terminales, tdfirst, tdmin FROM " . _DB_PREFIX_ . "paytpv_terminal where id_shop=" . $id_shop);
+		return Db::getInstance()->executeS("SELECT idterminal, password, jetid, currency_iso_code, terminales, tdfirst, tdmin FROM " . _DB_PREFIX_ . "paytpv_terminal where id_shop=" . $id_shop);
 	}
 
 	public static function get_Terminal_Currency($currency_iso_code){
@@ -105,6 +106,7 @@ class Paytpv_Terminal extends ObjectModel
 
 		$arrDatos["idterminal"] = $result2["idterminal"];
 		$arrDatos["password"] = $result2["password"];
+		$arrDatos["jetid"] = $result2["jetid"];
 		$arrDatos["terminales"] = $result2["terminales"];
 		$arrDatos["tdfirst"] = $result2["tdfirst"];
 		$arrDatos["tdmin"] = $result2["tdmin"];
@@ -119,6 +121,7 @@ class Paytpv_Terminal extends ObjectModel
 
 		$arrDatos["idterminal"] = $result2["idterminal"];
 		$arrDatos["password"] = $result2["password"];
+		$arrDatos["jetid"] = $result2["jetid"];
 		$arrDatos["terminales"] = $result2["terminales"];
 		$arrDatos["tdfirst"] = $result2["tdfirst"];
 		$arrDatos["tdmin"] = $result2["tdmin"];
