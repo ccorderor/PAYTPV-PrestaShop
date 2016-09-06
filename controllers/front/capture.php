@@ -219,7 +219,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		}else{
 
 
-			if ($jetPayment && $_POST["suscription"]==1){
+			if ($jetPayment && (isset($_POST["suscription"]) && $_POST["suscription"]==1)){
 				$subscription_startdate = date("Y-m-d");
 				$susc_periodicity = $_POST["periodicity"];
 				$subs_cycles = $_POST["cycles"];
@@ -261,6 +261,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		$this->context->smarty->assign('password_fail',$password_fail);	
 		$this->context->smarty->assign('base_dir',__PS_BASE_URI__);
         $this->setTemplate('payment_fail.tpl');
+        return;
 
     }
 

@@ -188,6 +188,7 @@ function cancelSuscription()
 
 
 function takingOff() {
+    ShowHidePaymentButton(false);
     var x = new PAYTPV.Tokenizator();
     x.getToken(document.forms["paytpvPaymentForm"], boarding);
     return false;
@@ -211,4 +212,15 @@ function boarding(passenger) {
         paytpvPaymentForm.submit();
         
     }
+}
+
+function ShowHidePaymentButton(show){
+  
+  if (show){
+    $("#clockwait_jet").hide('fast');
+    $("#btnforg").show('fast');
+  }else{
+    $("#btnforg").hide('fast');
+    $("#clockwait_jet").show('fast');
+  }
 }

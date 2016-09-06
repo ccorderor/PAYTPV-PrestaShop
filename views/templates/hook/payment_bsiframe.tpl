@@ -29,7 +29,11 @@
     {/capture}
 
     <div class="row">
-        <div class="col-xs-12 col-md-6">
+        {if ($newpage_payment==1)}
+            <div class="col-xs-12 col-md-12">
+        {else}
+            <div class="col-xs-12 col-md-6">
+        {/if}
             <div class="paytpv">
                 {if ($newpage_payment==2)}
                 <div class="row">
@@ -46,10 +50,9 @@
                         <form action="{$link->getModuleLink('paytpv', 'validation')}" method="post" id="paytpv_form" class="hidden"></form>
                     </div>
                 </div>
-                {/if}   
-                <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}views/img/paytpv.png"></a>
+                {/if}
+                <a href="http://www.paytpv.com" target="_blank"><img src="{$this_path}views/img/paytpv_logo.svg" width="135"></a>
                 <img src="{$this_path}views/img/tarjetas.png">
-                <br>
                 {if ($msg_paytpv!="")}
                 <p>
                     <span class="message">{$msg_paytpv}</span>
@@ -110,6 +113,19 @@
             </div>
             
             {/if}
+
+            {if ($newpage_payment==1)}
+                <div class="operation_data">
+                    <div class="pad">
+                      <h3>{l s='Credit Card Operation' mod='paytpv'}</h3>
+                      <div style="display:inline-table;">
+                        <div class="operation">
+                            <h4 class="cost_num">{l s='Total Amount' mod='paytpv'}:<b>{$total_amount} {$currency_symbol}</b></h4>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+            {/if}
             
 
             <div id="saved_cards" style="display:none">
@@ -155,20 +171,24 @@
             </div>
 
 
-            <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>1}hidden{/if}">
+            <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>1}hidden{/if}" style="clear:left;">
 
                 <h6>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
                     <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" onChange="saveOrderInfoJQ(0)" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
-
                 </div>
                 
 
                 <br class="clear"/>
 
 
-                <div class="payment_module paytpv_iframe" style="display:none">       
+                <div class="payment_module paytpv_iframe" style="display:none">
+
+                <div class="info_paytpv">
+                  <h5>{l s='The input data is stored on servers in PayTPV company with PCI / DSS Level 1 certification, making payments 100% secure.' mod='paytpv'}</h5>
+                </div>
 
                 {if ($newpage_payment<2)}
+                    
                     {if ($paytpv_integration==0)}
                         <p id='ajax_loader' style="display:none">
                             <img id='ajax_loader' src="{$this_path}views/img/clockpayblue.gif"></img>
@@ -176,7 +196,7 @@
                         </p>
                         <iframe id="paytpv_iframe" src="{$paytpv_iframe}" name="paytpv" style="width: 670px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; height: 322px; " marginheight="0" marginwidth="0" scrolling="no"></iframe>
                     {else}
-                        <form action="{$paytpv_jetid_url}" method="POST" class="paytpv_jet" id="paytpvPaymentForm" onsubmit="return takingOff();">
+                        <form action="{$paytpv_jetid_url}" method="POST" class="paytpv_jet" id="paytpvPaymentForm" onsubmit="return takingOff();" style="clear:left;">
                         <ul>
                             <li>
                                 <label for="MERCHANT_PAN">{l s='Credit Card Number' mod='paytpv'}:</label>
@@ -204,6 +224,7 @@
                             <li>
                                 
                                 <input type="submit" class="button" value="{l s='Make Payment' mod='paytpv'}" id="btnforg" style="display: inline-block;font-size: 21px;font-weight: 300;line-height: 46px;height:46px;padding: 0 0px;text-align: center;width: 100%;" onclick="buildED();">
+                                <div class="button" id="clockwait_jet" style="display:none;"><img src="{$this_path}views/img/loader.gif" title="{l s='Wait' mod='paytpv'}" /></div>
 
                                 <span style="color:red;font-weight:bold;" id="paymentErrorMsg"></span>
                             </li>
@@ -212,8 +233,35 @@
 
                         <script type="text/javascript" src="https://secure.paytpv.com/gateway/jet_paytpv_js.php?id={$jet_id}&language={$jet_lang}"></script>
                         <script type="text/javascript">
-                        {literal}function buildED(){var t=document.getElementById("expiry_date").value,n=t.substr(0,2),a=t.substr(3,2);$('[data-paytpv="dateMonth"]').val(n),$('[data-paytpv="dateYear"]').val(a)}(function(){(function(){var t,n=[].indexOf||function(t){for(var n=0,a=this.length;a>n;n++)if(n in this&&this[n]===t)return n;return-1};t=jQuery,t.fn.validateCreditCard=function(a,e){var r,l,i,u,c,v,o,d,s,h,f,p,m;for(u=[{name:"amex",pattern:/^3[47]/,valid_length:[15]},{name:"diners_club_carte_blanche",pattern:/^30[0-5]/,valid_length:[14]},{name:"diners_club_international",pattern:/^36/,valid_length:[14]},{name:"jcb",pattern:/^35(2[89]|[3-8][0-9])/,valid_length:[16]},{name:"laser",pattern:/^(6304|670[69]|6771)/,valid_length:[16,17,18,19]},{name:"visa_electron",pattern:/^(4026|417500|4508|4844|491(3|7))/,valid_length:[16]},{name:"visa",pattern:/^4/,valid_length:[16]},{name:"mastercard",pattern:/^(5[1-5]|222|2[3-6]|27[0-1]|2720)/,valid_length:[16]},{name:"maestro",pattern:/^(5018|5020|5038|6304|6759|676[1-3])/,valid_length:[12,13,14,15,16,17,18,19]},{name:"discover",pattern:/^(6011|622(12[6-9]|1[3-9][0-9]|[2-8][0-9]{2}|9[0-1][0-9]|92[0-5]|64[4-9])|65)/,valid_length:[16]}],r=!1,a&&("object"==typeof a?(e=a,r=!1,a=null):"function"==typeof a&&(r=!0)),null===e&&(e={}),null===e.accept&&(e.accept=function(){var t,n,a;for(a=[],t=0,n=u.length;n>t;t++)l=u[t],a.push(l.name);return a}()),m=e.accept,f=0,p=m.length;p>f;f++)if(i=m[f],n.call(function(){var t,n,a;for(a=[],t=0,n=u.length;n>t;t++)l=u[t],a.push(l.name);return a}(),i)<0)throw"";return c=function(t){var a,r,c;for(c=function(){var t,a,r,i;for(i=[],t=0,a=u.length;a>t;t++)l=u[t],r=l.name,n.call(e.accept,r)>=0&&i.push(l);return i}(),a=0,r=c.length;r>a;a++)if(i=c[a],t.match(i.pattern))return i;return null},o=function(t){var n,a,e,r,l,i;for(e=0,i=t.split("").reverse(),a=r=0,l=i.length;l>r;a=++r)n=i[a],n=+n,a%2?(n*=2,e+=10>n?n:n-9):e+=n;return e%10===0},v=function(t,a){var e;return e=t.length,n.call(a.valid_length,e)>=0},h=function(t){return function(t){var n,a;return i=c(t),a=!1,n=!1,null!==i&&(a=o(t),n=v(t,i)),{card_type:i,valid:a&&n,luhn_valid:a,length_valid:n}}}(this),s=function(n){return function(){var a;return a=d(t(n).val()),h(a)}}(this),d=function(t){return t.replace(/[ -]/g,"")},r?(this.on("input.jccv",function(n){return function(){return t(n).off("keyup.jccv"),a.call(n,s())}}(this)),this.on("keyup.jccv",function(t){return function(){return a.call(t,s())}}(this)),a.call(this,s()),this):s()}}).call(this),$(function(){return $('[data-paytpv="paNumber"]').validateCreditCard(function(t){return $(this).removeClass().addClass("paytpv_merchant_pan"),null!==t.card_type?($(this).addClass(t.card_type.name),t.valid?$(this).addClass("valid"):$(this).removeClass("valid")):void 0},{accept:["visa","visa_electron","mastercard","maestro","discover","amex"]})})}).call(this),$(document).ready(function(){$("#expiry_date").on("input",function(){var t=$(this).val().length;if(2===t){var n=$(this).val();n+="/",$(this).val(n)}})});{/literal}
+                        {$js_code}
                         </script>
+                    {/if}
+
+
+                    {if ($newpage_payment==1)}
+                    <footer>
+                    <div class="paytpv_wrapper mobile">
+                        <div class="footer_line">
+                          <div class="footer_logo">
+                            <a href="https://secure.paytpv.com/" target="_blank">
+                              <img src="{$this_path}views/img/paytpv_logo.svg">
+                            </a>
+                          </div>
+                          <ul class="payment_icons">
+                            <li><img src="{$this_path}views/img/visa.png" alt="Visa"></li>
+                            <li><img src="{$this_path}views/img/visa_electron.png" alt="Visa Electron"></li>
+                            <li><img src="{$this_path}views/img/mastercard.png" alt="Mastercard"></li>
+                            <li><img src="{$this_path}views/img/maestro.png" alt="Maestro"></li>
+                            <li><img src="{$this_path}views/img/amex.png" alt="American Express"></li>
+                            <li><img src="{$this_path}views/img/jcb.png" alt="JCB card"></li>
+                            <li><img src="{$this_path}views/img/veryfied_by_visa.png" alt="Veryfied by Visa"></li>
+                            <li><img src="{$this_path}views/img/mastercard_secure_code.png" alt="Mastercard Secure code"></li>
+                            <li><img src="{$this_path}views/img/pci.png" alt="PCI"></li>
+                            <li><img src="{$this_path}views/img/thawte.png" alt="Thawte"></li>
+                          </ul>
+                        </div>
+                    </div>
+                    </footer>
                     {/if}
                 {/if}
             </div>
@@ -313,8 +361,3 @@
     paytpv_initialize();
     </script>
 </div>
-
-
-
-
-

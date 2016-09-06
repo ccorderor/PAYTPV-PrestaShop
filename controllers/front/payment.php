@@ -50,11 +50,12 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		$this->context->smarty->assign('msg_paytpv',$msg_paytpv);
 		
 
-	    // Valor de compra				
+	    // Valor de compra
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
 
 		$currency = new Currency(intval($id_currency));		
-		$importe = number_format(Context::getContext()->cart->getOrderTotal(true, Cart::BOTH)*100, 0, '.', '');		
+		$importe = number_format(Context::getContext()->cart->getOrderTotal(true, Cart::BOTH)*100, 0, '.', '');
+		$importe_tienda = Context::getContext()->cart->getOrderTotal(true, Cart::BOTH);
 
 		$paytpv_order_ref = str_pad(Context::getContext()->cart->id, 8, "0", STR_PAD_LEFT);
 		$ssl = Configuration::get('PS_SSL_ENABLED');
@@ -113,7 +114,17 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		$this->context->controller->addJS( $this->module->getPath() . 'js/paytpv.js');
 
 
+		$this->context->smarty->assign('total_amount',$importe_tienda);
+		$this->context->smarty->assign('currency_symbol',$currency->sign);
+
+
 		$this->context->smarty->assign('paytpv_iframe',$this->module->paytpv_iframe_URL());
+
+		// Bankstore JET
+		if ($paytpv_integration==1){
+
+			$this->context->smarty->assign('js_code', $this->module->js_minimized_jet());
+		}
 	 	
 
 		$this->setTemplate('../hook/payment_bsiframe.tpl');

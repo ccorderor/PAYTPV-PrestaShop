@@ -147,6 +147,15 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 
 			$this->context->smarty->assign('error',$error);
 
+			// Bankstore JET
+			if ($paytpv_integration==1){
+
+				$this->context->smarty->assign('js_code', $paytpv->js_minimized_jet());
+
+				$this->context->smarty->assign('this_path', $this->module->getPath());
+
+			}
+
 			$this->context->smarty->assign('status_canceled',$paytpv->l('CANCELLED'));
 			$this->setTemplate('paytpv-account.tpl');
 			

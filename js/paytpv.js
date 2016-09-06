@@ -250,6 +250,7 @@ function suscribeJQ(){
 
 
 function takingOff() {
+    ShowHidePaymentButton(false);
     var x = new PAYTPV.Tokenizator();
     x.getToken(document.forms["paytpvPaymentForm"], boarding);
     return false;
@@ -259,6 +260,7 @@ function boarding(passenger) {
     document.getElementById("paymentErrorMsg").innerHTML = "";
     if (passenger.errorID !== 0 || passenger.paytpvToken === "") {
         document.getElementById("paymentErrorMsg").innerHTML = passenger.errorText;
+        ShowHidePaymentButton(true);
     } else {
         
         var newInputField = document.createElement("input");
@@ -305,7 +307,18 @@ function boarding(passenger) {
         }
         paytpvPaymentForm.submit();
         
-        
 
     }
+}
+
+
+function ShowHidePaymentButton(show){
+  
+  if (show){
+    $("#clockwait_jet").hide('fast');
+    $("#btnforg").show('fast');
+  }else{
+    $("#btnforg").hide('fast');
+    $("#clockwait_jet").show('fast');
+  }
 }
