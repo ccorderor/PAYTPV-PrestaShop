@@ -183,9 +183,13 @@
 
                 <div class="payment_module paytpv_iframe" style="display:none">
 
-                <div class="info_paytpv">
-                  <h5>{l s='The input data is stored on servers in PayTPV company with PCI / DSS Level 1 certification, making payments 100% secure.' mod='paytpv'}</h5>
-                </div>
+
+                {if ($newpage_payment==1)}
+                    <div class="info_paytpv">
+                      <h5>{l s='The input data is stored on servers in PayTPV company with PCI / DSS Level 1 certification, making payments 100% secure.' mod='paytpv'}</h5>
+                    </div>
+                {/if}
+
 
                 {if ($newpage_payment<2)}
                     
