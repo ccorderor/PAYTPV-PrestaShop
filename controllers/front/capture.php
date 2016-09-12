@@ -73,7 +73,9 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 
 	    // BANKSTORE JET
 	    $token = isset($_POST["paytpvToken"])?$_POST["paytpvToken"]:"";
+	    $savecard_jet = isset($_POST["savecard_jet"])?$_POST["savecard_jet"]:0;
 
+	   
 	    $jetPayment = 0;
 	    if ($token && strlen($token) == 64){
 
@@ -239,6 +241,12 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			}
 		}
 		if ( (isset($charge[ 'DS_RESPONSE' ]) && ( int )$charge[ 'DS_RESPONSE' ] == 1) || $charge[ 'DS_ERROR_ID' ] == 0) {
+
+			if ($jetPayment && $savecard_jet==1){
+				$result = $client->info_user( $data['IDUSER'],$data['TOKEN_USER']);
+				$result = $paytpv->saveCard($this->context->cart->id_customer,$data['IDUSER'],$data['TOKEN_USER'],$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
+				
+			}
 			//Esperamos a que la notificación genere el pedido
 			sleep ( 3 );
 			$id_order = Order::getOrderByCartId(intval($this->context->cart->id));

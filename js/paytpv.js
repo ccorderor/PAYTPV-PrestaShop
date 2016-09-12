@@ -272,6 +272,13 @@ function boarding(passenger) {
         var paytpvPaymentForm = document.forms["paytpvPaymentForm"];
         paytpvPaymentForm.appendChild(newInputField);
 
+        var newInputField = document.createElement("input");
+
+        newInputField.type = "hidden";
+        newInputField.name = "savecard_jet";
+        newInputField.value = $("#savecard").is(':checked')?1:0;
+        paytpvPaymentForm.appendChild(newInputField);
+
 
         if ($("#suscription") && $("#suscripcion").is(':checked')){
             var newInputField = document.createElement("input");

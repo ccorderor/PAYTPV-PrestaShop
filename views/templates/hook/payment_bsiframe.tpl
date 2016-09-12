@@ -173,15 +173,15 @@
 
             <div id="storingStep" class="alert alert-info {if (sizeof($saved_card))>1}hidden{/if}" style="clear:left;">
 
-                <h6>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h4>
-                    <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" onChange="saveOrderInfoJQ(0)" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
-                </div>
+                <h6>{l s='STREAMLINE YOUR FUTURE PURCHASES!' mod='paytpv'}</h6>
+                <label class="checkbox"><input type="checkbox" name="savecard" id="savecard" onChange="saveOrderInfoJQ(0)" checked>{l s='Yes, remember my card accepting the ' mod='paytpv'}<a id="open_conditions" href="#conditions">{l s='terms and conditions of the service' mod='paytpv'}</a>.</label>
+            </div>
                 
 
-                <br class="clear"/>
+            <br class="clear"/>
 
 
-                <div class="payment_module paytpv_iframe" style="display:none">
+            <div class="payment_module paytpv_iframe" style="display:none">
 
 
                 {if ($newpage_payment==1)}
@@ -269,8 +269,6 @@
                     {/if}
                 {/if}
             </div>
-
-
 
         </div>
     </div>
