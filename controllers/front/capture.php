@@ -104,7 +104,12 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 			}
 		// TOKENIZED CARD
 		}else{
-        	$data = Paytpv_Customer::get_Cards_Token($_GET["TOKEN_USER"]);
+        	$data = Paytpv_Customer::get_Card_Token_Customer($_GET["TOKEN_USER"],$this->context->cart->id_customer);
+        	if (!isset($data["IDUSER"])){
+	        	$this->context->smarty->assign('base_dir',__PS_BASE_URI__);
+	        	$this->setTemplate('payment_fail.tpl');
+	        	return;
+        	}
         	Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$this->context->cart->id,0,0,0,0,$data["IDUSER"]);
         }
 		

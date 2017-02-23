@@ -75,6 +75,23 @@ class Paytpv_Customer extends ObjectModel
 
 	}
 
+	public static function get_Card_Token_Customer($token,$customer_id){
+
+		$res = array();
+
+		$sql = 'SELECT paytpv_iduser,paytpv_tokenuser,paytpv_cc FROM '._DB_PREFIX_.'paytpv_customer WHERE paytpv_tokenuser="'.pSQL($token).'" and id_customer = '.(int)$customer_id;
+
+		$assoc = Db::getInstance()->executeS($sql);
+		if ($row = Db::getInstance()->getRow($sql)){
+			$res['IDUSER']= $row['paytpv_iduser'];
+			$res['TOKEN_USER']= $row['paytpv_tokenuser'];
+			$res['CC'] = $row['paytpv_cc'];
+		}
+
+		return  $res;
+
+	}
+
 	public static function get_Customer_Iduser($paytpv_iduser){
 
 		$sql = 'SELECT * FROM '._DB_PREFIX_.'paytpv_customer WHERE paytpv_iduser="'.pSQL($paytpv_iduser).'"';
