@@ -66,9 +66,21 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$esURLOK = false;
 
 			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$idterminal = $arrTerminal["idterminal"];
+			$idterminal_ns = $arrTerminal["idterminal_ns"];
 			$pass = $arrTerminal["password"];
+			$pass_ns = $arrTerminal["password_ns"];
 
-			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+			if (Tools::getValue('TpvID')==$idterminal){
+				$idterminal_sel = $idterminal;
+				$pass_sel = $pass;
+			}
+			if (Tools::getValue('TpvID')==$idterminal_ns){
+				$idterminal_sel = $idterminal_ns;
+				$pass_sel = $pass_ns;
+			}
+
+			$local_sign = md5($paytpv->clientcode.$idterminal_sel.Tools::getValue('TransactionType').$ref.Tools::getValue('Amount').Tools::getValue('Currency').md5($pass_sel).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 			
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 1');
@@ -80,9 +92,20 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$esURLOK = false;
 
 			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$idterminal = $arrTerminal["idterminal"];
+			$idterminal_ns = $arrTerminal["idterminal_ns"];
 			$pass = $arrTerminal["password"];
+			$pass_ns = $arrTerminal["password_ns"];
 
-			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($pass));
+			if (Tools::getValue('TpvID')==$idterminal){
+				$idterminal_sel = $idterminal;
+				$pass_sel = $pass;
+			}
+			if (Tools::getValue('TpvID')==$idterminal_ns){
+				$idterminal_sel = $idterminal_ns;
+				$pass_sel = $pass_ns;
+			}
+			$local_sign = md5($paytpv->clientcode.$idterminal_sel.Tools::getValue('TransactionType').$ref.Tools::getValue('DateTime').md5($pass_sel));
 
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 2');
@@ -91,8 +114,8 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$client = new WS_Client(
 				array(
 					'clientcode' => $paytpv->clientcode,
-					'term' => Tools::getValue('TpvID'),
-					'pass' => $pass,
+					'term' => $idterminal_sel,
+					'pass' => $pass_sel,
 				)
 			);
 
@@ -110,9 +133,22 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			$esURLOK = false;
 
 			$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
+			$idterminal = $arrTerminal["idterminal"];
+			$idterminal_ns = $arrTerminal["idterminal_ns"];
 			$pass = $arrTerminal["password"];
+			$pass_ns = $arrTerminal["password_ns"];
 
-			$local_sign = md5($paytpv->clientcode.Tools::getValue('TpvID').Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($pass).Tools::getValue('BankDateTime').Tools::getValue('Response'));
+			if (Tools::getValue('TpvID')==$idterminal){
+				$idterminal_sel = $idterminal;
+				$pass_sel = $pass;
+			}
+			if (Tools::getValue('TpvID')==$idterminal_ns){
+				$idterminal_sel = $idterminal_ns;
+				$pass_sel = $pass_ns;
+			}
+
+
+			$local_sign = md5($paytpv->clientcode.$idterminal_sel.Tools::getValue('TransactionType').Tools::getValue('Order').Tools::getValue('Amount').Tools::getValue('Currency').md5($pass_sel).Tools::getValue('BankDateTime').Tools::getValue('Response'));
 			
 			// Check Signature
 			if ($sign!=$local_sign)	die('Error 3');
@@ -133,61 +169,6 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 			if ($id_order){
 				$suscripcion = 2;
 			}
-		// (execute_purchase Modo Test)
-		}else if ((Tools::getValue('TransactionType')==="1_TEST" || Tools::getValue('TransactionType')==="109_TEST")
-			AND Tools::getValue('Order')
-			AND Tools::getValue('Response')){
-
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
-			$ref = Tools::getValue('Order');
-			$result = Tools::getValue('Response')=='OK'?0:-1;
-			$sign = Tools::getValue('ExtendedSignature');
-			$esURLOK = false;
-
-			// Check Signature
-			if ($paytpv->environment!=1) 		die('Error 1 Test');
-		// (create_subscription Modo Test)
-		}else if (Tools::getValue('TransactionType')==="9_TEST"
-			AND Tools::getValue('Order')
-			AND Tools::getValue('Response')){
-
-			$suscripcion = 1;  // Inicio Suscripcion
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
-			$ref = Tools::getValue('Order');	
-
-			$result = Tools::getValue('Response')=='OK'?0:-1;
-			$sign = Tools::getValue('ExtendedSignature');
-			$esURLOK = false;
-
-			// Check Signature
-			if ($paytpv->environment!=1) 		die('Error 9 Test');
-
-		// (add_user TEST)
-		}else if (Tools::getValue('TransactionType')==="107_TEST"
-			AND Tools::getValue('Order')
-			AND Tools::getValue('Response')){
-
-			$importe  = number_format(Tools::getValue('Amount')/ 100, 2, ".","");
-			$ref = Tools::getValue('Order');	
-
-			$result = Tools::getValue('Response')=='OK'?0:-1;
-			$sign = Tools::getValue('ExtendedSignature');
-			$esURLOK = false;
-
-			// Check Signature
-			if ($paytpv->environment!=1) 		die('Error 107 Test');
-			$paytpv_cc = '************' . substr(Tools::getValue('merchan_pan'), -4);
-			$result = array('DS_MERCHANT_PAN'=>$paytpv_cc,'DS_CARD_BRAND'=>'MASTERCARD');
-
-			$paytpv->saveCard(Context::getContext()->customer->id,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
-			$ssl = Configuration::get('PS_SSL_ENABLED');
-			$URLOK=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);
-
-			$res["urlok"] = $URLOK;
-
-			print json_encode($res);
-			exit;
-			//die('Usuario Registrado');		
 		}
 
 
@@ -233,16 +214,13 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 						exit;
 					}else if (!$new_cart['success']){
 
-						$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
-						$pass = $arrTerminal["password"];
-
 						// Refund amount
 						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 						$client = new WS_Client(
 							array(
 								'clientcode' => $paytpv->clientcode,
-								'term' => Tools::getValue('TpvID'),
-								'pass' => $pass,
+								'term' => $idterminal_sel,
+								'pass' => $pass_sel,
 							)
 						);
 
@@ -334,25 +312,17 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 					
 					// IF check agreement save token
 					if ($suscripcion==0 && $datos_order["paytpvagree"]){
-						// Live Mode
-						if ($paytpv->environment!=1){
-							$arrTerminal = Paytpv_Terminal::getTerminalByIdTerminal(Tools::getValue('TpvID'));
-							$pass = $arrTerminal["password"];
-
-							include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
-							$client = new WS_Client(
-								array(
-									'clientcode' => $paytpv->clientcode,
-									'term' => Tools::getValue('TpvID'),
-									'pass' => $pass,
-								)
-							);
-							$result = $client->info_user( $paytpv_iduser,$paytpv_tokenuser );
-						// Test Mode
-						}else{
-							$paytpv_cc = '************' . substr(Tools::getValue('merchan_pan'), -4);
-							$result = array('DS_MERCHANT_PAN'=>$paytpv_cc,'DS_CARD_BRAND'=>'MASTERCARD');
-						}
+						
+						include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
+						$client = new WS_Client(
+							array(
+								'clientcode' => $paytpv->clientcode,
+								'term' => $idterminal_sel,
+								'pass' => $pass_sel,
+							)
+						);
+						$result = $client->info_user( $paytpv_iduser,$paytpv_tokenuser );
+						
 						$result = $paytpv->saveCard($cart->id_customer,Tools::getValue('IdUser'),Tools::getValue('TokenUser'),$result['DS_MERCHANT_PAN'],$result['DS_CARD_BRAND']);
 						$paytpv_iduser = $result["paytpv_iduser"];
 						$paytpv_tokenuser = $result["paytpv_tokenuser"];
@@ -421,20 +391,7 @@ class PaytpvUrlModuleFrontController extends ModuleFrontController
 				return;
 			}
 			else if($pagoRegistrado){
-				// Entorno Real
-				if ($paytpv->environment!=1){
-					die('Pago registrado');
-				// Modo Test
-				}else{
-					$values = array(
-						'id_cart' => $id_cart,
-						'key' => Context::getContext()->customer->secure_key
-					);
-					$ssl = Configuration::get('PS_SSL_ENABLED');
-					$res["urlok"] = Context::getContext()->link->getModuleLink($paytpv->name, 'urlok',$values,$ssl);
-					print json_encode($res);
-					exit;
-				}
+				die('Pago registrado');
 			}
 		}else{
 			//se anota el pedido como no pagado

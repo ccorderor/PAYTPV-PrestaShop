@@ -40,48 +40,26 @@
     <form action="{$serverRequestUri|strip_tags}" method="post">
     	<fieldset>
     		<legend>{l s='Paytpv.com Product Configuration' mod='paytpv'}</legend>
-    		<p>{l s='Please complete the information requested. You can obtain information on the PayTPV product.' mod='paytpv'}</p>
+            <p><strong>{l s='If you need to test the Module and do not have a PAYTPV test account, please contact us at ' mod='paytpv'}<a href="mailto:info@paytpv.com">info@paytpv.com</a></strong></p>
+            <p>{l s='Please complete the information requested. You can obtain information on the PayTPV product.' mod='paytpv'}</p>
 
             
             <fieldset id="">
-                <legend>{l s='PayTPV' mod='paytpv'}</legend>
-                <label for="environment" id="lblenvironment">{l s='Environment' mod='paytpv'}</label>
-                <div class="margin-form">
-                    <select name="environment" id="environment" onchange="checkenvironment();">
-                        <option value="0" {if $environment==0}selected="1"{/if}>{l s='Live Mode' mod='paytpv'}</option>
-                        <option value="1" {if $environment==1}selected="1"{/if}>{l s='Test Mode' mod='paytpv'}</option>
-                    </select>
-                    <div id="test_mode">
-                        <strong>{l s='IMPORTANT' mod='paytpv'}: {l s='This mode does not make calls to PAYTPV.' mod='paytpv'}<br/>
-                        {l s='Use Real Mode if you have a PAYTPV Sandbox Terminal or a Production Terminal.' mod='paytpv'}</strong><br/>
-                        {l s='Test PayTPV module without PayTPV account.' mod='paytpv'}<br/>
-                        {l s='Terminal Number' mod='paytpv'}: ({l s='1,2,3,... One for each type of currency' mod='paytpv'})
-                        <br/>
-                        {l s='User Password' mod='paytpv'}: paytpvtest
-                        <br/>
-                        {l s='Test Cards: 5325298401138208 / 5540568785541245 / 5407696658785988.' mod='paytpv'}<br/>
-                        {l s='Expiration Date: Month: 5 / Year: 2020' mod='paytpv'}<br/>
-                        {l s='CVC2: 123 / 3DSecure: 1234' mod='paytpv'}
-                    </div>
-                </div>
-
-               
-                <div id="real_mode">                 
+                <legend>{l s='PayTPV' mod='paytpv'}</legend>                             
                     
-                    <label>{l s='Integration' mod='paytpv'}</label>
-                    <div class="margin-form">
-                        <select name="integration" id="integration" onchange="checkmode();">
-                            <option value="0" {if $integration==0}selected="1"{/if}>Bankstore IFRAME/XML</option>
-                            <option value="1" {if $integration==1}selected="1"{/if}>Bankstore JET/XML</option>
-                        </select>
-                        <br/>Bankstore IFRAME/XML: {l s='PayTPV payment iframe' mod='paytpv'}
-                        <br/>Bankstore JET/XML: {l s='SSL mandatory' mod='paytpv'}<br/>
-                    </div>
-
-                    <label>{l s='Client Code' mod='paytpv'}</label>
-                    <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
-            		
+                <label>{l s='Integration' mod='paytpv'}</label>
+                <div class="margin-form">
+                    <select name="integration" id="integration" onchange="checkmode();">
+                        <option value="0" {if $integration==0}selected="1"{/if}>Bankstore IFRAME/XML</option>
+                        <option value="1" {if $integration==1}selected="1"{/if}>Bankstore JET/XML</option>
+                    </select>
+                    <br/>Bankstore IFRAME/XML: {l s='PayTPV payment iframe' mod='paytpv'}
+                    <br/>Bankstore JET/XML: {l s='SSL mandatory' mod='paytpv'}<br/>
                 </div>
+
+                <label>{l s='Client Code' mod='paytpv'}</label>
+                <div class="margin-form"><input type="text" size="60" name="clientcode" value="{$clientcode}" /></div>
+        		
               
             </fieldset>
 
@@ -100,16 +78,35 @@
                         <img id="img_term_{$cont}" src="../img/admin/bullet_green.png" title="" />
                         {/if}</legend>
 
-                        <label>{l s='Terminal Number' mod='paytpv'}</label>
-                        <div class="margin-form"><input type="text" size="8" class="term" name="term[]" value="{$terminal['idterminal']}" /></div>
+                        <fieldset id="term_s_container_{$cont}">
+                            <legend>3D SECURE</legend>
 
-                        <label>{l s='User Password' mod='paytpv'}</label>
-                        <div class="margin-form"><input type="text" size="22" name="pass[]" value="{$terminal['password']}" /></div>
+                            <label>{l s='Terminal Number' mod='paytpv'}</label>
+                            <div class="margin-form"><input type="text" size="8" class="term" maxlength="6" name="term[]" value="{$terminal['idterminal']}" /></div>
 
-                        <div class="class_jetid">
-                            <label>JET ID</label>
-                            <div class="margin-form"><input type="text" size="40" name="jetid[]" value="{$terminal['jetid']}" /></div>
-                        </div>
+                            <label>{l s='User Password' mod='paytpv'}</label>
+                            <div class="margin-form"><input type="text" size="22" maxlength="30" name="pass[]" value="{$terminal['password']}" /></div>
+
+                            <div class="class_jetid">
+                                <label>JET ID</label>
+                                <div class="margin-form"><input type="text" size="40" maxlength="32" name="jetid[]" value="{$terminal['jetid']}" /></div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="term_ns_container_{$cont}">
+                            <legend>NO 3D SECURE</legend>
+                            <label>{l s='Terminal Number' mod='paytpv'}</label>
+                            <div class="margin-form"><input type="text" size="8" name="term_ns[]" maxlength="6" value="{$terminal['idterminal_ns']}" /></div>
+
+                            <label>{l s='User Password' mod='paytpv'}</label>
+                            <div class="margin-form"><input type="text" size="22" maxlength="30" name="pass_ns[]" value="{$terminal['password_ns']}" /></div>
+
+                            <div class="class_jetid">
+                                <label>JET ID</label>
+                                <div class="margin-form"><input type="text" maxlength="32" size="40" name="jetid_ns[]" value="{$terminal['jetid_ns']}" /></div>
+                            </div>
+                        </fieldset>
+
 
                         <label>{l s='Terminals available' mod='paytpv'}</label>
                         <div class="margin-form"><select name="terminales[]" onchange="checkterminales(this);" id="terminales_{$cont}" >
@@ -259,7 +256,7 @@
                         <td class="center">
                             <img onClick="document.location ={$currentindex}&configure={$name}&token={$token}&amount={$registro['amount']}&id_cart={$registro['id_cart']}&id_registro={$registro['id_registro']}';" src="../img/admin/add.gif" style="cursor:pointer" alt="{l s='Create Order' mod='paytpv'}" title="{l s='Create Order' mod='paytpv'}" />
                             
-                            <img onClick='if (confirm("{l s='Delete this payment error?' mod='paytpv'}")) document.location = {$currentindex}&configure={$name}&token={$token}&id_registro={$registro['id_registro']}';' style="cursor:pointer; margin-left:10px;" src="../img/admin/disabled.gif" alt="{l s='Remove record' mod='paytpv'}" title="{l s='Remove record' mod='paytpv'}" />
+                            <img onClick="if (confirm(\"{l s='Delete this payment error?' mod='paytpv'}\")) document.location = {$currentindex}&configure={$name}&token={$token}&id_registro={$registro['id_registro']}';" style="cursor:pointer; margin-left:10px;" src="../img/admin/disabled.gif" alt="{l s='Remove record' mod='paytpv'}" title="{l s='Remove record' mod='paytpv'}" />
                         </td>
                     </tr>
                 {/foreach}
@@ -281,6 +278,7 @@
         }
         
         function checkterminales(element){
+           
             cont = $(element).attr('id').replace('terminales_','');
 
             // Si solo tiene terminal seguro o tiene los dos la primera compra va por seguro
@@ -289,13 +287,19 @@
                 case "0": // SEGURO
                     jQuery("#tdfirst_"+cont).val(1);
                     jQuery("#tdmin_container_"+cont).hide();
+                    jQuery("#term_s_container_"+cont).show();
+                    jQuery("#term_ns_container_"+cont).hide();
                     break;
                 case "1": // NO SEGURO
                     jQuery("#tdfirst_"+cont).val(0);
                     jQuery("#tdmin_container_"+cont).hide();
+                    jQuery("#term_s_container_"+cont).hide();
+                    jQuery("#term_ns_container_"+cont).show();
                     break;
                 case "2": // AMBOS
                     jQuery("#tdmin_container_"+cont).show();
+                    jQuery("#term_s_container_"+cont).show();
+                    jQuery("#term_ns_container_"+cont).show();
                     break;
             }
         }
@@ -315,19 +319,8 @@
             }
         }
 
-        function checkenvironment(){
-            if (jQuery("#environment").val()==1){
-                jQuery("#test_mode").show();
-                jQuery("#real_mode").hide();
-                //jQuery("#modo_test_container").show();
-            }else{
-                jQuery("#test_mode").hide();
-                jQuery("#real_mode").show();
-                //jQuery("#modo_test_container").hide();
-            }
-        }
+                
         
-        checkenvironment();
         checkAllTerminales();
         checkaddTerminal();
         checkmode();
@@ -345,10 +338,15 @@
                     .find("#terminales_0").attr("id","terminales_"+cont).end()
                     .find("#tdfirst_0").attr("id","tdfirst_"+cont).end()
                     .find("#tdmin_container_0").attr("id","tdmin_container_"+cont).end()
+                    .find("#term_s_container_0").attr("id","tdmin_container_"+cont).end()
+                    .find("#term_ns_container_0").attr("id","tdmin_container_"+cont).end()
                     .find("#tdmin_0").attr("id","tdmin_"+cont).end()
                     .find("a").show().end()
                     .appendTo("#terminales_disponibles");
 
+            jQuery("#terminales_"+cont).val(0);
+            jQuery("#tdfirst_"+cont).val(1);
+            jQuery("#moneda_"+cont+" option:first").attr('selected','selected');
             checkterminales($("#terminales_"+cont));
             checkaddTerminal();
 

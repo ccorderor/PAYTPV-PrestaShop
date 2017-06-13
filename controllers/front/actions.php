@@ -56,39 +56,7 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		exit;
 	}
 
-	/**
-	 * Check Test card
-	 */
-	public function processCheckCard()
-	{
-		$paytpv = $this->module;
-
-		$datos_pedido = $paytpv->TerminalCurrency($this->context->cart);
-		$importe = $datos_pedido["importe"];
-		$currency_iso_code = $datos_pedido["currency_iso_code"];
-		$idterminal = $datos_pedido["idterminal"];
-
-		$dsecure = ($paytpv->isSecureTransaction($idterminal,Tools::getValue('mm')/100,0))?1:0;
-
-		$res["dsecure"] = $dsecure;
-		if ($dsecure==1) sleep(2);
-
-		// Test Mode
-		$res["checked"] = 0;
-
-		$arrTestCard = array(5325298401138208,5540568785541245,5407696658785988);
-
-		$mm = 5;
-		$yy = 20;
-		$merchan_cvc2 = 123;
-
-		if (in_array(Tools::getValue('merchan_pan'),$arrTestCard) && Tools::getValue('mm')==$mm && Tools::getValue('yy')==$yy && Tools::getValue('merchan_cvc2')==$merchan_cvc2)
-			$res["checked"] = 1;
-
-		print json_encode($res);
-		
-	}
-
+	
 	/**
 	 * Remove card
 	 */
@@ -153,7 +121,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$importe = $datos_pedido["importe"];
 		$currency_iso_code = $datos_pedido["currency_iso_code"];
 		$idterminal = $datos_pedido["idterminal"];
+		$idterminal_ns = $datos_pedido["idterminal_ns"];
 		$pass = $datos_pedido["password"];
+		$pass_ns = $datos_pedido["password_ns"];
 
 
 		$values = array(
@@ -169,21 +139,37 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
-		$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		if ($idterminal>0)
+			$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		else
+			$secure_pay = $paytpv->isSecureTransaction($idterminal_ns,$total_pedido,0)?1:0;
 
+		// Miramos a ver por que terminal enviamos la operacion
+		if ($secure_pay){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
+			
 		
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
 		if (Paytpv_Order_Info::save_Order_Info((int)$this->context->customer->id,$cart->id,$paytpv_agree,$suscripcion,$periodicity,$cycles,0)){
 			$OPERATION = "1";
 			// Cálculo Firma
-			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
+			$signature = md5($paytpv->clientcode.$idterminal_sel.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass_sel));
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-				'MERCHANT_TERMINAL' => $idterminal,
+				'MERCHANT_TERMINAL' => $idterminal_sel,
 				'OPERATION' => $OPERATION,
-				'LANGUAGE' => $this->context->language->iso_code,
+				'LANGUAGE' => $language,
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
@@ -195,12 +181,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 			$query = http_build_query($fields);
 
-			if ($paytpv->environment!=1)
-				$url_paytpv = $paytpv->url_paytpv . "?".$query;
-			// Test Mode
-			else
-				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
-
+			$url_paytpv = $paytpv->url_paytpv . "?".$query;
+			
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
 		}
@@ -271,7 +253,9 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 		$importe = $datos_pedido["importe"];
 		$currency_iso_code = $datos_pedido["currency_iso_code"];
 		$idterminal = $datos_pedido["idterminal"];
+		$idterminal_ns = $datos_pedido["idterminal_ns"];
 		$pass = $datos_pedido["password"];
+		$pass_ns = $datos_pedido["password_ns"];
 
 		$values = array(
 			'id_cart' => $cart->id,
@@ -285,7 +269,19 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
-		$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		if ($idterminal>0)
+			$secure_pay = $paytpv->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		else
+			$secure_pay = $paytpv->isSecureTransaction($idterminal_ns,$total_pedido,0)?1:0;
+
+		// Miramos a ver por que terminal enviamos la operacion
+		if ($secure_pay){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
 
 		$arrReturn = array();
 		$arrReturn["error"] = 1;
@@ -305,13 +301,17 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			}
 			// Cálculo Firma
 			
-			$signature = md5($paytpv->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
+			$signature = md5($paytpv->clientcode.$idterminal_sel.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass_sel));
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-				'MERCHANT_TERMINAL' => $idterminal,
+				'MERCHANT_TERMINAL' => $idterminal_sel,
 				'OPERATION' => $OPERATION,
-				'LANGUAGE' => $this->context->language->iso_code,
+				'LANGUAGE' => $language,
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $paytpv_order_ref,
 				'MERCHANT_AMOUNT' => $importe,
@@ -325,12 +325,8 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			);
 			$query = http_build_query($fields);
 
-			if ($paytpv->environment!=1)
-				$url_paytpv = $paytpv->url_paytpv . "?".$query;
-			// Test Mode
-			else
-				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
-
+			$url_paytpv = $paytpv->url_paytpv . "?".$query;
+			
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
 		}

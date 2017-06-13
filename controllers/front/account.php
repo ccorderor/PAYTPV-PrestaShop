@@ -53,8 +53,29 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 
 			$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
 			$idterminal = $arrTerminal["idterminal"];
+			$idterminal_ns = $arrTerminal["idterminal_ns"];
 			$pass = $arrTerminal["password"];
+			$pass_ns = $arrTerminal["password_ns"];
 			$jetid = $arrTerminal["jetid"];
+			$jetid_ns = $arrTerminal["jetid_ns"];
+
+			// PAGO SEGURO
+			if ($idterminal>0)
+				$secure_pay = $paytpv->isSecureTransaction($idterminal,0,0)?1:0;
+			else
+				$secure_pay = $paytpv->isSecureTransaction($idterminal_ns,0,0)?1:0;
+
+			// Miramos a ver por que terminal enviamos la operacion
+			if ($secure_pay){
+				$idterminal_sel = $idterminal;
+				$pass_sel = $pass;
+				$jetid_sel = $jetid;
+			}else{
+				$idterminal_sel = $idterminal_ns;
+				$pass_sel = $pass_ns;
+				$jetid_sel = $jetid_ns;
+			}
+		
 
 			// BANKSTORE JET
 		    $token = isset($_POST["paytpvToken"])?$_POST["paytpvToken"]:"";
@@ -65,9 +86,9 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 		    	$client = new WS_Client(
 					array(
 						'clientcode' => $paytpv->clientcode,
-						'term' => $idterminal,
-						'pass' => $pass,
-						'jetid' => $jetid
+						'term' => $idterminal_sel,
+						'pass' => $pass_sel,
+						'jetid' => $jetid_sel
 					)
 				);
 
@@ -85,7 +106,11 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 			}
 			
 			$saved_card = Paytpv_Customer::get_Cards_Customer((int)$this->context->customer->id);
-			$suscriptions = Paytpv_Suscription::get_Suscriptions_Customer($this->context->language->iso_code,(int)$this->context->customer->id);
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
+			$suscriptions = Paytpv_Suscription::get_Suscriptions_Customer($language,(int)$this->context->customer->id);
 
 			$order = Context::getContext()->customer->id;
 			$operation = 107;
@@ -94,17 +119,21 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 
 			
 			
-			$secure_pay = $paytpv->isSecureTransaction($idterminal,0,0)?1:0;
+			
 	
-			$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);  
+			$URLOK=$URLKO=Context::getContext()->link->getModuleLink($paytpv->name, 'account',array(),$ssl);
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
 			// Cálculo Firma
-			$signature = md5($paytpv->clientcode.$idterminal.$operation.$order.md5($pass));
+			$signature = md5($paytpv->clientcode.$idterminal_sel.$operation.$order.md5($pass_sel));
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
-				'MERCHANT_TERMINAL' => $idterminal,
+				'MERCHANT_TERMINAL' => $idterminal_sel,
 				'OPERATION' => $operation,
-				'LANGUAGE' => $this->context->language->iso_code,
+				'LANGUAGE' => $language,
 				'MERCHANT_MERCHANTSIGNATURE' => $signature,
 				'MERCHANT_ORDER' => $order,
 				'URLOK' => $URLOK,
@@ -114,12 +143,8 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 
 			$query = http_build_query($fields);
 
-			if ($paytpv->environment!=1)
-				$url_paytpv = $paytpv->url_paytpv . "?".$query;
-			// Test Mode
-			else
-				$url_paytpv = Context::getContext()->link->getModuleLink($paytpv->name, 'urltestmode',$fields,$ssl);
-
+			$url_paytpv = $paytpv->url_paytpv . "?".$query;
+			
 
 			$paytpv_path = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$paytpv->name.'/';
 			
@@ -141,7 +166,11 @@ class PaytpvAccountModuleFrontController extends ModuleFrontController
 			$this->context->smarty->assign('paytpv_integration',$paytpv_integration);
 
 			$this->context->smarty->assign('jet_id',$jetid);
-			$this->context->smarty->assign('jet_lang',$this->context->language->iso_code);
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
+			$this->context->smarty->assign('jet_lang',$language);
 
 			$this->context->smarty->assign('paytpv_jetid_url',Context::getContext()->link->getModuleLink('paytpv', 'account',array(),$ssl));
 

@@ -46,7 +46,7 @@ class Paytpv extends PaymentModule {
 		$this->name = 'paytpv';
 		$this->tab = 'payments_gateways';
 		$this->author = 'PayTPV';
-		$this->version = '6.3.3';
+		$this->version = '6.3.4';
 
 		$this->url_paytpv = "https://secure.paytpv.com/gateway/bnkgateway.php";
 		
@@ -54,23 +54,14 @@ class Paytpv extends PaymentModule {
 		// Array config:  configuration values
 		$config = $this->getConfigValues();
 		
-		// Establishing properties from configuraction data
-		if (isset($config['PAYTPV_ENVIRONMENT']))
-			$this->environment = $config['PAYTPV_ENVIRONMENT'];
-
-
+		
 		if (isset($config['PAYTPV_INTEGRATION']))
 			$this->integration = $config['PAYTPV_INTEGRATION'];
 
-		// Test Mode
-		if ($this->environment==1){
-			$this->clientcode = "5tam14h8";
-		// Real Mode
-		}else{
-			if (isset($config['PAYTPV_CLIENTCODE']))
-				$this->clientcode = $config['PAYTPV_CLIENTCODE'];
-		}
-
+	
+		if (isset($config['PAYTPV_CLIENTCODE']))
+			$this->clientcode = $config['PAYTPV_CLIENTCODE'];
+	
 		
 		if (isset($config['PAYTPV_COMMERCEPASSWORD']))
 			$this->commerce_password = $config['PAYTPV_COMMERCEPASSWORD'];
@@ -90,10 +81,9 @@ class Paytpv extends PaymentModule {
 		$this->description = $this->l('This module allows you to accept card payments via paytpv.com');
 		
 		try{
-			if ($this->environment!=1){
-				if (!isset($this->clientcode) OR !Paytpv_Terminal::exist_Terminal())
-					$this->warning = $this->l('Missing data when configuring the module Paytpv');
-			}
+			
+			if (!isset($this->clientcode) OR !Paytpv_Terminal::exist_Terminal())
+				$this->warning = $this->l('Missing data when configuring the module Paytpv');
 		}catch (exception $e){}
 
 	}
@@ -164,34 +154,51 @@ class Paytpv extends PaymentModule {
 		if (isset($_POST['btnSubmit']))
 		{
 
-			if ($_POST["environment"]!=1){
-				if (empty($_POST['clientcode']))
-					$this->_postErrors[] = $this->l('Client Code required');
-				if (empty($_POST['pass']))
-					$this->_postErrors[] = $this->l('User Password required');
+			
+			if (empty($_POST['clientcode']))
+				$this->_postErrors[] = $this->l('Client Code required');
+			if (empty($_POST['pass']))
+				$this->_postErrors[] = $this->l('User Password required');
+		
+
+			// Check Terminal empty fields SECURE
+			foreach ($_POST['term'] as $key=>$term){
+				if (($_POST["terminales"][$key]==0 || $_POST["terminales"][$key]==2) && ($term=="" || !is_numeric($term)) ){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [3D SECURE] ". $this->l('Terminal number invalid');
+				}
+
+				if (($_POST["terminales"][$key]==0 || $_POST["terminales"][$key]==2) && $_POST["pass"][$key]==""){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [3D SECURE] ". $this->l('Password invalid');
+				}
+
+				if (($_POST["terminales"][$key]==0 || $_POST["terminales"][$key]==2) && $_POST["jetid"][$key]=="" && $_POST["integration"]==1){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [3D SECURE] ". $this->l('JET ID number invalid');
+				}
 			}
 
-			// Check Terminal empty fields
-			foreach ($_POST['term'] as $key=>$term){
-				if ($term=="" || !is_numeric($term) ){
-					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('Terminal number invalid');
+			// Check Terminal empty fields NO SECURE
+			foreach ($_POST['term_ns'] as $key=>$term_ns){
+				if (($_POST["terminales"][$key]==1 || $_POST["terminales"][$key]==2) && ($term_ns=="" || !is_numeric($term_ns)) ){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [NO 3D SECURE] ". $this->l('Terminal number invalid');
 				}
 
-				if ($_POST["pass"][$key]==""){
-					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('Password invalid');
+				if (($_POST["terminales"][$key]==1 || $_POST["terminales"][$key]==2) && $_POST["pass_ns"][$key]==""){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [NO 3D SECURE] ". $this->l('Password invalid');
 				}
 
-				if ($_POST["terminales"][$key]==2 && ($_POST["tdmin"][$key]!="" && !is_numeric($_POST["tdmin"][$key])))
-				{
+				if (($_POST["terminales"][$key]==1 || $_POST["terminales"][$key]==2) && $_POST["jetid_ns"][$key]=="" && $_POST["integration"]==1){
+					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. [NO 3D SECURE] ". $this->l('JET ID number invalid');
+				}				
+			}
+
+			// Check 3Dmin and Currency
+			foreach ($_POST['term_ns'] as $key=>$term_ns){
+				if ($_POST["terminales"][$key]==2 && ($_POST["tdmin"][$key]!="" && !is_numeric($_POST["tdmin"][$key]))){
 					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. " . $this->l('Use 3D Secure on purchases over invalid');
 				}
 
 				if (empty($_POST['moneda'][$key]))
 					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('Currency required');
-
-				if ($_POST["jetid"][$key]=="" && $_POST["integration"]==1){
-					$this->_postErrors[] = $this->l('Terminal'). " " . ($key+1) . "º. ". $this->l('JET ID number invalid');
-				}
 			}
 
 			// Check Duplicate Terms
@@ -211,7 +218,7 @@ class Paytpv extends PaymentModule {
 
 	    // Update databse configuration
 		if (isset($_POST['btnSubmit'])){
-			Configuration::updateValue('PAYTPV_ENVIRONMENT', $_POST['environment']);
+			
 			Configuration::updateValue('PAYTPV_CLIENTCODE', $_POST['clientcode']);
 
 			
@@ -223,10 +230,12 @@ class Paytpv extends PaymentModule {
 			
 			// Save Paytpv Terminals
 			Paytpv_Terminal::remove_Terminals();
-			
+
 			foreach ($_POST["term"] as $key=>$terminal){
 				$_POST['tdmin'][$key] = ($_POST['tdmin'][$key]=='' || $_POST["terminales"][$key]!=2)?0:$_POST['tdmin'][$key];
-				Paytpv_Terminal::add_Terminal($key+1,$terminal,$_POST["pass"][$key],$_POST["jetid"][$key],$_POST["moneda"][$key],$_POST["terminales"][$key],$_POST["tdfirst"][$key],$_POST["tdmin"][$key]);
+				$_POST['term'][$key] = ($_POST['term'][$key]=='')?"":$_POST['term'][$key];
+				$_POST['term_ns'][$key] = ($_POST['term_ns'][$key]=='')?"":$_POST['term_ns'][$key];
+				Paytpv_Terminal::add_Terminal($key+1,$_POST["term"][$key],$_POST["term_ns"][$key],$_POST["pass"][$key],$_POST["pass_ns"][$key],$_POST["jetid"][$key],$_POST["jetid_ns"][$key],$_POST["moneda"][$key],$_POST["terminales"][$key],$_POST["tdfirst"][$key],$_POST["tdmin"][$key]);
 				
 			}
 			return '<div class="bootstrap"><div class="alert alert-success">'.$this->l('Configuration updated').'</div></div>';          
@@ -260,7 +269,7 @@ class Paytpv extends PaymentModule {
 		$carritos = class_registro::select();
 
 		$id_currency = intval(Configuration::get('PS_CURRENCY_DEFAULT'));
-		$currency_array =   Currency::getCurrencies($object = false, $active = 1);
+		$currency_array =   Currency::getCurrenciesByIdShop(Context::getContext()->shop->id);
 
 		$ssl = Configuration::get('PS_SSL_ENABLED');
 		// Set the smarty env
@@ -274,7 +283,7 @@ class Paytpv extends PaymentModule {
 		$this->context->smarty->assign('carritos', $carritos);
 		$this->context->smarty->assign('errorMessage',$errorMessage);
 
-		$this->context->smarty->assign('environment', (isset($_POST["environment"]))?$_POST["environment"]:$conf_values['PAYTPV_ENVIRONMENT']);
+		
 		$this->context->smarty->assign('integration', (isset($_POST["integration"]))?$_POST["integration"]:$conf_values['PAYTPV_INTEGRATION']);
 		$this->context->smarty->assign('clientcode', (isset($_POST["clientcode"]))?$_POST["clientcode"]:$conf_values['PAYTPV_CLIENTCODE']);
 
@@ -299,9 +308,12 @@ class Paytpv extends PaymentModule {
     function obtenerTerminalesConfigurados($params) {
     	if (isset($params["term"])){
     		foreach ($params["term"] as $key=>$term){
-    			$terminales[$key]["idterminal"] = $term;
+    			$terminales[$key]["idterminal"] = $params["term"][$key];
     			$terminales[$key]["password"] = $params["pass"][$key];
     			$terminales[$key]["jetid"] = $params["jetid"][$key];
+    			$terminales[$key]["idterminal_ns"] = $params["term_ns"][$key];
+    			$terminales[$key]["password_ns"] = $params["pass_ns"][$key];
+    			$terminales[$key]["jetid_ns"] = $params["jetid_ns"][$key];
     			$terminales[$key]["terminales"] = $params["terminales"][$key];
     			$terminales[$key]["tdfirst"] = $params["tdfirst"][$key];
     			$terminales[$key]["tdmin"] = $params["tdmin"][$key];
@@ -317,6 +329,9 @@ class Paytpv extends PaymentModule {
     			$terminales[0]["idterminal"] = "";
     			$terminales[0]["password"] = "";
     			$terminales[0]["jetid"] = "";
+    			$terminales[0]["idterminal_ns"] = "";
+    			$terminales[0]["password_ns"] = "";
+    			$terminales[0]["jetid_ns"] = "";
     			$terminales[0]["terminales"] = 0;
     			$terminales[0]["tdfirst"] = 1;
     			$terminales[0]["tdmin"] = 0;
@@ -356,7 +371,24 @@ class Paytpv extends PaymentModule {
 
 			$cart = Context::getContext()->cart;
 			$datos_pedido = $this->TerminalCurrency($cart);
+			$idterminal = $datos_pedido["idterminal"];
+			$idterminal_ns = $datos_pedido["idterminal_ns"];
 			$jetid = $datos_pedido["jetid"];
+			$jetid_ns = $datos_pedido["jetid_ns"];
+
+			$importe_tienda = $cart->getOrderTotal(true, Cart::BOTH);
+
+			if ($idterminal>0)
+				$secure_pay = $this->isSecureTransaction($idterminal,$importe_tienda,0)?1:0;
+			else
+				$secure_pay = $this->isSecureTransaction($idterminal_ns,$importe_tienda,0)?1:0;
+
+			// Miramos a ver por que terminal enviamos la operacion
+			if ($secure_pay){
+				$jetid_sel = $jetid;
+			}else{
+				$jetid_sel = $jetid_ns;
+			}
 
 			$this->context->smarty->assign('msg_paytpv',"");
 			
@@ -402,8 +434,12 @@ class Paytpv extends PaymentModule {
 			$this->context->smarty->assign('newpage_payment',$newpage_payment);
 			$this->context->smarty->assign('paytpv_integration',$paytpv_integration);
 
-			$this->context->smarty->assign('jet_id',$jetid);
-			$this->context->smarty->assign('jet_lang',$this->context->language->iso_code);
+			$this->context->smarty->assign('jet_id',$jetid_sel);
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
+
+			$this->context->smarty->assign('jet_lang',$language);
 
 			$this->context->smarty->assign('paytpv_jetid_url',Context::getContext()->link->getModuleLink($this->name, 'capture',array(),$ssl));
 
@@ -666,7 +702,9 @@ class Paytpv extends PaymentModule {
 		$importe = $datos_pedido["importe"];
 		$currency_iso_code = $datos_pedido["currency_iso_code"];
 		$idterminal = $datos_pedido["idterminal"];
+		$idterminal_ns = $datos_pedido["idterminal_ns"];
 		$pass = $datos_pedido["password"];
+		$pass_ns = $datos_pedido["password_ns"];
 
 
 		$values = array(
@@ -682,17 +720,33 @@ class Paytpv extends PaymentModule {
 
 		$paytpv_order_ref = str_pad($cart->id, 8, "0", STR_PAD_LEFT);
 
-		$secure_pay = $this->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		if ($idterminal>0)
+			$secure_pay = $this->isSecureTransaction($idterminal,$total_pedido,0)?1:0;
+		else
+			$secure_pay = $this->isSecureTransaction($idterminal_ns,$total_pedido,0)?1:0;
+
+		// Miramos a ver por que terminal enviamos la operacion
+		if ($secure_pay){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
+
+
+		$language_data = explode("-",$this->context->language->language_code);
+		$language = $language_data[0];
 
 		$OPERATION = "1";
 		// Cálculo Firma
-		$signature = md5($this->clientcode.$idterminal.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass));
+		$signature = md5($this->clientcode.$idterminal_sel.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass_sel));
 		$fields = array
 		(
 			'MERCHANT_MERCHANTCODE' => $this->clientcode,
-			'MERCHANT_TERMINAL' => $idterminal,
+			'MERCHANT_TERMINAL' => $idterminal_sel,
 			'OPERATION' => $OPERATION,
-			'LANGUAGE' => $this->context->language->iso_code,
+			'LANGUAGE' => $language,
 			'MERCHANT_MERCHANTSIGNATURE' => $signature,
 			'MERCHANT_ORDER' => $paytpv_order_ref,
 			'MERCHANT_AMOUNT' => $importe,
@@ -704,12 +758,8 @@ class Paytpv extends PaymentModule {
 
 		$query = http_build_query($fields);
 
-		if ($this->environment!=1)
-			$url_paytpv = $this->url_paytpv . "?".$query;
-		// Test Mode
-		else
-			$url_paytpv = Context::getContext()->link->getModuleLink($this->name, 'urltestmode',$fields,$ssl);
-
+		$url_paytpv = $this->url_paytpv . "?".$query;
+		
 		return $url_paytpv;
 	}
 
@@ -734,8 +784,11 @@ class Paytpv extends PaymentModule {
 		}
 
 		$arrDatos["idterminal"] = $result["idterminal"];
+		$arrDatos["idterminal_ns"] = $result["idterminal_ns"];
 		$arrDatos["password"] = $result["password"];
+		$arrDatos["password_ns"] = $result["password_ns"];
 		$arrDatos["jetid"] = $result["jetid"];
+		$arrDatos["jetid_ns"] = $result["jetid_ns"];
 		$arrDatos["currency_iso_code"] = $this->context->currency->iso_code;
 		$arrDatos["importe"] = number_format($cart->getOrderTotal(true, Cart::BOTH) * 100, 0, '.', '');
 		
@@ -824,9 +877,10 @@ class Paytpv extends PaymentModule {
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
 				$status = $this->l('ENDED');
                                
-			
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
 
-			$date_YYYYMMDD = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+			$date_YYYYMMDD = ($language=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
 
 
 			$this->context->smarty->assign('suscription_type', $suscription_type);
@@ -845,19 +899,13 @@ class Paytpv extends PaymentModule {
 
 	}
 	private function getConfigValues(){
-		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_ENVIRONMENT', 'PAYTPV_INTEGRATION', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_NEWPAGEPAYMENT', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
+		return Configuration::getMultiple(array('PAYTPV_CLIENTCODE', 'PAYTPV_INTEGRATION', 'PAYTPV_COMMERCEPASSWORD', 'PAYTPV_NEWPAGEPAYMENT', 'PAYTPV_SUSCRIPTIONS','PAYTPV_REG_ESTADO'));
 	}
 	
 	public function saveCard($id_customer,$paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand){
 
 		$paytpv_cc = '************' . substr($paytpv_cc, -4);
 
-		// Test Mode
-		// First 100.000 paytpv_iduser for Test_Mode
-		if ($this->environment==1){
-			$paytpv_iduser = Paytpv_Customer::get_Customer();
-			$paytpv_tokenuser = "TESTTOKEN";
-		}
 
 		Paytpv_Customer::add_Customer($paytpv_iduser,$paytpv_tokenuser,$paytpv_cc,$paytpv_brand,$id_customer);
 
@@ -939,10 +987,16 @@ class Paytpv extends PaymentModule {
 			$paytpv_iduser = $result["paytpv_iduser"];
 			$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
-			// Test Mode
-			if ($this->environment==1){
-				$result['DS_RESPONSE']=1;
-			}else{
+			$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+
+			if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 && $arrTerminal["idterminal_ns"]>0){
+				$client = new WS_Client(
+					array(
+						'clientcode' => $this->clientcode,
+						'term' => $arrTerminal["idterminal_ns"],
+						'pass' => $arrTerminal["password_ns"]
+					)
+				);
 				$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
 			}
 
@@ -975,28 +1029,18 @@ class Paytpv extends PaymentModule {
 			$paytpv_iduser = $result["paytpv_iduser"];
 			$paytpv_tokenuser = $result["paytpv_tokenuser"];
 
-			// Test Mode
-			if ($this->environment==1){
-				// Operacion realizada en Modo Test
-				if ($paytpv_tokenuser=="TESTTOKEN"){
-					$result[ 'DS_RESPONSE' ] = 1;
-					$response["error"] = 0;
-					$response["txt"] = $this->l('OK');
-				// Operacion real
-				}else{
-					$result[ 'DS_RESPONSE' ] = 0;
-					$response["error"] = 1;
-					$response["txt"] = $this->l('Test mode does not support returns orders placed in Real Mode');
-				}
-			}else{
-				if ($paytpv_tokenuser=="TESTTOKEN"){
-					$result[ 'DS_RESPONSE' ] = 1;
-				// Operacion real
-				}else{
-					$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
-				}	
+			$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
+			if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 && $arrTerminal["idterminal_ns"]>0){
+				$client = new WS_Client(
+					array(
+						'clientcode' => $this->clientcode,
+						'term' => $arrTerminal["idterminal_ns"],
+						'pass' => $arrTerminal["password_ns"]
+					)
+				);
+				$result = $client->remove_subscription( $paytpv_iduser, $paytpv_tokenuser);
 			}
-			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ) {
+			if ( ( int ) $result[ 'DS_RESPONSE' ] == 1 ){
 				Paytpv_Suscription::cancel_Suscription((int)$this->context->customer->id,$id_suscription);
 				$response["error"] = 0;
 			}else{
@@ -1076,38 +1120,41 @@ class Paytpv extends PaymentModule {
 				'pass' => $arrTerminal["password"]
 			)
 		);
-	
-		// Test Mode
-		// Se devuelven solo las operaciones realizadas en modo Test
-		if ($this->environment==1){
-			// Operacion realizada en Modo Test
-			if ($authcode=="Test_mode"){
-				$result[ 'DS_RESPONSE' ] = 1;
-				$response["error"] = 0;
-				$response["txt"] = $this->l('OK');
-			// Operacion real
-			}else{
-				$result[ 'DS_RESPONSE' ] = 1;
-				$response["error"] = 1;
-				$response["txt"] = $this->l('Test mode does not support returns orders placed in Real Mode');
-			}
-		}else{
-			// Refund amount of transaction
+		
+		// Refund amount of transaction
+		$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency_iso_code, $authcode, $amount);
+
+		$refund_txt = $this->l('OK');
+		$response["error"] = 0;
+		$response["txt"] = $this->l('OK');
+
+		// If idterminal_ns is not null make refund by other terminal
+		if ($result[ 'DS_ERROR_ID']==130 && $arrTerminal["idterminal_ns"]>0){
+			$client = new WS_Client(
+				array(
+					'clientcode' => $this->clientcode,
+					'term' => $arrTerminal["idterminal_ns"],
+					'pass' => $arrTerminal["password_ns"]
+				)
+			);
+			
 			$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency_iso_code, $authcode, $amount);
 			$refund_txt = $this->l('OK');
 			$response["error"] = 0;
 			$response["txt"] = $this->l('OK');
 
-			// If is a subscription and error y initial refund.
-			if ($result[ 'DS_ERROR_ID']==130){
-				$paytpv_order_ref .= "[" . $paytpv_iduser . "]" . $paytpv_date;
-				// Refund amount of transaction
-				$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency_iso_code, $authcode, $amount);
-				$refund_txt = $this->l('OK');
-				$response["error"] = 0;
-				$response["txt"] = $this->l('OK');
-			}
 		}
+
+		// If is a subscription and error y initial refund.
+		if ($result[ 'DS_ERROR_ID']==130){
+			$paytpv_order_ref .= "[" . $paytpv_iduser . "]" . $paytpv_date;
+			// Refund amount of transaction
+			$result = $client->execute_refund($paytpv_iduser, $paytpv_tokenuser, $paytpv_order_ref, $currency_iso_code, $authcode, $amount);
+			$refund_txt = $this->l('OK');
+			$response["error"] = 0;
+			$response["txt"] = $this->l('OK');
+		}
+		
 		if ( ( int ) $result[ 'DS_RESPONSE' ] != 1 ){
 			$response["txt"] = $this->l('ERROR') . " " . $result[ 'DS_ERROR_ID'];
 			$response["error"] = 1;
@@ -1192,8 +1239,11 @@ class Paytpv extends PaymentModule {
 				$status = $this->l('CANCELLED');
 			else if ($num_pagos==$result['cycles'] && $result['cycles']>0)	
 				$status = $this->l('ENDED');
+
+			$language_data = explode("-",$this->context->language->language_code);
+			$language = $language_data[0];
                                
-			$date_YYYYMMDD = ($this->context->language->iso_code=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
+			$date_YYYYMMDD = ($language=="es")?date("d-m-Y",strtotime($result['date'])):date("Y-m-d",strtotime($result['date']));
 
 
 			$this->context->smarty->assign('suscription_type', $suscription_type);
@@ -1377,9 +1427,10 @@ class Paytpv extends PaymentModule {
 
 		$paytpv_order_ref = str_pad((int)$order->id_cart, 8, "0", STR_PAD_LEFT);
 
+
 		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$order->id,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount,0);
 		$refund_txt = $response["txt"];
-		$message = $this->l('PayTPV Total Refund ').  ", " . $total_pending . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
+		$message = $this->l('PayTPV Total Refund ').  ", " . $total_pending . " " . $currency->sign . " [" . $order->id . "]" .  '<br>';
 		if ($response['error'] == 0)
 		{
 			if (!Paytpv_Order::set_Order_Refunded($id_order))

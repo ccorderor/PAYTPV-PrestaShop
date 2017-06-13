@@ -43,6 +43,8 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 
 		parent::initContent();
 
+		$paytpv = $this->module;
+
 		$this->context->smarty->assign('msg_paytpv',"");
 		
 		$msg_paytpv = "";
@@ -77,7 +79,22 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 
 		$cart = Context::getContext()->cart;
 		$datos_pedido = $this->module->TerminalCurrency($cart);
+		$idterminal = $datos_pedido["idterminal"];
+		$idterminal_ns = $datos_pedido["idterminal_ns"];
 		$jetid = $datos_pedido["jetid"];
+		$jetid_ns = $datos_pedido["jetid_ns"];
+
+		if ($idterminal>0)
+			$secure_pay = $paytpv->isSecureTransaction($idterminal,$importe_tienda,0)?1:0;
+		else
+			$secure_pay = $paytpv->isSecureTransaction($idterminal_ns,$importe_tienda,0)?1:0;
+
+		// Miramos a ver por que terminal enviamos la operacion
+		if ($secure_pay){
+			$jetid_sel = $jetid;
+		}else{
+			$jetid_sel = $jetid_ns;
+		}
 
 
 		$newpage_payment = intval(Configuration::get('PAYTPV_NEWPAGEPAYMENT'));
@@ -86,8 +103,12 @@ class PaytpvPaymentModuleFrontController extends ModuleFrontController
 		$this->context->smarty->assign('newpage_payment',$newpage_payment);
 		$this->context->smarty->assign('paytpv_integration',$paytpv_integration);
 
-		$this->context->smarty->assign('jet_id',$jetid);
-		$this->context->smarty->assign('jet_lang',$this->context->language->iso_code);
+		$this->context->smarty->assign('jet_id',$jetid_sel);
+
+		$language_data = explode("-",$this->context->language->language_code);
+		$language = $language_data[0];
+
+		$this->context->smarty->assign('jet_lang',$language);
 
 		$this->context->smarty->assign('paytpv_jetid_url',Context::getContext()->link->getModuleLink($this->module->name, 'capture',array(),$ssl));
 
