@@ -918,12 +918,23 @@ class Paytpv extends PaymentModule {
 	
 	public function remove_user($paytpv_iduser,$paytpv_tokenuser){
 		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
+		$idterminal = $arrTerminal["idterminal"];
+		$idterminal_ns = $arrTerminal["idterminal_ns"];
+		$pass = $arrTerminal["password"];
+		$pass_ns = $arrTerminal["password_ns"];
+		if ($idterminal>0){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
 		
 		$client = new WS_Client(
 			array(
 				'clientcode' => $this->clientcode,
-				'term' => $arrTerminal["idterminal"],
-				'pass' => $arrTerminal["password"]
+				'term' => $idterminal_sel,
+				'pass' => $pass_sel
 			)
 		);
 
@@ -935,19 +946,28 @@ class Paytpv extends PaymentModule {
 	public function removeCard($paytpv_iduser){
 
 		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
+		$idterminal = $arrTerminal["idterminal"];
+		$idterminal_ns = $arrTerminal["idterminal_ns"];
+		$pass = $arrTerminal["password"];
+		$pass_ns = $arrTerminal["password_ns"];
+		if ($idterminal>0){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
 
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
 		$client = new WS_Client(
 			array(
 				'clientcode' => $this->clientcode,
-				'term' => $arrTerminal["idterminal"],
-				'pass' => $arrTerminal["password"]
+				'term' => $idterminal_sel,
+				'pass' => $pass_sel
 			)
 		);
-		// Datos usuario
 
-		
 		$result = Paytpv_Customer::get_Customer_Iduser($paytpv_iduser);
 		if (empty($result) === true){
 			return false;
@@ -965,18 +985,29 @@ class Paytpv extends PaymentModule {
 
 	
 	public function removeSuscription($id_suscription){
-
 		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
-		
+		$idterminal = $arrTerminal["idterminal"];
+		$idterminal_ns = $arrTerminal["idterminal_ns"];
+		$pass = $arrTerminal["password"];
+		$pass_ns = $arrTerminal["password_ns"];
+		if ($idterminal>0){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
+
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
 		$client = new WS_Client(
 			array(
 				'clientcode' => $this->clientcode,
-				'term' => $arrTerminal["idterminal"],
-				'pass' => $arrTerminal["password"]
+				'term' => $idterminal_sel,
+				'pass' => $pass_sel
 			)
 		);
+
 		// Datos usuario
 
 		$result = Paytpv_Suscription::get_Suscription_Id((int)$this->context->customer->id,$id_suscription);
@@ -1011,14 +1042,25 @@ class Paytpv extends PaymentModule {
 
 	public function cancelSuscription($id_suscription){
 		$arrTerminal = Paytpv_Terminal::getTerminalByCurrency($this->context->currency->iso_code);
+		$idterminal = $arrTerminal["idterminal"];
+		$idterminal_ns = $arrTerminal["idterminal_ns"];
+		$pass = $arrTerminal["password"];
+		$pass_ns = $arrTerminal["password_ns"];
+		if ($idterminal>0){
+			$idterminal_sel = $idterminal;
+			$pass_sel = $pass;
+		}else{
+			$idterminal_sel = $idterminal_ns;
+			$pass_sel = $pass_ns;
+		}
 
 		include_once(_PS_MODULE_DIR_.'/paytpv/ws_client.php');
 
 		$client = new WS_Client(
 			array(
 				'clientcode' => $this->clientcode,
-				'term' => $arrTerminal["idterminal"],
-				'pass' => $arrTerminal["password"]
+				'term' => $idterminal_sel,
+				'pass' => $pass_sel
 			)
 		);
 		// Datos usuario
@@ -1430,7 +1472,7 @@ class Paytpv extends PaymentModule {
 
 		$response = $this->_makeRefund($paytpv_iduser,$paytpv_tokenuser,$order->id,$paytpv_order_ref,$paytpv_date,$currency->iso_code,$authcode,$amount,0);
 		$refund_txt = $response["txt"];
-		$message = $this->l('PayTPV Total Refund ').  ", " . $total_pending . " " . $currency->sign . " [" . $order->id . "]" .  '<br>';
+		$message = $this->l('PayTPV Total Refund ').  ", " . $total_pending . " " . $currency->sign . " [" . $refund_txt . "]" .  '<br>';
 		if ($response['error'] == 0)
 		{
 			if (!Paytpv_Order::set_Order_Refunded($id_order))
