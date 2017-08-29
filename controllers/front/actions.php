@@ -164,6 +164,10 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			$language_data = explode("-",$this->context->language->language_code);
 			$language = $language_data[0];
 
+			$score = $paytpv->transactionScore($cart);
+        	$MERCHANT_SCORING = $score["score"];
+        	$MERCHANT_DATA = $score["merchantdata"];
+
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
@@ -179,12 +183,21 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'3DSECURE' => $secure_pay
 			);
 
-			$query = http_build_query($fields);
+			if ($MERCHANT_SCORING!=null)        $fields["MERCHANT_SCORING"] = $MERCHANT_SCORING;
+        	if ($MERCHANT_DATA!=null)           $fields["MERCHANT_DATA"] = $MERCHANT_DATA;
+
+        	$query = http_build_query($fields);
 
 			$url_paytpv = $paytpv->url_paytpv . "?".$query;
+
+			$vhash = hash('sha512', md5($query.md5($pass_sel))); 
+
+			$url_paytpv = $paytpv->url_paytpv . "?".$query . "&VHASH=".$vhash;
+
 			
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;
+
 		}
 		
 		print json_encode($arrReturn);
@@ -306,6 +319,10 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 			$language_data = explode("-",$this->context->language->language_code);
 			$language = $language_data[0];
 
+			$score = $paytpv->transactionScore($cart);
+	        $MERCHANT_SCORING = $score["score"];
+	        $MERCHANT_DATA = $score["merchantdata"];
+
 			$fields = array
 			(
 				'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
@@ -323,9 +340,17 @@ class PaytpvActionsModuleFrontController extends ModuleFrontController
 				'URLKO' => $URLKO,
 				'3DSECURE' => $secure_pay
 			);
+
+			if ($MERCHANT_SCORING!=null)        $fields["MERCHANT_SCORING"] = $MERCHANT_SCORING;
+        	if ($MERCHANT_DATA!=null)           $fields["MERCHANT_DATA"] = $MERCHANT_DATA;
+
 			$query = http_build_query($fields);
 
 			$url_paytpv = $paytpv->url_paytpv . "?".$query;
+
+			$vhash = hash('sha512', md5($query.md5($pass_sel))); 
+
+			$url_paytpv = $paytpv->url_paytpv . "?".$query . "&VHASH=".$vhash;
 			
 			$arrReturn["error"] = 0;
 			$arrReturn["url"] = $url_paytpv;

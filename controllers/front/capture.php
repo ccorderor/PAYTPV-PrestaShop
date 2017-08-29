@@ -150,7 +150,11 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
         }
 		
 		// Si el cliente solo tiene un terminal seguro, el segundo pago va siempre por seguro.
-		// Si tiene un terminal NO Seguro ó ambos, el segundo pago siempre lo mandamos por NO Seguro	
+		// Si tiene un terminal NO Seguro ó ambos, el segundo pago siempre lo mandamos por NO Seguro
+
+		$score = $paytpv->transactionScore($this->context->cart);
+		$MERCHANT_SCORING = $score["score"];
+		$MERCHANT_DATA = $score["merchantdata"];
 			
 		if ($secure_pay){
 
@@ -184,6 +188,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				$OPERATION = "110";
 				$signature = md5($paytpv->clientcode.$data["IDUSER"].$data['TOKEN_USER'].$idterminal_sel.$OPERATION.$paytpv_order_ref.$importe.$currency_iso_code.md5($pass_sel));
 
+
 				$fields = array
 				(
 					'MERCHANT_MERCHANTCODE' => $paytpv->clientcode,
@@ -203,6 +208,7 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 					'URLKO' => $URLKO,
 					'3DSECURE' => $secure_pay
 				);
+
 			}else{
 
 				$OPERATION = "109"; //exec_purchase_token
@@ -225,12 +231,20 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 						'URLKO' => $URLKO
 					);
 			}
-				
+
+			if ($MERCHANT_SCORING!=null)        $fields["MERCHANT_SCORING"] = $MERCHANT_SCORING;
+        	if ($MERCHANT_DATA!=null)           $fields["MERCHANT_DATA"] = $MERCHANT_DATA;
+			
+
 			$query = http_build_query($fields);
 
-			$salida = $paytpv->url_paytpv . "?".$query;
+			$vhash = hash('sha512', md5($query.md5($pass_sel))); 
+
+			$salida = $paytpv->url_paytpv . "?".$query . "&VHASH=".$vhash;
 			
 			header('Location: '.$salida);
+
+
 			exit;
 		}
 		/* FIN AÑADIDO */
@@ -244,7 +258,6 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 		);
 		$paytpv_order_ref = str_pad($this->context->cart->id, 8, "0", STR_PAD_LEFT);
 		
-
 
 		if ($jetPayment && (isset($_POST["suscription"]) && $_POST["suscription"]==1)){
 			$subscription_startdate = date("Y-m-d");
@@ -260,9 +273,9 @@ class PaytpvCaptureModuleFrontController extends ModuleFrontController
 				$subscription_enddate = date('Y-m-d', strtotime("+".$dias_subscription." days"));
 			}
 			
-			$charge = $client->create_subscription_token( $data['IDUSER'],$data['TOKEN_USER'],$currency_iso_code,$importe,$paytpv_order_ref,$subscription_startdate,$subscription_enddate,$susc_periodicity);
+			$charge = $client->create_subscription_token( $data['IDUSER'],$data['TOKEN_USER'],$currency_iso_code,$importe,$paytpv_order_ref,$subscription_startdate,$subscription_enddate,$susc_periodicity,$MERCHANT_SCORING,$MERCHANT_DATA);
 		}else{
-			$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$idterminal_sel,$currency_iso_code,$importe,$paytpv_order_ref);
+			$charge = $client->execute_purchase( $data['IDUSER'],$data['TOKEN_USER'],$idterminal_sel,$currency_iso_code,$importe,$paytpv_order_ref,$MERCHANT_SCORING,$MERCHANT_DATA);
 		}
 		
 		if ( (isset($charge[ 'DS_RESPONSE' ]) && ( int )$charge[ 'DS_RESPONSE' ] == 1) || $charge[ 'DS_ERROR_ID' ] == 0) {
