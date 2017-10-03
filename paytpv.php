@@ -957,13 +957,17 @@ class Paytpv extends PaymentModule {
 		}).call(this);
 
 		$(document).ready(function() {
+			var oldLength = 0;
 			$('#expiry_date').on('input',function(){
 				var curLength = $(this).val().length;
-				if(curLength === 2){
-					var newInput = $(this).val();
-					newInput += '/';
-					$(this).val(newInput);
-				}
+	        if(!$(this).val().match(/[/]/)) {
+	          if((curLength === 2) && (oldLength<curLength) ){
+	            var newInput = $(this).val();
+	            newInput += '/';
+	            $(this).val(newInput);
+	          }
+	        }
+        	oldLength = curLength;
 			});
 		})";
 		return Minifier::minify($js_code);
